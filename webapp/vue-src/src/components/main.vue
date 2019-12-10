@@ -158,7 +158,7 @@ export default {
       var meanStatus;
       axios
         .get(
-          "http://127.0.0.1:3200/check/info/tracking?tracking=" +
+          "https://tool.945parcel.com/check/info/tracking?tracking=" +
             this.trackingInput.toUpperCase()
         )
         .then(response => {
@@ -277,7 +277,7 @@ export default {
             previous_value:this.order_status,
             user:'1'
           }
-          axios.post("http://127.0.0.1:3200/save/cancel/tracking" ,data)
+          axios.post("https://tool.945parcel.com/save/cancel/tracking" ,data)
           .then(response => {
             if(response.data.status=='SUCCESS'){
               alert(
@@ -291,7 +291,7 @@ export default {
           });
         } else if (this.selectValue == 2) {
           // this.receiverPhoneEdit = false;
-          alert("เปลี่ยนแปลงเบอร์โทรศัพท์ของผู้รับ",this.phone);
+          alert("เปลี่ยนแปลงเบอร์โทรศัพท์ของผู้รับ"+this.phone);
         } else {
           alert("hello2");
           window.location.reload();

@@ -1,13 +1,15 @@
 const express = require("express");
 const request = require('request');
+const path = require('path');
 const app = express();
 const moment = require('moment');
 const port = process.env.PORT || 3200;
 moment.locale('th')
 app.use(express.json());
+app.use(express.static("public"));
 
-const mainServices = require('./services/mainService.js.js');
-const parcelServices = require('./services/parcelService.js.js');
+const mainServices = require('./services/mainService.js');
+const parcelServices = require('./services/parcelService.js');
 
 app.use(function(req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
@@ -16,8 +18,12 @@ app.use(function(req, res, next) {
     next()
 })
 
-app.get("/", function (req, res) {
-  res.json({ 'hello': 'World' });
+// app.get("/", function (req, res) {
+//   res.json({ 'hello': 'World' });
+// });
+
+app.get("/", function(req, res) {
+    res.sendFile(path.resolve("public/index.html"));
 });
 
 app.get("/check/info/tracking", function (req, res) {
