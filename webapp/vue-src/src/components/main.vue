@@ -22,10 +22,11 @@
             </button>
             &nbsp;
             <!-- <button v-on:click="rotateRight"><i class="fa fa-repeat" style="font-size: 20px;"></i></button> -->
-            <button v-on:click="rotateLeft">
+            <button v-on:click="rotateRight">
               <img style="width: 20px" src="../assets/right.png" />
             </button>
           </div>
+          
         </div>
       </div>
       <div class="center">
@@ -75,17 +76,25 @@
         </div>
 
         <div>
-          <b>Receiver Name:</b>
-          <input :disabled="billingInfo" v-model="receiver_name" />
+          <b>Receiver Firstname:</b>
+          <input :disabled="receiverFNameEdit" ref="receiverFNameEdit" v-model="receiver_first_name" />
+        </div>
+        <div>
+          <b>Receiver Lastname:</b>
+          <input :disabled="receiverLNameEdit" ref="receiverLNameEdit" v-model="receiver_last_name" />
         </div>
 
         <div>
           <b>Receiver Phone:</b>
-          <input :disabled="receiverPhoneEdit" ref="receiverPhoneEdit" v-model="phone" />
+          <input maxlength="10" :disabled="receiverPhoneEdit" ref="receiverPhoneEdit" v-model="phone" />
         </div>
         <div>
           <b>Receiver Address:</b>
-          <textarea :disabled="billingInfo" v-model="receiver_address" />
+          <input :disabled="receiverAddressEdit" ref="receiverAddressEdit" v-model="receiver_address" />
+        </div>
+        <div>
+          <b>Location:</b>
+          <input :disabled="billingInfo" v-model="location" />
         </div>
         <div>
           <b>Zipcode:</b>
@@ -105,10 +114,7 @@
       <!-- <select class="select" v-model="selectValue"> -->
         <option value disabled selected>-----เลือก Tools-----</option>
         <option value="1">ยกเลิก Tracking</option>
-        <option value="2">เปลี่ยนแปลงเบอร์โทรศัพท์ผู้รับ</option>
-        <!-- <option>3</option>
-        <option>13</option>
-        <option>14</option>-->
+        <option value="2">เปลี่ยนแปลงข้อมูลผู้รับ</option>
       </select>
     </div>
     <div class="group-btn">
@@ -135,9 +141,12 @@ export default {
       sender_name: "",
       sender_phone: "",
       sender_address: "",
-      receiver_name: "",
+      previous_value: "",
+      receiver_first_name:"",
+      receiver_last_name:"",
       phone: "",
       receiver_address: "",
+      location:"",
       br_zipcode: "",
       br_parcel_type: "",
 
@@ -150,7 +159,10 @@ export default {
         "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC",
       rotation: 0,
 
-      receiverPhoneEdit: true
+      receiverFNameEdit:true,
+      receiverLNameEdit:true,
+      receiverPhoneEdit: true,
+      receiverAddressEdit:true
     };
   },
   methods: {
@@ -175,19 +187,22 @@ export default {
             this.sender_name = this.billingInfo[0].sender_name;
             this.sender_phone = this.billingInfo[0].sender_phone;
             this.sender_address = this.billingInfo[0].sender_address;
-            this.receiver_name = this.billingInfo[0].receiver_name;
+
+            var receiver_name = this.billingInfo[0].receiver_name;
+            var res = receiver_name.split(" ");
+            this.receiver_first_name=res[0];
+            this.receiver_last_name=res[1];
+
             this.phone = this.billingInfo[0].phone;
-            this.receiver_address =
-              this.billingInfo[0].receiver_address +
-              " " +
-              this.billingInfo[0].district_name +
-              " " +
-              this.billingInfo[0].amphur_name +
-              " " +
-              this.billingInfo[0].province_name;
-            // this.district_name=this.billingInfo[0].district_name;
-            // this.amphur_name=this.billingInfo[0].amphur_name;
-            // this.province_name=this.billingInfo[0].province_name;
+            this.receiver_address =this.billingInfo[0].receiver_address;
+
+            this.previous_value=receiver_name+"/"+this.phone+"/"+this.receiver_address;
+
+            this.location=this.billingInfo[0].district_name +
+                          " " +
+                          this.billingInfo[0].amphur_name +
+                          " " +
+                          this.billingInfo[0].province_name;
             this.br_zipcode = this.billingInfo[0].br_zipcode;
             this.br_parcel_type = this.billingInfo[0].br_parcel_type;
 
@@ -234,11 +249,30 @@ export default {
         });
     },
     selectTools(){
-      if (this.selectValue == 1) {
-        this.receiverPhoneEdit = true;
-      } else if (this.selectValue == 2) {
-        this.receiverPhoneEdit = false;
-      }
+      if(this.tracking==""){
+          alert(
+            "กรุณาระบุ Tracking เพื่อทำรายการ"
+          );
+          this.selectValue = "";
+        } else {
+          if (this.selectValue == 1) {
+            this.receiverFNameEdit= true;
+            this.receiverLNameEdit= true;
+            this.receiverPhoneEdit = true;
+            this.receiverAddressEdit= true;
+            this.getData();
+          } else if (this.selectValue == 2) {
+            this.receiverFNameEdit= false;
+            this.receiverLNameEdit= false;
+            this.receiverPhoneEdit = false;
+            this.receiverAddressEdit= false;
+          } else {
+            this.receiverFNameEdit= true;
+            this.receiverLNameEdit= true;
+            this.receiverPhoneEdit = true;
+            this.receiverAddressEdit= true;
+          }
+        }
     },
     confirmSelectTools() {
       if(this.selectValue==""){
@@ -290,8 +324,42 @@ export default {
             console.log(error);
           });
         } else if (this.selectValue == 2) {
-          // this.receiverPhoneEdit = false;
-          alert("เปลี่ยนแปลงเบอร์โทรศัพท์ของผู้รับ"+this.phone);
+          var phone=this.phone;
+          if(this.receiver_first_name =="") {
+            alert("กรุณากรอก ชื่อผู้รับ ให้ถูกต้อง");
+          } else if(this.receiver_last_name ==""){
+            alert("กรุณากรอก นามสกุลผู้รับ ให้ถูกต้อง");
+          } else if(phone[0]+phone[1] != '06' && phone[0]+phone[1] != '08'&& phone[0]+phone[1] != '09'){
+            alert("กรุณากรอก เบอร์โทรศัทพ์ผู้รับ เท่านั้น");
+          } else if(phone.length<10){
+            alert("กรุณากรอก เบอร์โทรศัพท์ ให้ถูกต้อง");
+          } else{
+            var dataReceiver={
+                tracking:this.tracking,
+                billing_no:this.billing_no,
+                previous_value:this.previous_value,
+                current_value:{
+                  first_name:this.receiver_first_name,
+                  last_name:this.receiver_last_name,
+                  phone:this.phone,
+                  address:this.receiver_address
+                },
+                user:'1'
+              };
+                axios.post("https://tool.945parcel.com/update/receiver/info" ,dataReceiver)
+                .then(response => {
+                  if(response.data.status=='SUCCESS'){
+                    alert(
+                      "แก้ไขข้อมูลผู้รับเรียบร้อยแล้ว"
+                    );
+                    window.location.reload();
+                  }
+                })
+                .catch(function(error) {
+                  console.log(error);
+                });
+          }
+          
         } else {
           alert("hello2");
           window.location.reload();
@@ -362,6 +430,9 @@ export default {
   }
 }
 .content {
+  .left{
+    border: 1px solid #000;
+  }
   .center,
   .right {
     border: 1px solid #000;
@@ -374,7 +445,6 @@ export default {
 
   input {
     background: none;
-    // color: blue;
     border: none;
     border-bottom: 1px solid #000;
     width: 100%;
@@ -386,13 +456,7 @@ export default {
     color: #9e9e9e;
   }
   input:enabled {
-    // border: 2px solid #181a92;
     background: #dfdfdf;
-    // color: #000;
-    // height: 30px;
-    // font-size: 100%;
-    // outline: #3747ac;
-    // border: 1px solid #3747ac;
     font-size: 14px;
   }
   textarea {
@@ -412,7 +476,6 @@ export default {
 }
 .left {
   .item2 {
-    border: 1px solid #000;
     padding: 10px 10px;
     .v-zoomer {
       padding: 5px;
@@ -422,6 +485,9 @@ export default {
       background: #fff;
     }
 
+    .btnOption{
+      text-align: center;
+    }
     button {
       background-color: #3747ac;
       border: none;

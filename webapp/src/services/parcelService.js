@@ -35,9 +35,42 @@ module.exports = {
             });
         })
     },
+    getListTrackingNotMatch:()=>{
+        return new Promise(function(resolve, reject) {
+            let sql = "SELECT bi.tracking FROM billing_item bi "+
+            "JOIN billing_receiver_info br ON bi.tracking=br.tracking "+
+            "WHERE bi.zipcode != br.zipcode OR bi.parcel_type != br.parcel_type"
+            parcel_connection.query(sql, (error, results, fields) => {
+                if(results.length==0){
+                    resolve(false);
+                } else {
+                    resolve(results);
+                }
+            });
+        })
+    },
+
+    parcelSizeList:(zone)=>{
+        return new Promise(function(resolve, reject) {
+            let sql = "SELECT alias_size FROM size_info GROUP BY alias_size ORDER BY min(parcel_price) ASC"
+            parcel_connection.query(sql, (error, results, fields) => {
+                if(results.length==0){
+                    resolve(false);
+                } else {
+                    resolve(results);
+                }
+            });
+        })
+    },
     updateStatusReceiver: (tracking) => {
         return new Promise(function(resolve, reject) {
             let sql = "UPDATE billing_receiver_info SET status='cancel' WHERE tracking='"+tracking+"'"
+            parcel_connection.query(sql, (error, results, fields) => {});
+        })
+    },
+    updateReceiverInfo:(tracking,receiver_name,phone,address)=>{
+        return new Promise(function(resolve, reject) {
+            let sql = "UPDATE billing_receiver_info SET receiver_name='"+receiver_name+"',phone='"+phone+"',receiver_address='"+address+"' WHERE tracking='"+tracking+"'"
             parcel_connection.query(sql, (error, results, fields) => {});
         })
     },
