@@ -1,51 +1,47 @@
 <template>
   <div>
-    <section v-if="menu == 1" class="table">
+    <section v-if="inMenu == 1  || inMenu == 2.5"  class="table">
       <table>
         <thead>
           <td>Tracking</td>
         </thead>
-        <tbody>
+        <tbody>       
           <tr v-for="(item, index) in listTracking" v-bind:key="item.id">
             <td v-on:click="select(item)">{{listTracking[index].tracking}}</td>
           </tr>
         </tbody>
       </table>
     </section>
-
-    <section v-if="menu == 2">
-      <div class="item">
-        <CompareData v-bind:selectedTracking="tracking"></CompareData>
-      </div>
-    </section>
   </div>
 </template>
 
 <script>
 const axios = require("axios");
-import CompareData from "../components/CompareData";
 export default {
   components: {
-    CompareData
+    // CompareData
   },
   data: function() {
     return {
-      menu: 1,
+      inMenu: 1,
       listTracking: [],
-      tracking: ""
+      tracking: "",
     };
   },
     mounted(){
-        this.getlistTracking();
+      this.inMenu = 2.5;
+      this.getlistTracking();
     },
   methods: {
     select(item) {
-      this.tracking = item;
-      this.menu = 2;
+      var trackingSend = item.tracking;
+      this.$router.push({name:'CompareData',params:{tracking:trackingSend}});
+      this.inMenu = 2;
     },
     getlistTracking() {
+      this.listTracking=[]
       axios
-        .get("http://127.0.0.1:3200/tools/list/tracking")
+        .get("https://tool.945parcel.com/tools/list/tracking")
         .then(response => {
             if(response.data.status=='SUCCESS'){
                 this.listTracking=response.data.listTracking;
@@ -59,7 +55,7 @@ export default {
         });
     },
     back() {
-      this.menu = 1;
+      this.inMenu = 1;
     }
   }
 };
@@ -90,5 +86,18 @@ export default {
 .item {
   padding: 20px;
   border: 2px solid #000;
+}
+
+.btnBack{
+  padding: 5px 10px;
+  margin: 0 10px 10px 10px;
+  border: 1px solid red;
+  color: red;
+  cursor: pointer;
+  outline: none;
+  &:hover{
+    color: #fff;
+    background-color: red;
+  }
 }
 </style>
