@@ -11,6 +11,7 @@ const routes = [
     },
     {
         path: "/listtracking",
+        name: 'ListTracking',
         component: () => import("../components/ListTracking.vue"),
         hidden: true
     },
@@ -21,7 +22,7 @@ const routes = [
         hidden: true
     },
     {
-        path: "/cancelbill",
+        path: "/cancelbillno",
         name: 'CancelBill',
         component: () => import("../components/CancelBillNo.vue"),
         hidden: true

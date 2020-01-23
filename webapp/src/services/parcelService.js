@@ -41,8 +41,8 @@ module.exports = {
       });
     });
   },
-  getBillingInfo: billing => {
-    let sql = "SELECT billing_no,status FROM billing_test WHERE billing_no=?";
+  getBillingInfo: (billing) => {
+    let sql = "SELECT billing_no,status FROM billing WHERE billing_no=?";
     let data = [billing];
 
     let sqlItem = "SELECT count(tracking) as cTracking FROM billing_item WHERE billing_no=?";
@@ -50,15 +50,17 @@ module.exports = {
 
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql, data, (err, results) => {
+        
         if (err === null) {
           if (results.length == 0) {
             resolve(false);
           } else {
             parcel_connection.query(sqlItem, dataItem, (err, resultsItem) => {
-              // console.log(resultsItem)
+              
               var dataResult={
-                billingInfo:results,
-                countTracking:resultsItem.cTracking
+                billingNo:results[0].billing_no,
+                billingStatus: results[0].status,
+                countTracking:resultsItem[0].cTracking
               }
               resolve(dataResult);
             })
@@ -99,13 +101,34 @@ module.exports = {
       });
     });
   },
+  updateStatusBilling: billing_no => {
+    let updateBilling ="UPDATE billing SET status='cancel' WHERE billing_no=?";
+
+    let selectBillingItem ="SELECT tracking FROM billing_item WHERE billing_no=?";
+
+    let updateStatusReceiver="UPDATE billing_receiver_info SET status='cancel' WHERE tracking=?";
+
+    let dataBilling=[billing_no];
+    // let dataBilling=[billing_no];
+    return new Promise(function(resolve, reject) {
+      // parcel_connection.query(updateBilling,dataBilling, (error, results, fields) => {});
+      parcel_connection.query(selectBillingItem,dataBilling, (error, resListTracking, fields) => {
+        
+        for(i=0;i<resListTracking.length;i++){
+          let dataTracking=[resListTracking[i].tracking];
+          parcel_connection.query(updateStatusReceiver,dataTracking, (error, results2, fields) => {})
+        }
+
+      });
+    });
+  },
   updateStatusReceiver: tracking => {
     return new Promise(function(resolve, reject) {
       let sql =
         "UPDATE billing_receiver_info SET status='cancel' WHERE tracking='" +
         tracking +
         "'";
-      parcel_connection.query(sql, (error, results, fields) => {});
+      parcel_connection.query(sql, (error, results, fields) => {resolve(results)});
     });
   },
   updateReceiverInfo: (tracking, receiver_name, phone, address) => {
@@ -123,33 +146,14 @@ module.exports = {
       parcel_connection.query(sql, (error, results, fields) => {});
     });
   },
-  insertLog: (
-    billing_no,
-    previous_value,
-    current_value,
-    module_name,
-    user,
-    ref
-  ) => {
-    var dateTimeString = moment(new Date()).format("YYYY-MM-DD HH:mm:ss", true);
+  insertLog: (billing_no,previous_value,current_value,module_name,user,ref) => {
+    // var dateTimeString = moment(new Date()).format("YYYY-MM-DD HH:mm:ss", true);
+    let sql ="INSERT INTO log_parcel_tool(billing_no, time_to_system, previous_value, current_value, module_name, user, ref) VALUES ('?,?,?,?,?,?,?)";
+    let data=[billing_no,new Date(),previous_value,current_value,module_name,user,ref];
     return new Promise(function(resolve, reject) {
-      let sql =
-        "INSERT INTO log_parcel_tool(billing_no, time_to_system, previous_value, current_value, module_name, user, ref) VALUES ('" +
-        billing_no +
-        "','" +
-        dateTimeString +
-        "','" +
-        previous_value +
-        "','" +
-        current_value +
-        "','" +
-        module_name +
-        "','" +
-        user +
-        "','" +
-        ref +
-        "')";
-      parcel_connection.query(sql, (error, results, fields) => {});
+      parcel_connection.query(sql,data, (error, results, fields) => {
+        resolve(results);
+      });
     });
   }
 };

@@ -7,7 +7,8 @@
         </thead>
         <tbody>       
           <tr v-for="(item, index) in listTracking" v-bind:key="item.id">
-            <td v-on:click="select(item)">{{listTracking[index].tracking}}</td>
+           <router-link  :to="{ name: 'CompareData', params: { tracking: listTracking[index].tracking }}">
+             <td >{{listTracking[index].tracking}}</td></router-link> 
           </tr>
         </tbody>
       </table>
@@ -33,13 +34,12 @@ export default {
       this.getlistTracking();
     },
   methods: {
-    select(item) {
-      var trackingSend = item.tracking;
-      this.$router.push({name:'CompareData',params:{tracking:trackingSend}});
-      this.inMenu = 2;
-    },
+    // select(item) {
+    //   var trackingSend = item.tracking;
+    //   this.$router.push({params:{tracking:trackingSend}});
+    //   this.inMenu = 2;
+    // },
     getlistTracking() {
-      this.listTracking=[]
       axios
         .get("https://tool.945parcel.com/tools/list/tracking")
         .then(response => {

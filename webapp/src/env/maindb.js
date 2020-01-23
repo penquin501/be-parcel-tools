@@ -1,9 +1,12 @@
 var mysql = require('mysql');
 var billing_connection = mysql.createPool({
+    connectionLimit : 10,
     host: '104.155.237.79',
     user: 'userdevapi',
     password: 'PxnJcKJcmJm6Fdl5',
-    database: 'database945ffm_dev'
+    database: 'database945ffm_dev',
+    debug : false,
+    timezone : '+07:00'
 });
 console.log("MAIN DB INIT");
 // connection.connect();

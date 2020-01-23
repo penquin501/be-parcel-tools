@@ -33,7 +33,13 @@ app.get("/check/info/billing", function(req, res) {
   let billing = req.query.billing;
   console.log(billing);
   parcelServices.getBillingInfo(billing).then(function(data) {
-    res.json({ data: data });
+    mainServices.checkStatusBilling(billing).then(function(data2) {
+      res.json({
+        status: "SUCCESS",
+        billingInfo: data,
+        statusParcel: data2
+      });
+    });
   });
 });
 
@@ -90,18 +96,24 @@ app.post("/save/cancel/tracking", function(req, res) {
   let current_value = "cancel";
   let module_name = "cancel_tracking";
   let user = req.body.user;
-  parcelServices
-    .insertLog(
-      billing_no,
-      previous_value,
-      current_value,
-      module_name,
-      user,
-      tracking
-    )
-    .then(function(data) {});
+
   parcelServices.updateStatusReceiver(tracking).then(function(data) {});
+  parcelServices.insertLog(billing_no,previous_value,current_value,module_name,user,tracking).then(function(data) {});
+  
   res.json({ status: "SUCCESS" });
+});
+
+app.post("/save/cancel/billing", function(req, res) {
+  console.log(req.body.billing_no);
+  let billing_no = req.body.billing_no;
+  let previous_value = req.body.previous_value;
+  // let billing_status =previous_value.billing_status;
+  let current_value = "cancel";
+  let module_name = "cancel_billing";
+  let user = req.body.user;
+  parcelServices.updateStatusBilling(billing_no).then(function(data) {});
+  parcelServices.insertLog(billing_no,previous_value,current_value,module_name,user,billing_no).then(function(data) {});
+          
 });
 
 app.post("/update/receiver/info", function(req, res) {
@@ -118,19 +130,8 @@ app.post("/update/receiver/info", function(req, res) {
 
   let module_name = "change_receiver_info";
   let user = req.body.user;
-  parcelServices
-    .insertLog(
-      billing_no,
-      previous_value,
-      log_current_value,
-      module_name,
-      user,
-      tracking
-    )
-    .then(function(data) {});
-  parcelServices
-    .updateReceiverInfo(tracking, receiver_name, phone, address)
-    .then(function(data) {});
+  parcelServices.insertLog(billing_no,previous_value,log_current_value,module_name,user,tracking).then(function(data) {});
+  parcelServices.updateReceiverInfo(tracking, receiver_name, phone, address).then(function(data) {});
   res.json({ status: "SUCCESS" });
 });
 
@@ -148,19 +149,9 @@ app.post("/confirm/match/data/info", function(req, res) {
 
   let module_name = "change_receiver_info";
   let user = req.body.user;
-  parcelServices
-    .insertLog(
-      billing_no,
-      previous_value,
-      log_current_value,
-      module_name,
-      user,
-      tracking
-    )
-    .then(function(data) {});
-  parcelServices
-    .updateReceiverInfo(tracking, receiver_name, phone, address)
-    .then(function(data) {});
+
+  parcelServices.insertLog(billing_no,previous_value,log_current_value,module_name, user,tracking).then(function(data) {});
+  parcelServices.updateReceiverInfo(tracking, receiver_name, phone, address).then(function(data) {});
   res.json({ status: "SUCCESS" });
 });
 
