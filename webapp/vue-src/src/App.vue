@@ -26,24 +26,22 @@
 
   <div class="collapse navbar-collapse" id="navbarTogglerDemo02" style="margin-left: 30px;">
     <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
-      <li class="nav-item">
-         <router-link to="/"><a v-on:click="toView" class="nav-link" >Tools </a></router-link>
+
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          เมนู
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <router-link to="/tools"><a v-on:click="toView"  class="dropdown-item" >เครื่องมือทั่วไป</a></router-link>
+          <router-link to="/cancelbillno"><a v-on:click="toView"  class="dropdown-item" >ยกเลิกเลขที่บิล</a></router-link>
+          <router-link to="/listtracking"><a v-on:click="toView"  class="dropdown-item" >QL Checker</a></router-link>
+        </div>
       </li>
 
-      <li class="nav-item">
-         <router-link to="/listtracking"><a v-on:click="toView"  class="nav-link" >Check Data Match</a></router-link>
-      </li>
 
-     <li class="nav-item">
-         <router-link to="/cancelbillno"><a  v-on:click="toView" class="nav-link" >Cancel Bill</a></router-link>
-      </li>
-      <!-- <li class="nav-item">
-        <a class="nav-link disabled" href="#">Disabled</a>
-      </li> -->
     </ul>
     <form class="form-inline my-2 my-lg-0">
-      <a  class="nav-link" v-on:click="Logout"><label> <img style="width: 20px" src="./assets/logout.png" />   Logout</label></a>
-      <!-- <button class="btn btn-outline-danger my-2 my-sm-0" v-on:click="Logout" type="submit">Logout</button> -->
+      <a  class="nav-link" v-on:click="Logout"><label style="color:rgb(0, 136, 148);"> <img style="width: 20px" src="./assets/logout.png" />   Logout</label></a>
     </form>
   </div>
 </nav>

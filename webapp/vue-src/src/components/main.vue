@@ -129,6 +129,10 @@
 </template>
 <script>
 const axios = require("axios");
+// import Vue from "vue";
+// import "v-slim-dialog/dist/v-slim-dialog.css";
+// import SlimDialog from "v-slim-dialog";
+
 export default {
   data: function() {
     return {
@@ -171,6 +175,7 @@ export default {
   },
   methods: {
     getData() {
+      const options = { okLabel: "ตกลง" };
       var meanStatus;
       axios
         .get(
@@ -245,7 +250,7 @@ export default {
               this.imgUrl = this.imgCapture[0].image_url;
             }
           } else {
-            alert("ไม่พบข้อมุล");
+            this.$dialogs.alert("ไม่พบข้อมูล", options);
           }
         })
         .catch(function(error) {
@@ -253,10 +258,9 @@ export default {
         });
     },
     selectTools(){
+      const options = { okLabel: "ตกลง" };
       if(this.tracking==""){
-          alert(
-            "กรุณาระบุ Tracking เพื่อทำรายการ"
-          );
+        this.$dialogs.alert("กรุณาระบุ Tracking เพื่อทำรายการ", options);
           this.selectValue = "";
         } else {
           if (this.selectValue == 1) {
@@ -279,34 +283,21 @@ export default {
         }
     },
     confirmSelectTools() {
+      const options = { okLabel: "ตกลง" };
       if(this.selectValue==""){
-        alert(
-          "กรุณาเลือก Tools เพื่อทำรายการ"
-        );
+        this.$dialogs.alert("กรุณาเลือก Tools เพื่อทำรายการ", options);
       } else if(this.tracking==""){
-        alert(
-          "กรุณาระบุ Tracking เพื่อทำรายการ"
-        );
+        this.$dialogs.alert("กรุณาระบุ Tracking เพื่อทำรายการ", options);
       } else if (this.order_status == "101") {
-        alert(
-          "ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถูกยกเลิกไปแล้ว"
-        );
+        this.$dialogs.alert("ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถูกยกเลิกไปแล้ว", options);
       } else if (this.order_status == "104") {
-        alert(
-          "ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถูกจัดส่งไปแล้ว"
-        );
+        this.$dialogs.alert("ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถูกจัดส่งไปแล้ว", options);
       } else if (this.order_status == "105") {
-        alert(
-          "ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถึงปลายทางแล้ว"
-        );
+        this.$dialogs.alert("ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถึงปลายทางแล้ว", options);
       } else if (this.order_status == "106") {
-        alert(
-          "ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถูกตีกลับ"
-        );
+        this.$dialogs.alert("ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถูกตีกลับ", options);
       } else if (this.send_booking != null) {
-        alert(
-          "ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถูกส่งข้อมูลให้บ. ขนส่งไปแล้ว"
-        );
+        this.$dialogs.alert("ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถูกส่งข้อมูลให้บ. ขนส่งไปแล้ว", options);
       } else {
         if (this.selectValue == 1) {
           var data={
@@ -318,9 +309,7 @@ export default {
           axios.post("http://127.0.0.1:3200/save/cancel/tracking" ,data)
           .then(response => {
             if(response.data.status=='SUCCESS'){
-              alert(
-                "ยกเลิกเรียบร้อยแล้ว"
-              );
+              this.$dialogs.alert("ยกเลิกเรียบร้อยแล้ว", options);
               window.location.reload();
             }
           })
@@ -353,9 +342,7 @@ export default {
                 axios.post("https://tool.945parcel.com/update/receiver/info" ,dataReceiver)
                 .then(response => {
                   if(response.data.status=='SUCCESS'){
-                    alert(
-                      "แก้ไขข้อมูลผู้รับเรียบร้อยแล้ว"
-                    );
+                    this.$dialogs.alert("แก้ไขข้อมูลผู้รับเรียบร้อยแล้ว", options);
                     window.location.reload();
                   }
                 })
@@ -365,7 +352,7 @@ export default {
           }
           
         } else {
-          alert("hello2");
+          // alert("hello2");
           window.location.reload();
         }
 

@@ -479,24 +479,21 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-* {
-  font-family: Arial, Helvetica, sans-serif;
-}
 
 .group-btn {
   text-align: center;
   button {
     padding: 5px 20px;
     background-color: #fff;
-    border: 2px solid #181a92;
+    border: 2px solid rgb(0, 136, 148);
     cursor: pointer;
-    color: #181a92;
+    color: rgb(0, 136, 148);
     font-weight: bold;
     margin: 20px 10px;
     outline: none;
     transition: 0.5s;
     &:hover {
-      background-color: #181a92;
+      background-color: rgb(0, 136, 148);
       color: #fff;
     }
   }
@@ -514,14 +511,14 @@ export default {
   button {
     padding: 5px 20px;
     background-color: #fff;
-    border: 2px solid #181a92;
+    border: 2px solid rgb(0, 136, 148);
     cursor: pointer;
-    color: #181a92;
+    color: rgb(0, 136, 148);
     font-weight: bold;
     outline: none;
     transition: 0.5s;
     &:hover {
-      background-color: #181a92;
+      background-color: rgb(0, 136, 148);
       color: #fff;
     }
   }
@@ -588,9 +585,10 @@ export default {
     .btnOption {
       text-align: center;
     }
-    button {
-      background-color: #3747ac;
+button {
+      background-color: rgb(0, 136, 148);
       border: none;
+      border-radius: 5px;
       padding: 10px;
       color: #fff;
       margin: 5px 5px 0 5px;
@@ -628,5 +626,19 @@ export default {
       }
     }
   }
+}
+.warn{
+    padding: 5px 20px;
+    background-color: #fff;
+    border: 2px solid 		#FF8C00 !important;
+    cursor: pointer;
+    color: 		#FF8C00 !important;
+    font-weight: bold;
+    outline: none;
+    transition: 0.5s;
+    &:hover {
+      background-color: 		#FF8C00 !important;
+      color: #fff !important;;
+    }
 }
 </style>

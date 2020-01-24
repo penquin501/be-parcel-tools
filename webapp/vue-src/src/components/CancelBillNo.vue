@@ -116,5 +116,158 @@ export default {
 };
 </script>
 
-<style>
+<style lang="scss" >
+.search,
+.select-tool,
+.group-btn {
+  text-align: center;
+  button {
+    padding: 5px 20px;
+    background-color: #fff;
+    border: 2px solid rgb(0, 136, 148);
+    cursor: pointer;
+    color: rgb(0, 136, 148);
+    font-weight: bold;
+    margin: 20px 10px;
+    outline: none;
+    transition: 0.5s;
+    &:hover {
+      background-color: rgb(0, 136, 148);
+      color: #fff;
+    }
+  }
+}
+.search {
+  input {
+    margin: 10px 5px 10px 5px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid #000;
+    outline: none;
+    width: 200px;
+    text-align: center;
+  }
+  button {
+    padding: 5px 20px;
+    background-color: #fff;
+    border: 2px solid rgb(0, 136, 148);
+    cursor: pointer;
+    color: rgb(0, 136, 148);
+    font-weight: bold;
+    outline: none;
+    transition: 0.5s;
+    &:hover {
+      background-color: rgb(0, 136, 148);
+      color: #fff;
+    }
+  }
+}
+.content {
+  .left{
+    border: 1px solid #000;
+  }
+  .center,
+  .right {
+    border: 1px solid #000;
+    padding: 10px 30px;
+  }
+  padding: 10px 30px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-gap: 10px;
+
+  input {
+    background: none;
+    border: none;
+    border-bottom: 1px solid #000;
+    width: 100%;
+    margin: 0 0 10px 0;
+    padding: 5px 10px;
+    outline: none;
+  }
+  input:disabled {
+    color: #9e9e9e;
+  }
+  input:enabled {
+    background: #dfdfdf;
+    font-size: 14px;
+  }
+  textarea {
+    background: none;
+    border: none;
+    border-bottom: 1px solid #000;
+    width: 100%;
+    outline: none;
+    height: 70px;
+    margin: 0 0 10px 0;
+    padding: 5px 10px;
+  }
+}
+
+.right div:nth-child(4) {
+  margin-top: 20px;
+}
+.left {
+  .item2 {
+    padding: 10px 10px;
+    .v-zoomer {
+      padding: 5px;
+      width: auto;
+      height: 500px;
+      border: 2px solid #dfdfdf;
+      background: #fff;
+    }
+
+    .btnOption{
+      text-align: center;
+    }
+    button {
+      background-color: rgb(0, 136, 148);
+      border: none;
+      padding: 10px;
+      color: #fff;
+      margin: 5px 5px 0 5px;
+    }
+  }
+}
+
+.select {
+  width: 300px;
+  border: none;
+  border-bottom: 2px solid #000;
+  background: none;
+  margin: 0 15px;
+  outline: none;
+  font-size: 16px;
+  font-weight: bold;
+}
+ .cancle{
+     padding: 5px 20px;
+    background-color: #fff;
+    border: 2px solid rgb(122, 122, 122) !important;
+    cursor: pointer;
+    color: rgb(122, 122, 122) !important;
+    font-weight: bold;
+    outline: none;
+    transition: 0.5s;
+    &:hover {
+      background-color: rgb(122, 122, 122) !important;
+      color: #fff !important;;
+    }
+}
+.save{
+     padding: 5px 20px;
+    background-color: #fff;
+    border: 2px solid 	#32CD32 !important;
+    cursor: pointer;
+    color: 	#32CD32 !important;
+    font-weight: bold;
+    outline: none;
+    transition: 0.5s;
+    &:hover {
+      background-color: 	#32CD32 !important;
+      color: #fff !important;;
+    }
+}
+
 </style>
