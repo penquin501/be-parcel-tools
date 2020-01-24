@@ -1,9 +1,13 @@
 <template>
-  <div>
+  <div  style="
+    margin-top: 60px;
+">
     <div class="search">
-      <label>กรุณาใส่เลข Tracking:</label>
+      <b style="font-size:18px;"> กรุณาใส่เลข Tracking :</b>
       <input maxlength="13" v-model="trackingInput" autocomplete="false" />
-      <button v-on:click="getData">Search</button>
+
+      <button v-on:click="getData"  type="button" >Search</button>
+      
     </div>
     <div class="content">
       <div class="left">
@@ -35,25 +39,25 @@
           <input :disabled="billingInfo" v-model="tracking" />
         </div>
         <div>
-          <b>ขนาดพัสดุ:</b>
+          <b>Size:</b>
           <input :disabled="billingInfo" v-model="size_id" />
         </div>
 
         <div>
-          <b>ราคาพัสดุ:</b>
+          <b>Size Price:</b>
           <input :disabled="billingInfo" v-model="size_price" />
         </div>
 
         <div>
-          <b>มูลค่า COD:</b>
+          <b>COD Value:</b>
           <input :disabled="billingInfo" v-model="cod_value" />
         </div>
         <div>
-          <b>ประเภทการจัดส่ง:</b>
+          <b>Parcel Type:</b>
           <input :disabled="billingInfo" v-model="bi_parcel_type" />
         </div>
         <div>
-          <b>รหัสไปรษณีย์:</b>
+          <b>Zipcode:</b>
           <input :disabled="billingInfo" v-model="bi_zipcode" />
         </div>
         <div>
@@ -63,62 +67,62 @@
       </div>
       <div class="right">
         <div>
-          <b>ชื่อผู้ส่ง:</b>
+          <b>Sender Name:</b>
           <input :disabled="billingInfo" v-model="sender_name" />
         </div>
         <div>
-          <b>เบอร์โทรศัพท์ผู้ส่ง:</b>
+          <b>Sender Phone:</b>
           <input :disabled="billingInfo" v-model="sender_phone" />
         </div>
         <div>
-          <b>ที่อยู่ผู้ส่ง:</b>
+          <b>Sender Address:</b>
           <textarea :disabled="billingInfo" v-model="sender_address" />
         </div>
 
         <div>
-          <b>ชื่อผู้รับ:</b>
+          <b>Receiver Firstname:</b>
           <input :disabled="receiverFNameEdit" ref="receiverFNameEdit" v-model="receiver_first_name" />
         </div>
         <div>
-          <b>นามสกุลผู้รับ:</b>
+          <b>Receiver Lastname:</b>
           <input :disabled="receiverLNameEdit" ref="receiverLNameEdit" v-model="receiver_last_name" />
         </div>
 
         <div>
-          <b>เบอร์โทรศัพท์ผู้รับ:</b>
+          <b>Receiver Phone:</b>
           <input maxlength="10" :disabled="receiverPhoneEdit" ref="receiverPhoneEdit" v-model="phone" />
         </div>
         <div>
-          <b>ที่อยู่ผู้รับ:</b>
+          <b>Receiver Address:</b>
           <input :disabled="receiverAddressEdit" ref="receiverAddressEdit" v-model="receiver_address" />
         </div>
         <div>
-          <b>ตำบล/อำเภอ/จังหวัด:</b>
+          <b>Location:</b>
           <input :disabled="billingInfo" v-model="location" />
         </div>
         <div>
-          <b>รหัสไปรษณีย์:</b>
+          <b>Zipcode:</b>
           <input :disabled="billingInfo" v-model="br_zipcode" />
         </div>
 
         <div>
-          <b>ประเภทการจัดส่ง:</b>
+          <b>Parcel Type:</b>
           <input :disabled="billingInfo" v-model="br_parcel_type" />
         </div>
       </div>
     </div>
 
     <div class="select-tool">
-      <label>Tools ที่จะใช้:</label>
+      <b style="font-size:18px;">Tools ที่จะใช้ : </b>
       <select class="select" v-model="selectValue" v-on:change="selectTools" >
       <!-- <select class="select" v-model="selectValue"> -->
-        <option value disabled selected>-----เลือก Tools-----</option>
+        <option value disabled selected> ----- เลือก Tools ----- </option>
         <option value="1">ยกเลิก Tracking</option>
         <option value="2">เปลี่ยนแปลงข้อมูลผู้รับ</option>
       </select>
     </div>
     <div class="group-btn">
-      <button v-on:click="clearBtn">ยกเลิก</button>
+      <button class=" cancel" v-on:click="clearBtn">ยกเลิก</button>
       <button v-on:click="confirmSelectTools">บันทึก</button>
     </div>
   </div>
@@ -380,10 +384,10 @@ export default {
   }
 };
 </script>
-<style lang="scss" scoped>
-* {
-  font-family: Arial, Helvetica, sans-serif;
-}
+<style lang="scss" >
+
+
+
 .search,
 .select-tool,
 .group-btn {
@@ -391,15 +395,15 @@ export default {
   button {
     padding: 5px 20px;
     background-color: #fff;
-    border: 2px solid #181a92;
+    border: 2px solid rgb(0, 136, 148);
     cursor: pointer;
-    color: #181a92;
+    color: rgb(0, 136, 148);
     font-weight: bold;
     margin: 20px 10px;
     outline: none;
     transition: 0.5s;
     &:hover {
-      background-color: #181a92;
+      background-color: rgb(0, 136, 148);
       color: #fff;
     }
   }
@@ -417,14 +421,14 @@ export default {
   button {
     padding: 5px 20px;
     background-color: #fff;
-    border: 2px solid #181a92;
+    border: 2px solid rgb(0, 136, 148);
     cursor: pointer;
-    color: #181a92;
+    color: rgb(0, 136, 148);
     font-weight: bold;
     outline: none;
     transition: 0.5s;
     &:hover {
-      background-color: #181a92;
+      background-color: rgb(0, 136, 148);
       color: #fff;
     }
   }
@@ -489,7 +493,7 @@ export default {
       text-align: center;
     }
     button {
-      background-color: #3747ac;
+      background-color: rgb(0, 136, 148);
       border: none;
       padding: 10px;
       color: #fff;
@@ -508,4 +512,33 @@ export default {
   font-size: 16px;
   font-weight: bold;
 }
+ .cancel{
+     padding: 5px 20px;
+    background-color: #fff;
+    border: 2px solid rgb(122, 122, 122) !important;
+    cursor: pointer;
+    color: rgb(122, 122, 122) !important;
+    font-weight: bold;
+    outline: none;
+    transition: 0.5s;
+    &:hover {
+      background-color: rgb(122, 122, 122) !important;
+      color: #fff !important;;
+    }
+}
+.save{
+     padding: 5px 20px;
+    background-color: #fff;
+    border: 2px solid 	#32CD32 !important;
+    cursor: pointer;
+    color: 	#32CD32 !important;
+    font-weight: bold;
+    outline: none;
+    transition: 0.5s;
+    &:hover {
+      background-color: 	#32CD32 !important;
+      color: #fff !important;;
+    }
+}
+
 </style>

@@ -1,33 +1,54 @@
 <template>
   <div id="app">
     <div v class="login" v-if="state == 'login'">
-        <div class="content">
-            <h3>Parcel-Tool</h3>
+        <div class="content2">
+            <div class="row">
+                  <h3 >Parcel-Tool</h3>
+            </div>
+           
             <input placeholder="Username" v-model="username" v-on:keyup.enter="btnLogin" />
             <br>
             <input placeholder="Password" type="password" v-on:keyup.enter="btnLogin"  v-model="password" />
             <br>
             <br>
-            <button v-on:click="logIn">LOGIN</button>
+            <button v-on:click="logIn" class="btn btn-outline-success" >LOGIN</button>
+
+
         </div>
     </div>
 
     <div v-if="state == 'blank'">
-      <div class="menu">
-        <div>
-          <ul>
-          <router-link to="/"><li v-on:click="toViewStaff">Tools<i class="fas fa-tools"></i></li></router-link>
-          <router-link to="/listtracking"><li v-on:click="toViewCheckData">Check Data Match</li></router-link>
-          <router-link to="/cancelbillno"><li v-on:click="toViewCancelBill">Cancel Bill</li></router-link>
-          </ul>
-        </div>
-        <ul>
+<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top" >
+  <h4 style="color:rgb(0, 136, 148);">Parcel Tools</h4>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
 
-          <li v-on:click="Logout"  >Logout</li>
-        </ul>
+  <div class="collapse navbar-collapse" id="navbarTogglerDemo02" style="margin-left: 30px;">
+    <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+      <li class="nav-item">
+         <router-link to="/"><a v-on:click="toView" class="nav-link" >Tools </a></router-link>
+      </li>
 
-      </div>
+      <li class="nav-item">
+         <router-link to="/listtracking"><a v-on:click="toView"  class="nav-link" >Check Data Match</a></router-link>
+      </li>
 
+     <li class="nav-item">
+         <router-link to="/cancelbillno"><a  v-on:click="toView" class="nav-link" >Cancel Bill</a></router-link>
+      </li>
+      <!-- <li class="nav-item">
+        <a class="nav-link disabled" href="#">Disabled</a>
+      </li> -->
+    </ul>
+    <form class="form-inline my-2 my-lg-0">
+      <a  class="nav-link" v-on:click="Logout"><label> <img style="width: 20px" src="./assets/logout.png" />   Logout</label></a>
+      <!-- <button class="btn btn-outline-danger my-2 my-sm-0" v-on:click="Logout" type="submit">Logout</button> -->
+    </form>
+  </div>
+</nav>
+
+  
        <div v-show="showMain">
        <router-view></router-view>
        </div>
@@ -54,7 +75,7 @@ export default {
     };
   },
     mounted: function() {
-    var dataLogin = JSON.parse(localStorage.getItem("dataLogin"));
+    var dataLogin = JSON.parse(localStorage.getItem("dataLoginParcelTool"));
     console.log("dataLogin",dataLogin);
     if (dataLogin != null) {
       this.state = 'blank';
@@ -72,7 +93,7 @@ export default {
         password: password
       }
       //setlocalDatalogin
-      localStorage.setItem("dataLogin",JSON.stringify(dataLogin));
+      localStorage.setItem("dataLoginParcelTool",JSON.stringify(dataLogin));
        window.location.reload();
     },
     Logout(){
@@ -81,68 +102,26 @@ export default {
 
     },
     
-    toViewStaff(){
+    toView(){
       this.showMain = true;
       // this.$router.push({ path: '/' });
 
     },
-    toViewCheckData(){
-     this.showMain = true;
-    //  this.$router.push({ path: '/listtracking' });
-    },
-    toViewCancelBill(){
-      this.showMain = true;
-    //  this.$router.push({ path: '/cancelbillno' });
-    }
+
 
   }
 };
 </script>
 
-<style lang="scss" scoped>
-
-.menu {
-  position: sticky;
-  top: 0;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  /* padding: 0 100px; */
-  align-items: center;
-  background: #000;
-}
-
-.menu ul {
-  padding: 0;
-  margin: 0;
-  display: flex;
-}
-
-.menu ul li {
-  list-style: none;
-  padding: 0 15px;
-  line-height: 50px;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  height: 50px;
-  cursor: pointer;
-  color:#fff;
-  font-weight: bold;
-        &:hover {
-        color: red;
-        text-decoration: underline;
-      }
-}
-
-
+<style lang="scss" scope>
 
 .login{
     width: 500px;
     margin: 250px auto;
 
-    .content{
+    .content2{
         text-align: center;
-        border: 2px solid rgb(0, 136, 148);;
+        border: 2px solid rgb(0, 136, 148);
         padding: 30px;
         background-color: #fff;
         color: #fff;

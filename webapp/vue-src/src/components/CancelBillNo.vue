@@ -1,30 +1,38 @@
 <template>
-  <div>
+  <div class="container" style="
+    margin-top: 60px;">
     <div class="search">
-      <label>กรุณาใส่เลขที่บิล:</label>
+      <b style="font-size:18px;">กรุณาใส่เลขที่บิล : </b>
       <input maxlength="30" v-model="billingInput" autocomplete="false" />
-      <button v-on:click="getData">Search</button>
+      <button v-on:click="getData" type="button" >Search</button>
     </div>
-    <div class="center">
+
+     <div class="row">
+       <div class="col-md-4"></div>
+        <div class="col-md-4">
+              <div class="center" >
       <div>
-        <b>Billing No: {{billingNo}}</b>
+        <b style="font-size:16px;">Billing No : {{billingNo}}</b>
       </div>
       <div>
-        <b>จำนวน Tracking: {{countTracking}}</b>
+        <b style="font-size:16px;">จำนวน Tracking : {{countTracking}}</b>
       </div>
       <div>
-        <b v-if="!status">
-          สถานะ:
+        <b style="font-size:16px;" v-if="!status">
+          สถานะ :
           <label style="color: red">{{txtStatus}}</label>
         </b>
-        <b v-if="status">
-          สถานะ:
+        <b style="font-size:16px;" v-if="status">
+          สถานะ :
           <label style="color: green">{{txtStatus}}</label>
         </b>
       </div>
     </div>
+        </div>
+         <div class="col-md-4"></div>
+     </div>
     <div class="group-btn">
-      <button v-on:click="confirmData">บันทึก</button>
+      <button v-on:click="confirmData" type="button" >บันทึก</button>
     </div>
   </div>
 </template>

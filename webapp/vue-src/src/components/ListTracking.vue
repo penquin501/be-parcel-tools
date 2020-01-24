@@ -1,17 +1,24 @@
 <template>
-  <div>
+  <div class="container" style="
+    margin-top: 50px;
+">
+<div class="row">
+  <div class="col-md-4"></div>
+   <div class="col-md-4" style="text-align: center;margin-top: 20px;margin-bottom: 20px;"> <b style="font-size:22px;">Tracking</b></div>
+    <div class="col-md-4"></div>
+</div>
+
     <section v-if="inMenu == 1  || inMenu == 2.5"  class="table">
-      <table>
-        <thead>
-          <td>Tracking</td>
-        </thead>
-        <tbody>       
-          <tr v-for="(item, index) in listTracking" v-bind:key="item.id">
+      <table class="table table-striped">
+    <tbody style="text-align:center;">
+       <tr v-for="(item, index) in listTracking" v-bind:key="item.id">
            <router-link  :to="{ name: 'CompareData', params: { tracking: listTracking[index].tracking }}">
              <td >{{listTracking[index].tracking}}</td></router-link> 
           </tr>
-        </tbody>
-      </table>
+       
+    </tbody>
+</table>
+     
     </section>
   </div>
 </template>
@@ -62,30 +69,9 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.table {
-  text-align: center;
-
-  table {
-    margin: 0 auto;
-    width: 99vw;
-
-    thead {
-      background-color: #000;
-      color: #fff;
-    }
-
-    tbody {
-      tr:nth-child(even) {
-        background-color: #eee;
-        margin: 10px 0;
-      }
-    }
-  }
-}
-
-.item {
-  padding: 20px;
-  border: 2px solid #000;
+.table{
+  height: 700px;
+  overflow-y: scroll;
 }
 
 .btnBack{

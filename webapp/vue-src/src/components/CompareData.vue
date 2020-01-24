@@ -1,7 +1,7 @@
 <template>
-  <div>
+  <div  style="margin-top: 60px;">
     <!-- <section v-if="menu == 1" class="table">  -->
-    <div class="content">
+    <div class="content" >
       <div class="left">
         <div class="item2">
           <div>
@@ -149,7 +149,7 @@
       </div>
     </div>
     <div class="group-btn">
-      <button v-on:click="confirmData">แก้ไขข้อมูล</button>
+      <button  v-on:click="confirmData">แก้ไขข้อมูล</button>
     </div>
     <!-- </section> -->
   </div>
