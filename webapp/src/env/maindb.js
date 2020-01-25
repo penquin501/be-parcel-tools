@@ -4,7 +4,7 @@ var billing_connection = mysql.createPool({
     host: '104.155.237.79',
     user: 'userdevapi',
     password: 'PxnJcKJcmJm6Fdl5',
-    database: 'database945ffm_dev',
+    database: 'database945ffm_dev_previous2',
     debug : false,
     timezone : '+07:00'
 });
