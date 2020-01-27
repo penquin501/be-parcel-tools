@@ -1,7 +1,5 @@
 <template>
-  <div  style="
-    margin-top: 60px;
-">
+  <div  style="margin-top: 60px;">
     <div class="search">
       <b style="font-size:18px;"> กรุณาใส่เลข Tracking :</b>
       <input maxlength="13" v-model="trackingInput" autocomplete="false" />
@@ -39,25 +37,25 @@
           <input :disabled="billingInfo" v-model="tracking" />
         </div>
         <div>
-          <b>Size:</b>
+          <b>ขนาดพัสดุ:</b>
           <input :disabled="billingInfo" v-model="size_id" />
         </div>
 
         <div>
-          <b>Size Price:</b>
+          <b>ราคาพัสดุ:</b>
           <input :disabled="billingInfo" v-model="size_price" />
         </div>
 
         <div>
-          <b>COD Value:</b>
+          <b>มูลค่า COD:</b>
           <input :disabled="billingInfo" v-model="cod_value" />
         </div>
         <div>
-          <b>Parcel Type:</b>
+          <b>ประเภทการจัดส่ง:</b>
           <input :disabled="billingInfo" v-model="bi_parcel_type" />
         </div>
         <div>
-          <b>Zipcode:</b>
+          <b>รหัสไปรษณีย์:</b>
           <input :disabled="billingInfo" v-model="bi_zipcode" />
         </div>
         <div>
@@ -67,46 +65,46 @@
       </div>
       <div class="right">
         <div>
-          <b>Sender Name:</b>
+          <b>ชื่อผู้ส่ง:</b>
           <input :disabled="billingInfo" v-model="sender_name" />
         </div>
         <div>
-          <b>Sender Phone:</b>
+          <b>เบอร์โทรศัพท์ผู้ส่ง:</b>
           <input :disabled="billingInfo" v-model="sender_phone" />
         </div>
         <div>
-          <b>Sender Address:</b>
+          <b>ที่อยู่ผู้ส่ง:</b>
           <textarea :disabled="billingInfo" v-model="sender_address" />
         </div>
 
         <div>
-          <b>Receiver Firstname:</b>
+          <b>ชื่อผู้รับ:</b>
           <input :disabled="receiverFNameEdit" ref="receiverFNameEdit" v-model="receiver_first_name" />
         </div>
         <div>
-          <b>Receiver Lastname:</b>
+          <b>นามสกุลผู้รับ:</b>
           <input :disabled="receiverLNameEdit" ref="receiverLNameEdit" v-model="receiver_last_name" />
         </div>
 
         <div>
-          <b>Receiver Phone:</b>
+          <b>เบอร์โทรศัทพ์ผู้รับ:</b>
           <input maxlength="10" :disabled="receiverPhoneEdit" ref="receiverPhoneEdit" v-model="phone" />
         </div>
         <div>
-          <b>Receiver Address:</b>
+          <b>ที่อยู่ผู้รับ:</b>
           <input :disabled="receiverAddressEdit" ref="receiverAddressEdit" v-model="receiver_address" />
         </div>
         <div>
-          <b>Location:</b>
+          <b>พิกัด:</b>
           <input :disabled="billingInfo" v-model="location" />
         </div>
         <div>
-          <b>Zipcode:</b>
+          <b>รหัสไปรษณีย์:</b>
           <input :disabled="billingInfo" v-model="br_zipcode" />
         </div>
 
         <div>
-          <b>Parcel Type:</b>
+          <b>ประเภทการจัดส่ง:</b>
           <input :disabled="billingInfo" v-model="br_parcel_type" />
         </div>
       </div>
@@ -180,6 +178,7 @@ export default {
       axios
         .get(
           "https://tool.945parcel.com/check/info/tracking?tracking=" +
+          // "http://127.0.0.1:3200/check/info/tracking?tracking=" +
             this.trackingInput.toUpperCase()
         )
         .then(response => {
@@ -268,7 +267,7 @@ export default {
             this.receiverLNameEdit= true;
             this.receiverPhoneEdit = true;
             this.receiverAddressEdit= true;
-            this.getData();
+            // this.getData();
           } else if (this.selectValue == 2) {
             this.receiverFNameEdit= false;
             this.receiverLNameEdit= false;
@@ -296,7 +295,7 @@ export default {
         this.$dialogs.alert("ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถึงปลายทางแล้ว", options);
       } else if (this.order_status == "106") {
         this.$dialogs.alert("ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถูกตีกลับ", options);
-      } else if (this.send_booking != null) {
+      } else if (this.send_booking == 1) {
         this.$dialogs.alert("ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถูกส่งข้อมูลให้บ. ขนส่งไปแล้ว", options);
       } else {
         if (this.selectValue == 1) {
@@ -306,7 +305,7 @@ export default {
             previous_value:this.order_status,
             user:'1'
           }
-          axios.post("http://127.0.0.1:3200/save/cancel/tracking" ,data)
+          axios.post("https://tool.945parcel.com/save/cancel/tracking" ,data)
           .then(response => {
             if(response.data.status=='SUCCESS'){
               this.$dialogs.alert("ยกเลิกเรียบร้อยแล้ว", options);
@@ -340,6 +339,7 @@ export default {
                 user:'1'
               };
                 axios.post("https://tool.945parcel.com/update/receiver/info" ,dataReceiver)
+                // axios.post("http://127.0.0.1:3200/update/receiver/info" ,dataReceiver)
                 .then(response => {
                   if(response.data.status=='SUCCESS'){
                     this.$dialogs.alert("แก้ไขข้อมูลผู้รับเรียบร้อยแล้ว", options);

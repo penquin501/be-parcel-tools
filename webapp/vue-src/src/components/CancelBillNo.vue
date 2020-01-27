@@ -65,11 +65,12 @@ export default {
       } else {
         axios
           .get(
-            "http://127.0.0.1:3200/check/info/billing?billing=" +
+            "https://tool.945parcel.com/check/info/billing?billing=" +
               this.billingInput
           )
           .then(response => {
             if (response.data) {
+              console.log(response.data);
               this.txtStatus="";
               var data = response.data.billingInfo;
               this.billingNo = data.billingNo;
@@ -103,7 +104,7 @@ export default {
             previous_value:this.previous_value,
             user:'1'
           };
-        axios.post("http://127.0.0.1:3200/save/cancel/billing" ,dataConfirm)
+        axios.post("https://tool.945parcel.com/save/cancel/billing" ,dataConfirm)
         .then(response => {
             if(response.data.status=='SUCCESS'){
               this.$dialogs.alert("ยกเลิกเรียบร้อยแล้ว", options);

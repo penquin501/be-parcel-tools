@@ -1,7 +1,5 @@
 <template>
-  <div class="container" style="
-    margin-top: 50px;
-">
+  <div class="container" style="margin-top: 50px;">
 <div class="row">
   <div class="col-md-4"></div>
    <div class="col-md-4" style="text-align: center;margin-top: 20px;margin-bottom: 20px;"> <b style="font-size:22px;">Tracking</b></div>

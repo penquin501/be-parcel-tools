@@ -32,7 +32,7 @@
           <input :disabled="billingInfo" v-model="tracking" />
         </div>-->
         <div>
-          <b>Parcel Type:</b>
+          <b>ประเภทการจัดส่ง:</b>
           <br />
           <select class="selectType" v-model="bi_parcel_type" v-on:change="selectType">
             <option value="NORMAL">NORMAL</option>
@@ -40,18 +40,18 @@
           </select>
         </div>
         <div>
-          <b>COD Value:</b>
+          <b>มูลค่า COD:</b>
           <input :disabled="codValueEdit" 
                  ref="codValueEdit" 
                  v-model="cod_value" maxlength="5"
                  v-on:keypress="onlyNumber"/>
         </div>
         <div>
-          <b>Zipcode:</b>
+          <b>รหัสไปรษณีย์:</b>
           <input :disabled="billingInfo" v-model="bi_zipcode" />
         </div>
         <div>
-          <b>Size:</b>
+          <b>ขนาดพัสดุ:</b>
           <!-- <input :disabled="billingInfo" v-model="alias_size" /> -->
           <select class="selectSize" v-model="alias_size" v-on:change="selectSize">
             <!-- <option :value="alias_size" :selected="alias_size" disabled>{{alias_size}}</option> -->
@@ -64,26 +64,26 @@
         </div>
 
         <div>
-          <b>Size Price:</b>
+          <b>ราคาพัสดุ:</b>
           <input :disabled="billingInfo" v-model="size_price" />
         </div>
       </div>
       <div class="right">
         <div>
-          <b>Sender Name:</b>
+          <b>ชื่อผู้ส่ง:</b>
           <input :disabled="billingInfo" v-model="sender_name" />
         </div>
         <div>
-          <b>Sender Phone:</b>
+          <b>เบอร์โทรศัพท์ผู้ส่ง:</b>
           <input :disabled="billingInfo" v-model="sender_phone" />
         </div>
         <div>
-          <b>Sender Address:</b>
+          <b>ที่อยู่ผู้ส่ง:</b>
           <textarea :disabled="billingInfo" v-model="sender_address" />
         </div>
 
         <div>
-          <b>Receiver Firstname:</b>
+          <b>ชื่อผู้รับ:</b>
           <input
             :disabled="receiverFNameEdit"
             ref="receiverFNameEdit"
@@ -93,7 +93,7 @@
           />
         </div>
         <div>
-          <b>Receiver Lastname:</b>
+          <b>นามสกุลผู้รับ:</b>
           <input :disabled="receiverLNameEdit" 
           ref="receiverLNameEdit" 
           v-model="receiver_last_name" 
@@ -103,7 +103,7 @@
         </div>
 
         <div>
-          <b>Receiver Phone:</b>
+          <b>เบอร์โทรศัทพ์ผู้รับ:</b>
           <input
             maxlength="10"
             v-on:keypress="onlyNumber"
@@ -113,7 +113,7 @@
           />
         </div>
         <div>
-          <b>Receiver Address:</b>
+          <b>ที่อยู่ผู้รับ:</b>
           <input
             :disabled="receiverAddressEdit"
             ref="receiverAddressEdit"
@@ -125,7 +125,7 @@
           <input :disabled="billingInfo" v-model="location" />
         </div>-->
         <div>
-          <b>Zipcode:</b>
+          <b>รหัสไปรษณีย์:</b>
           <!-- <input :disabled="receriverZipcodeEdit" ref="receriverZipcodeEdit" v-model="br_zipcode"/> -->
           <input
             v-model="displayAddress"
@@ -143,7 +143,7 @@
         </div>
 
         <div>
-          <b>Parcel Type:</b>
+          <b>ประเภทการจัดส่ง:</b>
           <input :disabled="billingInfo" v-model="br_parcel_type" />
         </div>
       </div>
