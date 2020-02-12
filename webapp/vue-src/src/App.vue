@@ -58,6 +58,8 @@
 
 <script>
 import "vue-select/dist/vue-select.css";
+const queryString = require('query-string');
+const axios = require("axios");
 export default {
   name: "app",
   components: {
@@ -73,6 +75,7 @@ export default {
     };
   },
     mounted: function() {
+    this.$session.start()
     var dataLogin = JSON.parse(localStorage.getItem("dataLoginParcelTool"));
     console.log("dataLogin",dataLogin);
     if (dataLogin != null) {
@@ -91,8 +94,23 @@ export default {
         password: password
       }
       //setlocalDatalogin
-      localStorage.setItem("dataLoginParcelTool",JSON.stringify(dataLogin));
-       window.location.reload();
+      axios.post("https://945cs.work/login_api" ,queryString.stringify(dataLogin))
+          .then(response => {   
+            console.log(response.data.name)
+            
+
+            if(response.data.status){
+              localStorage.setItem("dataLoginParcelTool",JSON.stringify(dataLogin));
+              this.$session.set("session_username",response.data.name)
+              // window.location.reload();
+            } else {
+              // window.location.reload();
+            }
+          })
+          .catch(function(error) {
+            console.log(error);
+          });
+      
     },
     Logout(){
       localStorage.clear();

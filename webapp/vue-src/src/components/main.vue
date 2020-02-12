@@ -303,28 +303,29 @@ export default {
             tracking:this.tracking,
             billing_no:this.billing_no,
             previous_value:this.order_status,
-            user:'1'
+            user:this.$session.get('session_username')
           }
-          axios.post("https://tool.945parcel.com/save/cancel/tracking" ,data)
-          .then(response => {
-            if(response.data.status=='SUCCESS'){
-              this.$dialogs.alert("ยกเลิกเรียบร้อยแล้ว", options);
-              window.location.reload();
-            }
-          })
-          .catch(function(error) {
-            console.log(error);
-          });
+          console.log(JSON.stringify(data));
+          // axios.post("https://tool.945parcel.com/save/cancel/tracking" ,data)
+          // .then(response => {
+          //   if(response.data.status=='SUCCESS'){
+          //     this.$dialogs.alert("ยกเลิกเรียบร้อยแล้ว", options);
+          //     window.location.reload();
+          //   }
+          // })
+          // .catch(function(error) {
+          //   console.log(error);
+          // });
         } else if (this.selectValue == 2) {
           var phone=this.phone;
           if(this.receiver_first_name =="") {
-            alert("กรุณากรอก ชื่อผู้รับ ให้ถูกต้อง");
+            this.$dialogs.alert("กรุณากรอก ชื่อผู้รับ ให้ถูกต้อง", options);
           } else if(this.receiver_last_name ==""){
-            alert("กรุณากรอก นามสกุลผู้รับ ให้ถูกต้อง");
+            this.$dialogs.alert("กรุณากรอก นามสกุลผู้รับ ให้ถูกต้อง", options);
           } else if(phone[0]+phone[1] != '06' && phone[0]+phone[1] != '08'&& phone[0]+phone[1] != '09'){
-            alert("กรุณากรอก เบอร์โทรศัทพ์ผู้รับ เท่านั้น");
+            this.$dialogs.alert("กรุณากรอก เบอร์โทรศัทพ์ผู้รับ เท่านั้น", options);
           } else if(phone.length<10){
-            alert("กรุณากรอก เบอร์โทรศัพท์ ให้ถูกต้อง");
+            this.$dialogs.alert("กรุณากรอก เบอร์โทรศัพท์ ให้ถูกต้อง", options);
           } else{
             var dataReceiver={
                 tracking:this.tracking,
@@ -336,7 +337,7 @@ export default {
                   phone:this.phone,
                   address:this.receiver_address
                 },
-                user:'1'
+                user: this.$session.get('session_username')
               };
                 axios.post("https://tool.945parcel.com/update/receiver/info" ,dataReceiver)
                 // axios.post("http://127.0.0.1:3200/update/receiver/info" ,dataReceiver)

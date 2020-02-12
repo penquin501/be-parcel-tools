@@ -9,9 +9,10 @@ module.exports = {
     let sql =
         "SELECT bi.billing_no,bi.tracking,bi.size_id,s.alias_size,bi.size_price,bi.parcel_type as bi_parcel_type, bi.cod_value,bi.zipcode as bi_zipcode," +
         "br.parcel_type as br_parcel_type,br.sender_name,br.sender_phone,br.sender_address,br.receiver_name,br.phone,br.receiver_address," +
-        "br.district_name,br.amphur_name,br.province_name,br.zipcode as br_zipcode " +
+        "d.DISTRICT_CODE,br.district_id,br.district_name,br.amphur_id,br.amphur_name,br.province_id,br.province_name,br.zipcode as br_zipcode " +
         "FROM billing_item_test bi " +
         "JOIN billing_receiver_info_test br ON bi.tracking=br.tracking " +
+        "LEFT JOIN postinfo_district d ON br.district_id=d.DISTRICT_ID AND br.amphur_id=d.AMPHUR_ID AND br.province_id=d.PROVINCE_ID" +
         "JOIN size_info s ON bi.size_id= s.size_id " +
         "WHERE bi.tracking=?";
       let data=[tracking];  
@@ -71,13 +72,39 @@ module.exports = {
     });
   },
   getListTrackingNotMatch: () => {
-    let sql =
-        "SELECT bi.tracking FROM billing_item_test bi " +
-        "JOIN billing_receiver_info_test br ON bi.tracking=br.tracking " +
-        "WHERE bi.zipcode != br.zipcode OR bi.parcel_type != br.parcel_type";
+    let sql="SELECT bInfo.branch_name,b.branch_id,count(bi.tracking) as cTracking FROM billing_test b "+
+    "JOIN billing_item_test bi ON b.billing_no=bi.billing_no "+
+    "LEFT JOIN billing_receiver_info_test br ON bi.tracking=br.tracking "+
+    "LEFT JOIN branch_info bInfo ON b.branch_id=bInfo.branch_id "+
+    "WHERE bi.zipcode<>br.zipcode or bi.parcel_type<>br.parcel_type "+
+    "GROUP by b.branch_id,bInfo.branch_name"
 
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql, (error, results, fields) => {
+        if(error===null){
+          if (results.length == 0) {
+            resolve(false);
+          } else {
+            resolve(results);
+          }
+        } else {
+          console.log(error);
+        }
+        
+      });
+    });
+  },
+  selectTrackingToCheck: (branch_id) => {
+    let sql =
+        "SELECT bi.tracking FROM billing_test b "+
+        "Left JOIN billing_item_test bi ON b.billing_no=bi.billing_no "+
+        "LEFT JOIN billing_receiver_info_test br ON bi.tracking=br.tracking "+
+        "WHERE (bi.zipcode!=br.zipcode or bi.parcel_type!= br.parcel_type) AND b.branch_id=? LIMIT 1";
+    let data=[branch_id];    
+
+    return new Promise(function(resolve, reject) {
+      parcel_connection.query(sql,data, (error, results, fields) => {
+        // console.log(results);
         if (results.length == 0) {
           resolve(false);
         } else {
@@ -86,21 +113,31 @@ module.exports = {
       });
     });
   },
+  selectBillingInfo:(billing_no)=>{
+    let sql="SELECT total FROM billing_test WHERE billing_no=?"
+    let data=[billing_no];
 
-  parcelSizeList: zone => {
-    let sql =
-        "SELECT alias_size FROM size_info GROUP BY alias_size ORDER BY min(parcel_price) ASC";
     return new Promise(function(resolve, reject) {
+      parcel_connection.query(sql,data, (error, results, fields) => {
+      resolve(results);
+    });
+  });
+  },
+
+  // parcelSizeList: zone => {
+  //   let sql =
+  //       "SELECT alias_size FROM size_info GROUP BY alias_size ORDER BY min(parcel_price) ASC";
+  //   return new Promise(function(resolve, reject) {
       
-      parcel_connection.query(sql, (error, results, fields) => {
-        if (results.length == 0) {
-          resolve(false);
-        } else {
-          resolve(results);
-        }
-      });
-    });
-  },
+  //     parcel_connection.query(sql, (error, results, fields) => {
+  //       if (results.length == 0) {
+  //         resolve(false);
+  //       } else {
+  //         resolve(results);
+  //       }
+  //     });
+  //   });
+  // },
   updateStatusBilling: billing_no => {
     let updateBilling ="UPDATE billing_test SET status='cancel' WHERE billing_no=?";
 
@@ -109,7 +146,7 @@ module.exports = {
     let updateStatusReceiver="UPDATE billing_receiver_info_test SET status='cancel' WHERE tracking=?";
 
     let dataBilling=[billing_no];
-    // let dataBillingItem=[billing_no];
+
     return new Promise(function(resolve, reject) {
       parcel_connection.query(updateBilling,dataBilling, (error, results, fields) => {});
       parcel_connection.query(selectBillingItem,dataBilling, (error, resListTracking, fields) => {
@@ -131,6 +168,26 @@ module.exports = {
       });
     });
   },
+  selectParcelSize: billingNo => {
+    return new Promise(function(resolve, reject) {
+      let sql ="SELECT b.size_price FROM billing_item_test b "+
+      "JOIN billing_receiver_info_test br ON b.tracking=br.tracking "+
+      "WHERE b.billing_no=? AND (br.status!='cancel' OR br.status is null)";
+      let data=[billingNo];
+      parcel_connection.query(sql,data, (error, results, fields) => {
+          resolve(results)
+      });
+    });
+  },
+  updateBillingInfo: (current_total,billing_no) => {
+    return new Promise(function(resolve, reject) {
+      let sql ="UPDATE billing_test SET total=? WHERE billing_no=?";
+      let data=[current_total,billing_no];
+      parcel_connection.query(sql,data, (error, results, fields) => {
+        resolve(results)
+      });
+    });
+  },
   updateReceiverInfo: (tracking, receiver_name, phone, address) => {
     let sql ="UPDATE billing_receiver_info_test SET receiver_name=?,phone=?,receiver_address=? WHERE tracking=?";
     let data=[receiver_name,phone,address,tracking];
@@ -140,8 +197,67 @@ module.exports = {
       });
     });
   },
+  addressInfo: (district_code) => {
+    let sql ="SELECT d.DISTRICT_ID,d.DISTRICT_NAME,a.AMPHUR_ID,a.AMPHUR_NAME,p.PROVINCE_ID,p.PROVINCE_NAME,z.zipcode "+
+    "FROM postinfo_district d "+
+    "JOIN postinfo_zipcodes z ON d.DISTRICT_CODE=z.district_code "+
+    "JOIN postinfo_amphur a ON d.AMPHUR_ID=a.AMPHUR_ID "+
+    "JOIN postinfo_province p ON d.PROVINCE_ID=p.PROVINCE_ID "+
+    "WHERE d.DISTRICT_CODE=?";
+    let data=[district_code];
+    return new Promise(function(resolve, reject) {
+      parcel_connection.query(sql,data, (error, results, fields) => {
+        if(error===null){
+          resolve(results);
+        } else {
+          console.log(error);
+          resolve(false);
+        }
+      });
+    });
+  },
+  updateCheckerInfo: (tracking, size_id,size_price,cod_value,receiver_name, phone, address, parcel_type, district_id,district_name, amphur_id,amphur_name,province_id,province_name,zipcode) => {
+    let sqlBillingItem ="UPDATE billing_item_test SET zipcode=?,size_id=?,size_price=?,parcel_type=?,cod_value=? WHERE tracking=?";
+    let dataBillingItem=[zipcode,size_id,size_price,parcel_type,cod_value,tracking];
+
+    let sqlReceiver ="UPDATE billing_receiver_info_test SET parcel_type=?,receiver_name=?,phone=?,receiver_address=?,district_id=?,district_name=?,amphur_id=?,amphur_name=?,province_id=?,province_name=?,zipcode=? WHERE tracking=?";
+    let dataReceiver=[parcel_type,receiver_name,phone,address,district_id,district_name,amphur_id,amphur_name,province_id,province_name,zipcode,tracking];
+
+    return new Promise(function(resolve, reject) {
+      parcel_connection.query(sqlBillingItem,dataBillingItem, (error, resultsItem, fields) => {
+         if(resultsItem.affectedRows>0){
+          parcel_connection.query(sqlReceiver,dataReceiver, (error, resultsReceiver, fields) => {
+            resolve(resultsReceiver);
+          });
+         }
+      });
+    });
+  },
+  saveLogQlChecker: (branch_id, user_id, billing_no, error_code, error_maker, cs_check_user_id, cs_name, tracking, operation_key) => {
+    let sql ="INSERT INTO log_ql_checker(branch_id, user_id, billing_no, error_code, error_maker, cs_check_user_id, cs_name, tracking, operation_key, record_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    let data=[branch_id, user_id, billing_no, error_code, error_maker, cs_check_user_id, cs_name, tracking, operation_key, new Date()];
+    return new Promise(function(resolve, reject) {
+      parcel_connection.query(sql,data, (error, results, fields) => {
+        if(error===null){
+          resolve(results);
+        } else {
+          console.log(error);
+          resolve(false);
+        }
+        
+      });
+    });
+  },
+  findOperator: (tracking) => {
+    let sql ="SELECT operator_id FROM parcel_keyin_data_temp WHERE barcode=?";
+    let data=[tracking];
+    return new Promise(function(resolve, reject) {
+      parcel_connection.query(sql,data, (error, results, fields) => {
+        resolve(results);
+      });
+    });
+  },
   insertLog: (billing_no,previous_value,current_value,module_name,user,ref) => {
-    // var dateTimeString = moment(new Date()).format("YYYY-MM-DD HH:mm:ss", true);
     let sql ="INSERT INTO log_parcel_tool(billing_no, time_to_system, previous_value, current_value, module_name, user, ref) VALUES (?,?,?,?,?,?,?)";
     let data=[billing_no,new Date(),previous_value,current_value,module_name,user,ref];
     return new Promise(function(resolve, reject) {

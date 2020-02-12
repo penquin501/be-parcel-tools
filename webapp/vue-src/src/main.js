@@ -11,7 +11,8 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import 'vue-select/dist/vue-select.css';
 import 'v-slim-dialog/dist/v-slim-dialog.css'
 import SlimDialog from 'v-slim-dialog'
- 
+import VueSession from 'vue-session'
+Vue.use(VueSession)
 Vue.use(SlimDialog)
 library.add(faUserSecret)
 

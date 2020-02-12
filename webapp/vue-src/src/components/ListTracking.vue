@@ -10,8 +10,8 @@
       <table class="table table-striped">
     <tbody style="text-align:center;">
        <tr v-for="(item, index) in listTracking" v-bind:key="item.id">
-           <router-link  :to="{ name: 'CompareData', params: { tracking: listTracking[index].tracking }}">
-             <td >{{listTracking[index].tracking}}</td></router-link> 
+           <router-link  :to="{ name: 'CompareData', params: { branch_id: listTracking[index].branch_id }}">
+             <td >{{listTracking[index].branch_name}}({{ listTracking[index].cTracking }})</td></router-link> 
           </tr>
        
     </tbody>
@@ -39,18 +39,14 @@ export default {
       this.getlistTracking();
     },
   methods: {
-    // select(item) {
-    //   var trackingSend = item.tracking;
-    //   this.$router.push({params:{tracking:trackingSend}});
-    //   this.inMenu = 2;
-    // },
     getlistTracking() {
       axios
         .get("https://tool.945parcel.com/tools/list/tracking")
+        // .get("http://127.0.0.1:3200/tools/list/tracking")
         .then(response => {
             if(response.data.status=='SUCCESS'){
-                this.listTracking=response.data.listTracking;
-
+                this.listTracking=response.data.listTracking
+                console.log(this.listTracking);
             } else {
                 alert('ไม่พบข้อมูล');
             }
@@ -68,8 +64,8 @@ export default {
 
 <style lang="scss" scoped>
 .table{
-  height: 700px;
-  overflow-y: scroll;
+  height: auto;
+  // overflow-y: scroll;
 }
 
 .btnBack{

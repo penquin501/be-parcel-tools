@@ -33,11 +33,18 @@
         </div>-->
         <div>
           <b>ประเภทการจัดส่ง:</b>
+           <input :disabled="billingInfo" v-model="bi_parcel_type" />
           <br />
-          <select class="selectType" v-model="bi_parcel_type" v-on:change="selectType">
+          <!-- <select class="selectType" v-model="bi_parcel_type" v-on:change="selectType">
             <option value="NORMAL">NORMAL</option>
             <option value="COD">COD</option>
-          </select>
+          </select> --> 
+        <div style="display: grid ; grid-template-columns: .5fr 1fr .5fr 1fr" >
+          <input style="margin-top: 5%" v-model="radio_parcel_type" type="radio" v-on:change="selectType('COD')" value="COD"/>COD
+          <input style="margin-top: 5%" v-model="radio_parcel_type" type="radio" v-on:change="selectType('NORMAL')" value="NORMAL"/>NORMAL
+        </div>
+
+
         </div>
         <div>
           <b>มูลค่า COD:</b>
@@ -52,15 +59,15 @@
         </div>
         <div>
           <b>ขนาดพัสดุ:</b>
-          <!-- <input :disabled="billingInfo" v-model="alias_size" /> -->
-          <select class="selectSize" v-model="alias_size" v-on:change="selectSize">
+          <input :disabled="billingInfo" v-model="alias_size" />
+          <!-- <select class="selectSize" v-model="alias_size" v-on:change="selectSize"> -->
             <!-- <option :value="alias_size" :selected="alias_size" disabled>{{alias_size}}</option> -->
-            <option
+            <!-- <option
               :value="boxSize[index].alias_size.toUpperCase()"
               v-for="(item , index) in boxSize"
               :key="item.id"
             >{{boxSize[index].alias_size.toUpperCase()}}</option>
-          </select>
+          </select> -->
         </div>
 
         <div>
@@ -212,34 +219,54 @@ export default {
       dataZipcode: [],
       trackingIn: "",
 
-
+      radio_parcel_type:"",
     };
   },
   mounted() {
     // var tracking = this.$props.selectedTracking.tracking;
-    var trackingIn = this.$route.params.tracking;
-    console.log("trackingIn",trackingIn);
-
-    this.getData(trackingIn);
-    this.parcelSizeList();
+    var branch_id = this.$route.params.branch_id;
+    this.selectTrackingToCheck(branch_id);
+    // this.getData(trackingIn);
+    // this.parcelSizeList();
   },
   methods: {
+    selectTrackingToCheck(branch_id){
+      const options = { okLabel: "ตกลง" };
+      var resTracking;
+      if(branch_id==""){
+        this.$dialogs.alert("กรุณาเลือกสาขาที่ต้องการตรวจสอบให้ถูกต้อง", options);
+      } else{
+        axios.get(
+          "https://tool.945parcel.com/select/tracking/check?branch_id=" +
+             branch_id
+        )
+        .then(response => {
+            // console.log(response.data.tracking);
+            if(response.data.status=="SUCCESS"){
+              resTracking=response.data.tracking[0].tracking;
+              this.getData(resTracking);
+            }
+        });
+      }
+    },
     getData(trackingIn) {
       this.trackingIn = trackingIn; 
       
       axios
         .get(
-          // "https://tool.945parcel.com/check/info/tracking?tracking=" +
           "https://tool.945parcel.com/check/info/tracking?tracking=" +
+          // "http://127.0.0.1:3200/check/info/tracking?tracking=" +
              this.trackingIn.toUpperCase()
         )
         .then(response => {
           
           if (response.data.status == "SUCCESS") {
+            // console.log(response.data.billingInfo);
             this.billingInfo = response.data.billingInfo;
             this.billing_no = this.billingInfo[0].billing_no;
             this.tracking = this.billingInfo[0].tracking;
             this.bi_parcel_type = this.billingInfo[0].bi_parcel_type;
+            this.district_code = this.billingInfo[0].DISTRICT_CODE;
             this.size_id = this.billingInfo[0].size_id;
             this.alias_size = this.billingInfo[0].alias_size.toUpperCase(); 
             this.size_price = this.billingInfo[0].size_price;
@@ -280,12 +307,8 @@ export default {
               this.imgUrl = this.imgCapture[0].image_url;
             }
             
-            this.previous_value = {
-              p_bi_zipcode: this.billingInfo[0].bi_zipcode,
-              p_br_zipcode: this.billingInfo[0].br_zipcode,
-              p_bi_parcel_type: this.billingInfo[0].bi_parcel_type,
-              p_br_parcel_type: this.billingInfo[0].br_parcel_type,
-            }
+            
+            this.previous_value = response.data.billingInfo[0];
           } else {
             alert("ไม่พบข้อมุล");
           }
@@ -317,17 +340,17 @@ export default {
             return true;
       $event.preventDefault();
     },
-    parcelSizeList() {
-      axios
-       .get(" https://tool.945parcel.com/tools/parcel/size/list")
-        // .get("http://127.0.0.1:3200/tools/parcel/size/list")
-        .then(response => {
-          this.boxSize = response.data.parcelSizeList;
-        })
-        .catch(function(error) {
-          console.log(error);
-        });
-    },
+    // parcelSizeList() {
+    //   axios
+    //    .get("https://tool.945parcel.com/tools/parcel/size/list")
+    //     // .get("http://127.0.0.1:3200/tools/parcel/size/list")
+    //     .then(response => {
+    //       this.boxSize = response.data.parcelSizeList;
+    //     })
+    //     .catch(function(error) {
+    //       console.log(error);
+    //     });
+    // },
     parcelAddressList(zipcode) {
       axios
         .get(
@@ -356,8 +379,9 @@ export default {
           });
       }
     },
-    selectType() {
-      this.br_parcel_type = this.bi_parcel_type;
+    selectType(parcel_type) {
+      this.bi_parcel_type=parcel_type;
+      this.br_parcel_type=parcel_type;
     },
     selectSize() {
       var dataSize = {
@@ -378,32 +402,32 @@ export default {
         });
     },
     confirmData() {
-      console.log(this.previous_value);
+      const options = { okLabel: "ตกลง" };
       if(this.bi_parcel_type == "COD" && this.cod_value>=10000){
-        alert("กรุณาแน่ใจว่า ค่าเก็บเงินปลายทางเกิน 10000 หรือไม่");
+        this.$dialogs.alert("กรุณาแน่ใจว่า ค่าเก็บเงินปลายทางเกิน 10000 หรือไม่", options);
       }
       var phone = this.phone;
       var receiver_last_name;
       if (this.receiver_first_name == "") {
-        alert("กรุณากรอก ชื่อผู้รับ ให้ถูกต้อง");
+        this.$dialogs.alert("กรุณากรอก ชื่อผู้รับ ให้ถูกต้อง", options);
       } else if (
         phone[0] + phone[1] != "06" &&
         phone[0] + phone[1] != "08" &&
         phone[0] + phone[1] != "09"
       ) {
-        alert("กรุณากรอก เบอร์โทรศัทพ์ผู้รับ เท่านั้น");
+        this.$dialogs.alert("กรุณากรอก เบอร์โทรศัทพ์ผู้รับ เท่านั้น", options);
       } else if (phone.length < 10) {
-        alert("กรุณากรอก เบอร์โทรศัพท์ ให้ถูกต้อง");
+        this.$dialogs.alert("กรุณากรอก เบอร์โทรศัพท์ ให้ถูกต้อง", options);
       } else if(this.br_zipcode == ""){
-        alert("กรุณากรอก รหัสไปรษณีย์ผู้รับให้ถูกต้อง");
+        this.$dialogs.alert("กรุณากรอก รหัสไปรษณีย์ผู้รับให้ถูกต้อง", options);
       } else if(this.br_zipcode != this.bi_zipcode){
-        alert("กรุณากรอก รหัสไปรษณีย์ผู้รับ ให้ตรงกับหน้ากล่องผู้รับ");
+        this.$dialogs.alert("กรุณากรอก รหัสไปรษณีย์ผู้รับ ให้ตรงกับหน้ากล่องผู้รับ", options);
       } else if(this.bi_parcel_type != this.br_parcel_type){
-        alert("กรุณากรอก ประเภทการจัดส่ง ให้ตรงกับหน้ากล่องผู้รับ");
+        this.$dialogs.alert("กรุณากรอก ประเภทการจัดส่ง ให้ตรงกับหน้ากล่องผู้รับ", options);
       } else if(this.bi_parcel_type == "COD" && (this.cod_value=="" || this.cod_value==0)){
-        alert("กรุณากรอก ค่าเก็บเงินปลายทาง ให้ถูกต้อง");
+        this.$dialogs.alert("กรุณากรอก ค่าเก็บเงินปลายทาง ให้ถูกต้อง", options);
       } else if(this.bi_parcel_type == "NORMAL" && this.cod_value>0){
-        alert("กรุณากรอก ค่าเก็บเงินปลายทาง ให้ถูกต้อง");
+        this.$dialogs.alert("กรุณากรอก ค่าเก็บเงินปลายทาง ให้ถูกต้อง", options);
       } else {
         // console.log("ok",this.cod_value);
         if(this.receiver_last_name=="" || this.receiver_last_name==undefined){
@@ -411,6 +435,7 @@ export default {
         } else {
           receiver_last_name=this.receiver_last_name
         }
+
         var dataConfirm={
             tracking:this.tracking,
             billing_no:this.billing_no,
@@ -418,33 +443,29 @@ export default {
             current_value:{
               parcel_type:this.bi_parcel_type,
               cod_value: this.cod_value,
-              // bi_zipcode:this.bi_zipcode,
               size_id:this.size_id,
               size_price:this.size_price,
 
               first_name:this.receiver_first_name,
-              last_name:receiver_last_name,
+              last_name: receiver_last_name,
               phone:this.phone,
               address:this.receiver_address,
               district_code:this.district_code,
               br_zipcode:this.br_zipcode
-              // br_parcel_type:this.br_parcel_type
             },
             user:'1'
           };
-          console.log(JSON.stringify(dataConfirm));
-        // axios.post("http://127.0.0.1:3200/confirm/match/data/info" ,dataConfirm)
-        // .then(response => {
-        //   if(response.data.status=='SUCCESS'){
-        //     alert(
-        //       "แก้ไขข้อมูลผู้รับเรียบร้อยแล้ว"
-        //     );
-        //     window.location.reload();
-        //   }
-        // })
-        // .catch(function(error) {
-        //   console.log(error);
-        // });
+          // console.log(JSON.stringify(dataConfirm));
+        axios.post("https://tool.945parcel.com/confirm/match/data/info" ,dataConfirm)
+        .then(response => {
+          if(response.data.status=='SUCCESS'){
+            this.$dialogs.alert("แก้ไขข้อมูลผู้รับเรียบร้อยแล้ว", options);
+            window.location.reload();
+          }
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
       }
     },
     rotateRight() {
@@ -459,6 +480,7 @@ export default {
       this.openZipcode = true;
     },
     selectItem(item) {
+      // console.log(item);
       this.displayAddress =
         item.zipcode +
         " " +
@@ -471,6 +493,7 @@ export default {
       this.bi_zipcode = item.zipcode;
       this.br_zipcode = item.zipcode;
       this.district_code = item.DISTRICT_CODE;
+      this.selectSize();
 
       // console.log('ter' , this.district_code);
     }
