@@ -18,11 +18,16 @@ module.exports = {
       let data=[tracking];  
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql,data, (error, results, fields) => {
+        if(error==null){
         if (results.length == 0) {
           resolve(false);
         } else {
           resolve(results);
         }
+      } else {
+        console.log(error);
+        resolve(false);
+      }
       });
     });
   },
@@ -32,11 +37,17 @@ module.exports = {
 
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql,data, (error, results, fields) => {
-        if (results.length == 0) {
-          resolve(false);
+        if(error===null){
+          if (results.length == 0) {
+            resolve(false);
+          } else {
+            resolve(results);
+          }
         } else {
-          resolve(results);
+          console.log(error);
+          resolve(false);
         }
+        
       });
     });
   },
@@ -67,6 +78,7 @@ module.exports = {
           }
         } else {
           console.log(err);
+          resolve(false);
         }
       });
     });
@@ -89,6 +101,7 @@ module.exports = {
           }
         } else {
           console.log(error);
+          resolve(false);
         }
         
       });
@@ -104,12 +117,17 @@ module.exports = {
 
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql,data, (error, results, fields) => {
-        // console.log(results);
-        if (results.length == 0) {
-          resolve(false);
+        if(error===null){
+          if (results.length == 0) {
+            resolve(false);
+          } else {
+            resolve(results);
+          }
         } else {
-          resolve(results);
+          console.log(error);
+          resolve(false);
         }
+        
       });
     });
   },
@@ -119,25 +137,32 @@ module.exports = {
 
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql,data, (error, results, fields) => {
-      resolve(results);
+        if(error===null){
+          resolve(results);
+        }
     });
   });
   },
 
-  // parcelSizeList: zone => {
-  //   let sql =
-  //       "SELECT alias_size FROM size_info GROUP BY alias_size ORDER BY min(parcel_price) ASC";
-  //   return new Promise(function(resolve, reject) {
-      
-  //     parcel_connection.query(sql, (error, results, fields) => {
-  //       if (results.length == 0) {
-  //         resolve(false);
-  //       } else {
-  //         resolve(results);
-  //       }
-  //     });
-  //   });
-  // },
+  parcelSizeList: zone => {
+    let sql =
+        "SELECT alias_size FROM size_info GROUP BY alias_size ORDER BY min(parcel_price) ASC";
+    return new Promise(function(resolve, reject) {
+      parcel_connection.query(sql, (error, results, fields) => {
+        if(error===null){
+          if (results.length == 0) {
+            resolve(false);
+          } else {
+            resolve(results);
+          }
+        } else {
+          console.log(error);
+          resolve(false);
+        }
+       
+      });
+    });
+  },
   updateStatusBilling: billing_no => {
     let updateBilling ="UPDATE billing_test SET status='cancel' WHERE billing_no=?";
 
@@ -253,7 +278,9 @@ module.exports = {
     let data=[tracking];
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql,data, (error, results, fields) => {
-        resolve(results);
+        if(error===null){
+          resolve(results);
+        }
       });
     });
   },
