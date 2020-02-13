@@ -57,6 +57,11 @@ export default {
       previous_value:{}
     };
   },
+  mounted(){
+    if(!this.$session.get('session_username')){
+      this.$router.push({ name: "Main"})
+    }
+  },
   methods: {
     getData() {
       const options = { okLabel: "ตกลง" };
@@ -102,7 +107,7 @@ export default {
         var dataConfirm={
             billing_no:this.billingNo,
             previous_value:this.previous_value,
-            user:'1'
+            user:this.$session.get('session_username')
           };
         axios.post("https://tool.945parcel.com/save/cancel/billing" ,dataConfirm)
         .then(response => {

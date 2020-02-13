@@ -171,6 +171,11 @@ export default {
       receiverAddressEdit:true
     };
   },
+  mounted(){
+    if(!this.$session.get('session_username')){
+      this.$router.push({ name: "Main"})
+    }
+  },
   methods: {
     getData() {
       const options = { okLabel: "ตกลง" };
@@ -267,7 +272,6 @@ export default {
             this.receiverLNameEdit= true;
             this.receiverPhoneEdit = true;
             this.receiverAddressEdit= true;
-            // this.getData();
           } else if (this.selectValue == 2) {
             this.receiverFNameEdit= false;
             this.receiverLNameEdit= false;

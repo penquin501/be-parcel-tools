@@ -6,9 +6,9 @@
                   <h3 >Parcel-Tool</h3>
             </div>
            
-            <input placeholder="Username" v-model="username" v-on:keyup.enter="btnLogin" />
+            <input placeholder="Username" v-model="username" v-on:keyup.enter="logIn" />
             <br>
-            <input placeholder="Password" type="password" v-on:keyup.enter="btnLogin"  v-model="password" />
+            <input placeholder="Password" type="password" v-on:keyup.enter="logIn"  v-model="password" />
             <br>
             <br>
             <button v-on:click="logIn" class="btn btn-outline-success" >LOGIN</button>
@@ -75,11 +75,16 @@ export default {
     };
   },
     mounted: function() {
+
+
     this.$session.start()
     var dataLogin = JSON.parse(localStorage.getItem("dataLoginParcelTool"));
     console.log("dataLogin",dataLogin);
     if (dataLogin != null) {
       this.state = 'blank';
+    }
+    if(!this.$session.get('session_username')){
+      this.state = "login"
     }
   },
 
@@ -113,8 +118,10 @@ export default {
       
     },
     Logout(){
-      localStorage.clear();
-      window.location.reload();
+      // localStorage.clear();
+      this.$session.clear();
+      // window.location.reload();
+      this.state = 'login';
 
     },
     

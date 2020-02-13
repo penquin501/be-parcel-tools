@@ -223,6 +223,9 @@ export default {
     };
   },
   mounted() {
+     if(!this.$session.get('session_username')){
+       this.$router.push({ name: "Main"})
+    }
     // var tracking = this.$props.selectedTracking.tracking;
     var branch_id = this.$route.params.branch_id;
     this.selectTrackingToCheck(branch_id);
@@ -453,7 +456,7 @@ export default {
               district_code:this.district_code,
               br_zipcode:this.br_zipcode
             },
-            user:'1'
+            user:this.$session.get('session_username')
           };
           // console.log(JSON.stringify(dataConfirm));
         axios.post("https://tool.945parcel.com/confirm/match/data/info" ,dataConfirm)

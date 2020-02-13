@@ -37,6 +37,9 @@ export default {
     mounted(){
       this.inMenu = 2.5;
       this.getlistTracking();
+      if(!this.$session.get('session_username')){
+       this.$router.push({ name: "Main"})
+    }
     },
   methods: {
     getlistTracking() {

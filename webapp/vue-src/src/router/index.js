@@ -6,6 +6,12 @@ Vue.use(Router);
 
 const routes = [
     {
+        path: "/",
+        name: 'Main',
+        component: () => import("../App.vue"),
+        hidden: true
+    },
+    {
         path: "/tools",
         component: () => import("../components/main.vue"),
         hidden: true
