@@ -37,10 +37,6 @@
       </li>
        <li class="nav-item">
            <router-link to="/listphone"><a class="nav-link"  id="navbarDropdown" v-on:click="toView" role="button"  aria-haspopup="true" aria-expanded="false">KEY-IN Helper</a></router-link>
-        <!-- <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">KEY-IN Helper</a>
-        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-          <router-link to="/setpriority"><a v-on:click="toView"  class="dropdown-item" >Set-Priority</a></router-link>
-        </div> -->
       </li>
 
 

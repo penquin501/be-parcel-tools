@@ -1,20 +1,74 @@
 <template>
   <div class="container" style="margin-top: 60px;">
     <div class="search">
-      <b style="font-size:18px;">กรุณากรอกเบอร์โทรศัพท์ผู้ส่ง :</b>
-      <input maxlength="10" v-model="phoneInput" @keypress="isNumber($event)" autocomplete="false" />
+      <div class="row" style="margin-bottom: 15px;margin-top: 15px;">
+       <div class="col-ms-1 col-sm-1"></div>
+       <div class="col-ms-4 col-sm-4" style="text-align:right;">
+         <b style="font-size:18px;">เบอร์โทรศัพท์ผู้ส่ง :</b>
+         </div>
+        <div class="col-ms-4 col-sm-4" style="text-align:left;"> 
+          <input maxlength="10" v-model="phoneInput" @keypress="isNumber($event)" autocomplete="false" :disabled="state.isSending" style="margin-bottom: 0px;margin-top: 0px;"/>
+        </div>
+        <div class="col-ms-4 col-sm-4"></div>
+      </div>
     </div>
+
     <div class="search">
-      <b style="font-size:18px;">priority :</b>
-      <input maxlength="13" v-model="priorityInput" autocomplete="false" />
+      <div class="row" style="margin-bottom: 15px;margin-top: 15px;" >
+       <div class="col-ms-1 col-sm-1"></div>
+       <div class="col-ms-4 col-sm-4" style="text-align:right;">
+         <b style="font-size:18px;">Priority :</b>
+         </div>
+        <div class="col-ms-4 col-sm-4" style="text-align:left;"> 
+          <input maxlength="13" v-model="priorityInput" autocomplete="false"  style="margin-bottom: 0px;margin-top: 0px;"/>
+        </div>
+        <div class="col-ms-4 col-sm-4"></div>
+      </div>     
     </div>
+
+
+
     <div class="search">
-      <button type="button">บันทึก</button>
+      <div class="row">
+         <div class="col-ms-4 col-sm-4"></div>
+          <div class="col-ms-4 col-sm-4" >
+               <button type="button">บันทึก</button>
+          </div>
+           <div class="col-ms-4 col-sm-4"></div>
+      </div>
     </div>
-    <div>
-      <p>จำนวน Tracking ที่ค้างในระบบ : {{ n }}</p>
-      <p>จำนวน Tracking ที่กำหนด Priority ใหม่ : {{ nModified }} </p>
-    </div>
+
+
+   
+      <div class="row" style="margin-bottom: 15px;margin-top: 15px;">
+       <div class="col-ms-1 col-sm-1"></div>
+       <div class="col-ms-4 col-sm-4" style="text-align:right;">
+         <b style="font-size:18px;">จำนวน Tracking ที่ค้างในระบบ :</b>
+         </div>
+        <div class="col-ms-2 col-sm-2" style="text-align: center;margin-top: 3px;"> 
+         <b style="margin-bottom: 0px;">{{ n }}</b>
+        </div>
+        <div class="col-ms-6 col-sm-6"></div>
+      </div>     
+  
+
+       
+      <div class="row">
+       <div class="col-ms-1 col-sm-1"></div>
+       <div class="col-ms-4 col-sm-4" style="text-align:right;">
+         <b style="font-size:18px;">จำนวน Tracking ที่กำหนด Priority ใหม่ :</b>
+         </div>
+        <div class="col-ms-2 col-sm-2" style="text-align: center;margin-top: 3px;"> 
+        <b style="margin-bottom: 0px;">{{ nModified }} </b>
+        </div>
+        <div class="col-ms-6 col-sm-6"></div>
+      </div>     
+   
+
+
+
+
+
   </div>
   
 </template>
@@ -27,7 +81,10 @@ export default {
       phoneInput: "",
       priorityInput: "",
       n:0,
-      nModified:0
+      nModified:0,
+      state: {
+        isSending: true
+      }
     };
   },
   mounted() {

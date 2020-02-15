@@ -1,43 +1,40 @@
 <template>
   <div style="margin-top: 60px;">
     <div class="container" style="overflow-x:auto;">
+
+       <div class="row">
+        <div class="col-ms-3 col-sm-3 col-xs-3"></div>
+        <div class="col-ms-3 col-sm-3 col-xs-3" >
+          <b style="font-size:18px;">ค้นหาเบอร์โทรศัพท์ผู้ส่ง :</b>
+        </div>
+        <div class="col-ms-3 col-sm-3 col-xs-3">
+          <div class="search">
+            <input
+              @keypress="isNumber($event)"
+              onkeypress="if(this.value.length == 10) return false;"
+              v-model="phoneSeach"
+              autocomplete="false"
+              style="margin-top: 0px;"
+             />
+          </div>
+        </div>
+        <div class="col-ms-3 col-sm-3 col-xs-3"></div>
+      </div>
+
       <table>
-        <tbody style="text-align:center;">
-          <tr v-for="(item, index) in listPhone" v-bind:key="item.id">
-            <router-link :to="{ name: 'SetPriority', params: { phoneNumber: listPhone[index].phoneNumber }}">
-              <td>{{listPhone[index].phoneNumber}}({{ listPhone[index].count }})</td>
-            </router-link>
-          </tr>
-        </tbody>
-        <!-- <tr>
-          <th style="text-align: center;">เบอร์ผู้ส่ง</th>
+        <tr>
+          <th style="text-align: center;">เบอร์โทรศัพท์ผู้ส่ง</th>
           <th style="text-align: center;">จำนวนที่ค้าง</th>
           <th style="text-align: center;">Action</th>
-        </tr>
-        <tr>
-          <td style="text-align: center;">0901150343</td>
-          <td style="text-align: center;">3</td>
-          <td style="text-align: center;">
-            <router-link to="/setpriority" tag="button" class="button-set">SetPriority</router-link>&nbsp;
-            <router-link to="/notkeytracking" tag="button" class="button-list">ListTrcking</router-link>
+        </tr>   
+          <tr v-bind:key="item.id" v-for="item  in filteredResourcesPhone">
+              <td style="text-align: center;">{{item.phoneNumber}}</td>
+            <td style="text-align: center;">{{ item.count }}</td>
+             <td style="text-align: center;">
+            <router-link :to="{ name: 'SetPriority', params: { phoneNumber: item.phoneNumber }}" tag="button" class="button-set"><i class="fa fa-bell" aria-hidden="true"></i></router-link>&nbsp;
+            <router-link :to="{ name: 'ListNotkeyTracking', params: { phoneNumber: item.phoneNumber }}"   tag="button" class="button-list" ><i class="fa fa-bars" aria-hidden="true"></i></router-link>
           </td>
-        </tr>
-        <tr>
-          <td style="text-align: center;">0851002454</td>
-          <td style="text-align: center;">2</td>
-          <td style="text-align: center;">
-            <router-link to="/setpriority" tag="button" class="button-set">SetPriority</router-link>&nbsp;
-            <router-link to="/notkeytracking" tag="button" class="button-list">ListTrcking</router-link>
-          </td>
-        </tr>
-        <tr>
-          <td style="text-align: center;">0841254355</td>
-          <td style="text-align: center;">1</td>
-          <td style="text-align: center;">
-            <router-link to="/setpriority" tag="button" class="button-set">SetPriority</router-link>&nbsp;
-            <router-link to="/notkeytracking" tag="button" class="button-list">ListTrcking</router-link>
-          </td>
-        </tr> -->
+          </tr>
       </table>
     </div>
   </div>
@@ -50,7 +47,8 @@ export default {
   data: function() {
     return {
       listPhone: [],
-      tracking: ""
+      tracking: "",
+      phoneSeach:"",
     };
   },
   mounted() {
@@ -96,12 +94,54 @@ export default {
       //     .catch(function(error) {
       //       console.log(error);
       //     });
+    },
+    isNumber: function(evt) {
+      evt = evt ? evt : window.event;
+      var charCode = evt.which ? evt.which : evt.keyCode;
+      if (
+        charCode > 31 &&
+        (charCode < 48 || charCode > 57) &&
+        charCode !== 46
+      ) {
+        evt.preventDefault();
+      } else {
+        return true;
+      }
+    },
+  },
+ computed: {
+     filteredResourcesPhone() {
+      if (this.phoneSeach) {
+        return  this.listPhone.filter(item => {
+          var phoneNumber = item.phoneNumber;
+          if (phoneNumber == null) {
+            phoneNumber = "";
+          } 
+          return (
+            !this.phoneSeach ||
+            phoneNumber.toLowerCase().includes(this.phoneSeach.toLowerCase()) 
+          );
+        });
+      } else {
+        return this.listPhone;
+      }
+    },
+    
+
     }
-  }
 };
 </script>
 
 <style lang="scss">
+ input {
+    margin: 10px 5px 10px 5px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid #000;
+    outline: none;
+    width: 200px;
+    text-align: center;
+  }
 .button-set {
   padding: 5px 20px;
   background-color: #fff;
@@ -143,12 +183,11 @@ table {
   width: 100%;
   border: 1px solid #ddd;
 }
-th,
-td {
+
+th, td {
   text-align: left;
   padding: 8px;
 }
-tr:nth-child(even) {
-  background-color: #f2f2f2;
-}
+
+tr:nth-child(even){background-color: #f2f2f2}
 </style>

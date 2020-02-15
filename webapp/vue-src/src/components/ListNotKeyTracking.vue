@@ -1,39 +1,61 @@
 <template>
   <div style="margin-top: 60px;">
     <div class="container" style="overflow-x:auto;">
-      <table>
-        <tbody style="text-align:center;">
-          <tr v-for="(item, index) in listTracking" v-bind:key="item.id">
-            <router-link :to="{ name: 'CompareData', params: { tracking: listTracking[index].tracking }}">
-              <td>{{listTracking[index].tracking}}</td>
-            </router-link>
-          </tr>
-        </tbody>
-        <!-- <tr >
-      <th style="text-align: center;">Tracking</th>
-      <th style="text-align: center;">Action</th>
+      <div class="row">
+        <div class="col-ms-4 col-sm-4 col-xs-4"></div>
+        <div class="col-ms-2 col-sm-2 col-xs-2" >
+          <b style="font-size:18px;">เบอร์โทรศัพท์ผู้ส่ง :</b>
+        </div>
+        <div class="col-ms-3 col-sm-3 col-xs-3">
+          <div class="search" >
+            <input
+              maxlength="13"
+              v-model="phoneNumberKey"
+              autocomplete="false"
+              style="margin-top: 0px;"
+              :disabled="state.isSending"
+            />
+          </div>
+        </div>
+        <div class="col-ms-3 col-sm-3 col-xs-3"></div>
+      </div>
+      <div class="row">
+        <div class="col-ms-4 col-sm-4 col-xs-4"></div>
+        <div class="col-ms-2 col-sm-2 col-xs-2" >
+          <b style="font-size:18px;">ค้นหา Tracking :</b>
+        </div>
+        <div class="col-ms-3 col-sm-3 col-xs-3">
+          <div class="search">
+            <input
+              onkeypress="if(this.value.length == 12) return false;"
+              v-on:keypress="engOnly"
+              v-model="trackingSeach"
+              autocomplete="false"
+              style="margin-top: 0px;"
+             />
+          </div>
+        </div>
+        <div class="col-ms-3 col-sm-3 col-xs-3"></div>
+      </div>
 
-    </tr>
-    <tr>
-      <td style="text-align: center;">TDZ1000000</td>
-      <td style="text-align: center;">  
-          <a  tag="button" class="button-set"  href="https://my945app.firebaseapp.com/parcel-capture">KEY IN</a>
-       </td> 
-    </tr>
-    <tr >
-      <td style="text-align: center;">TDZ1000000</td>
-      <td style="text-align: center;">  
-           <a  tag="button" class="button-set"  href="https://my945app.firebaseapp.com/parcel-capture">KEY IN</a>
-       </td> 
-      
-    </tr>
-    <tr>
-      <td style="text-align: center;">TDZ1000000</td>
-       <td style="text-align: center;">  
-              <a  tag="button" class="button-set"  href="https://my945app.firebaseapp.com/parcel-capture">KEY IN</a>
-       </td> 
-        </tr>-->
+<div style="overflow-x:auto; height:700px;">
+      <table >
+        <tr>
+          <th style="text-align: center;">Tracking</th>
+          <th style="text-align: center;">Action</th>
+        </tr>
+        <tr v-bind:key="item.id" v-for="item  in filteredResourcesTracking">
+          <td style="text-align: center;">{{ item.tracking }}</td>
+          <td style="text-align: center;">
+            <button class="button-list" v-on:click="getTracking(item.tracking)">
+              <i class="fa fa-keyboard-o" aria-hidden="true"></i>
+            </button>
+            <!-- <router-link :to="{ name: 'CompareData', params: { tracking: listTracking[index].tracking }}"  tag="button" class="button-list" ><i class="fa fa-keyboard-o" aria-hidden="true"></i></router-link> -->
+          </td>
+        </tr>
       </table>
+         </div>
+
     </div>
   </div>
 </template>
@@ -47,7 +69,11 @@ export default {
   data: function() {
     return {
       listTracking: [],
-      phoneNumber: ""
+      phoneNumberKey: "",
+      trackingSeach: "",
+      state: {
+        isSending: true
+      }
     };
   },
   mounted() {
@@ -55,8 +81,15 @@ export default {
       this.$router.push({ name: "Main" });
     }
     this.getlistTracking();
+    var phoneNumber = this.$route.params.phoneNumber;
+    console.log("phoneNumber =>",phoneNumber);
+    this.phoneNumberKey = phoneNumber;
   },
   methods: {
+    getTracking(tracking) {
+      var aa = tracking;
+      console.log("aa=>", aa);
+    },
     getlistTracking() {
       //   axios
       //     .get("https://app.my945capture.com/v2/api/parcel-capture/tasks/tracking/by-phone/"+phoneNumber)
@@ -169,15 +202,77 @@ export default {
             tracking: "TDZ19063514",
             uid: "5e3bd6009da22900196f0a54"
           }
-        ]
+        ],
       };
       this.listTracking = response.results;
+    },
+        engOnly($event) {
+      var englishAlphabetAndWhiteSpace = /[A-Za-z | 0-9]/g;
+      // let keyCode = $event.keyCode ? $event.keyCode : $event.which;
+
+      var key = String.fromCharCode(event.which);
+      if (
+        event.keyCode == 8 ||
+        event.keyCode == 37 ||
+        event.keyCode == 39 ||
+        englishAlphabetAndWhiteSpace.test(key)
+      ) {
+        return true;
+      }
+      $event.preventDefault();
+    },
+
+  },
+    computed: {
+     filteredResourcesTracking() {
+      if (this.trackingSeach) {
+        return  this.listTracking.filter(item => {
+          var trackingfind = item.tracking;
+          if (trackingfind == null) {
+            trackingfind = "";
+          } 
+          return (
+            !this.trackingSeach ||
+            trackingfind.toLowerCase().includes(this.trackingSeach.toLowerCase()) 
+          );
+        });
+      } else {
+        return this.listTracking;
+      }
+    },
+    
+
     }
-  }
 };
 </script>
 
-<style lang="scss">
+<style lang="scss" scope>
+.search {
+  text-align: center;
+  input {
+    margin: 10px 5px 10px 5px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid #000;
+    outline: none;
+    width: 200px;
+    text-align: center;
+  }
+  button {
+    padding: 5px 20px;
+    background-color: #fff;
+    border: 2px solid rgb(0, 136, 148);
+    cursor: pointer;
+    color: rgb(0, 136, 148);
+    font-weight: bold;
+    outline: none;
+    transition: 0.5s;
+    &:hover {
+      background-color: rgb(0, 136, 148);
+      color: #fff;
+    }
+  }
+}
 .button-set {
   padding: 5px 20px;
   background-color: #fff;
@@ -225,5 +320,8 @@ td {
 }
 tr:nth-child(even) {
   background-color: #f2f2f2;
+}
+ input {
+    text-transform: uppercase;
 }
 </style>
