@@ -310,16 +310,16 @@ export default {
             user:this.$session.get('session_username')
           }
           console.log(JSON.stringify(data));
-          // axios.post("https://tool.945parcel.com/save/cancel/tracking" ,data)
-          // .then(response => {
-          //   if(response.data.status=='SUCCESS'){
-          //     this.$dialogs.alert("ยกเลิกเรียบร้อยแล้ว", options);
-          //     window.location.reload();
-          //   }
-          // })
-          // .catch(function(error) {
-          //   console.log(error);
-          // });
+          axios.post("https://tool.945parcel.com/save/cancel/tracking" ,data)
+          .then(response => {
+            if(response.data.status=='SUCCESS'){
+              this.$dialogs.alert("ยกเลิกเรียบร้อยแล้ว", options);
+              window.location.reload();
+            }
+          })
+          .catch(function(error) {
+            console.log(error);
+          });
         } else if (this.selectValue == 2) {
           var phone=this.phone;
           if(this.receiver_first_name =="") {

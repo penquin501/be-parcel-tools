@@ -34,6 +34,25 @@ const routes = [
         component: () => import("../components/CancelBillNo.vue"),
         hidden: true
     },
+    {
+        path: "/setpriority",
+        name: 'SetPriority',
+        component: () => import("../components/SetPriority.vue"),
+        hidden: true
+    },
+    {
+        path: "/listphone",
+        name: 'ListPhone',
+        component: () => import("../components/ListPhone.vue"),
+        hidden: true
+    },
+    {
+        path: "/listnotkeytracking",
+        name: 'ListNotkeyTracking',
+        component: () => import("../components/ListNotKeyTracking.vue"),
+        hidden: true
+    },
+
   
 ];
 

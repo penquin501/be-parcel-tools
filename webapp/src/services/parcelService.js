@@ -11,9 +11,9 @@ module.exports = {
         "br.parcel_type as br_parcel_type,br.sender_name,br.sender_phone,br.sender_address,br.receiver_name,br.phone,br.receiver_address," +
         "d.DISTRICT_CODE,br.district_id,br.district_name,br.amphur_id,br.amphur_name,br.province_id,br.province_name,br.zipcode as br_zipcode " +
         "FROM billing_item_test bi " +
-        "JOIN billing_receiver_info_test br ON bi.tracking=br.tracking " +
-        "LEFT JOIN postinfo_district d ON br.district_id=d.DISTRICT_ID AND br.amphur_id=d.AMPHUR_ID AND br.province_id=d.PROVINCE_ID" +
-        "JOIN size_info s ON bi.size_id= s.size_id " +
+        "LEFT JOIN billing_receiver_info_test br ON bi.tracking=br.tracking " +
+        "LEFT JOIN postinfo_district d ON br.district_id=d.DISTRICT_ID AND br.amphur_id=d.AMPHUR_ID AND br.province_id=d.PROVINCE_ID " +
+        "LEFT JOIN size_info s ON bi.size_id= s.size_id " +
         "WHERE bi.tracking=?";
       let data=[tracking];  
     return new Promise(function(resolve, reject) {
@@ -258,9 +258,9 @@ module.exports = {
       });
     });
   },
-  saveLogQlChecker: (branch_id, user_id, billing_no, error_code, error_maker, cs_check_user_id, cs_name, tracking, operation_key) => {
-    let sql ="INSERT INTO log_ql_checker(branch_id, user_id, billing_no, error_code, error_maker, cs_check_user_id, cs_name, tracking, operation_key, record_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    let data=[branch_id, user_id, billing_no, error_code, error_maker, cs_check_user_id, cs_name, tracking, operation_key, new Date()];
+  saveLogQlChecker: (branch_id, user_id, billing_no, error_code, error_maker, cs_name, tracking, operation_key) => {
+    let sql ="INSERT INTO log_ql_checker(branch_id, user_id, billing_no, error_code, error_maker, cs_name, tracking, operation_key, record_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    let data=[branch_id, user_id, billing_no, error_code, error_maker, cs_name, tracking, operation_key, new Date()];
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql,data, (error, results, fields) => {
         if(error===null){

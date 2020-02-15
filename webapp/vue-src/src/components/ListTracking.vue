@@ -9,10 +9,10 @@
     <section v-if="inMenu == 1  || inMenu == 2.5"  class="table">
       <table class="table table-striped">
     <tbody style="text-align:center;">
-       <tr v-for="(item, index) in listTracking" v-bind:key="item.id">
+      <tr v-for="(item, index) in listTracking" v-bind:key="item.id">
            <router-link  :to="{ name: 'CompareData', params: { branch_id: listTracking[index].branch_id }}">
              <td >{{listTracking[index].branch_name}}({{ listTracking[index].cTracking }})</td></router-link> 
-          </tr>
+      </tr>
        
     </tbody>
 </table>

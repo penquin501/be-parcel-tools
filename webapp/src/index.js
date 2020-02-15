@@ -196,7 +196,7 @@ app.post("/confirm/match/data/info", function(req, res) {
   let log_previous_value = previous_value.bi_parcel_type + "/" + previous_value.br_parcel_type + "/" + previous_value.bi_zipcode+"/"+previous_value.br_zipcode;
   let log_current_value = parcel_type + "/" + br_zipcode;
   let module_name = "ql_checker";
-  let user = req.body.user;
+  // let user = req.body.user;
   let cs_name=req.body.user;
 
   parcelServices.addressInfo(district_code).then(function(data) {
@@ -250,7 +250,7 @@ app.post("/confirm/match/data/info", function(req, res) {
       let operation_key=data[0].operator_id;
 
         parcelServices.updateCheckerInfo(tracking, size_id,size_price,cod_value,receiver_name, phone, address, parcel_type, district_id,district_name, amphur_id,amphur_name,province_id,province_name,zipcode).then(function(data) {});
-        parcelServices.saveLogQlChecker(branch_id, user_id, billing_no, error_code, error_maker, user, cs_name, tracking, operation_key).then(function(data) {});
+        parcelServices.saveLogQlChecker(branch_id, user_id, billing_no, error_code, error_maker, cs_name, tracking, operation_key).then(function(data) {});
         parcelServices.insertLog(billing_no,log_previous_value,log_current_value,module_name,user,tracking).then(function(data) {});
     })
     res.json({ status: "SUCCESS" });
