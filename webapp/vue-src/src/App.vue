@@ -78,9 +78,10 @@ export default {
     mounted: function() {
     this.$session.start()
     var dataLogin = JSON.parse(localStorage.getItem("dataLoginParcelTool"));
-    console.log("dataLogin",dataLogin);
+    // console.log("dataLogin",dataLogin);
     if (dataLogin != null) {
       this.state = 'blank';
+      this.showMain = true;   
     }
     if(!this.$session.get('session_username')){
       this.state = "login"

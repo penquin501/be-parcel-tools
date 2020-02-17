@@ -84,6 +84,7 @@ export default {
     }
     var phoneNumber = this.$route.params.phoneNumber;
     this.phoneInput = phoneNumber;
+
     // this.setPriority();
   },
   methods: {

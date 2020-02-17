@@ -79,7 +79,7 @@ export default {
     if (!this.$session.get("session_username")) {
       this.$router.push({ name: "Main" });
     }
-    
+
     var phoneNumber = this.$route.params.phoneNumber;
     console.log("phoneNumber =>",phoneNumber);
     this.phoneNumberKey = phoneNumber;
