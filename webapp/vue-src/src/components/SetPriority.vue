@@ -32,7 +32,7 @@
       <div class="row">
          <div class="col-ms-4 col-sm-4"></div>
           <div class="col-ms-4 col-sm-4" >
-               <button type="button">บันทึก</button>
+               <button type="button" v-on:click="setPriority()">บันทึก</button>
           </div>
            <div class="col-ms-4 col-sm-4"></div>
       </div>
@@ -50,9 +50,6 @@
         </div>
         <div class="col-ms-6 col-sm-6"></div>
       </div>     
-  
-
-       
       <div class="row">
        <div class="col-ms-1 col-sm-1"></div>
        <div class="col-ms-4 col-sm-4" style="text-align:right;">
@@ -63,18 +60,12 @@
         </div>
         <div class="col-ms-6 col-sm-6"></div>
       </div>     
-   
-
-
-
-
-
   </div>
   
 </template>
 
 <script>
-// const axios = require("axios");
+const axios = require("axios");
 export default {
   data: function() {
     return {
@@ -93,7 +84,7 @@ export default {
     }
     var phoneNumber = this.$route.params.phoneNumber;
     this.phoneInput = phoneNumber;
-    this.setPriority();
+    // this.setPriority();
   },
   methods: {
     isNumber: function(evt) {
@@ -110,26 +101,21 @@ export default {
       }
     },
     setPriority() {
-    //   var data = {
-    //     phoneNumber: this.phoneInput,
-    //     priority: this.priorityInput
-    //   };
-    //   axios
-    //     .post(
-    //       "https://app.my945capture.com/v2/api/parcel-capture/tasks/set-priority",
-    //       data
-    //     )
-    //     .then(response => {});
-      var response = {
-        status: "ok",
-        result: {
-          n: 1,
-          nModified: 12,
-          ok: 1
-        }
+      var data = {
+        phoneNumber: this.phoneInput,
+        priority: this.priorityInput
       };
-      this.n= response.result.n;
-      this.nModified= response.result.nModified;
+      axios
+        .post(
+          "https://app.my945capture.com/v2/api/parcel-capture/tasks/set-priority",
+          data
+        )
+        .then(response => {
+          // console.log();
+
+          this.n= response.data.result.n;
+          this.nModified= response.data.result.nModified;
+        });
     }
   }
 };

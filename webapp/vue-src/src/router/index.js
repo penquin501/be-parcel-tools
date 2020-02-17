@@ -57,7 +57,7 @@ const routes = [
 ];
 
 export default new Router({
-    // base: '/parceltool',
+    base: '/admin',
     // linkActiveClass: "active",
     mode: "history",
     scrollBehavior: () => ({

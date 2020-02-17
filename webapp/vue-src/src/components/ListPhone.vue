@@ -41,7 +41,7 @@
 </template>
 
 <script>
-// const axios = require("axios");
+const axios = require("axios");
 export default {
   components: {},
   data: function() {
@@ -59,41 +59,20 @@ export default {
   },
   methods: {
     getlistPhoneNumber() {
-        var response = {
-            "status": "ok",
-            "result": [
-                {
-                    "phoneNumber": "0815919729",
-                    "priority": 0,
-                    "count": 30
-                },
-                {
-                    "phoneNumber": "0870973580",
-                    "priority": 0,
-                    "count": 24
-                },
-                {
-                    "phoneNumber": "0894195619",
-                    "priority": 0,
-                    "count": 2
-                }
-            ]
-        };
-        this.listPhone=response.result
-      //   axios
-      //     .get("https://tool.945parcel.com/tools/list/tracking")
-      //     // .get("http://127.0.0.1:3200/tools/list/tracking")
-      //     .then(response => {
-      //       if (response.data.status == "SUCCESS") {
-            //   this.listPhone = response.data.listTracking;
-      //         console.log(this.listTracking);
-      //       } else {
-      //         alert("ไม่พบข้อมูล");
-      //       }
-      //     })
-      //     .catch(function(error) {
-      //       console.log(error);
-      //     });
+        
+        axios
+          .get("https://app.my945capture.com/v2/api/parcel-capture/tasks/list/phone/number")
+          .then(response => {
+            if (response.data.status=='ok') {
+              this.listPhone=response.data.result
+              console.log(this.listPhone);
+            } else {
+              alert("ไม่พบข้อมูล");
+            }
+          })
+          .catch(function(error) {
+            console.log(error);
+          });
     },
     isNumber: function(evt) {
       evt = evt ? evt : window.event;
