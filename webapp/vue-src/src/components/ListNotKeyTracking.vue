@@ -3,11 +3,11 @@
     <div class="container" style="overflow-x:auto;">
       <div class="row">
         <div class="col-ms-4 col-sm-4 col-xs-4"></div>
-        <div class="col-ms-2 col-sm-2 col-xs-2" >
+        <div class="col-ms-2 col-sm-2 col-xs-2">
           <b style="font-size:18px;">เบอร์โทรศัพท์ผู้ส่ง :</b>
         </div>
         <div class="col-ms-3 col-sm-3 col-xs-3">
-          <div class="search" >
+          <div class="search">
             <input
               maxlength="13"
               v-model="phoneNumberKey"
@@ -21,7 +21,7 @@
       </div>
       <div class="row">
         <div class="col-ms-4 col-sm-4 col-xs-4"></div>
-        <div class="col-ms-2 col-sm-2 col-xs-2" >
+        <div class="col-ms-2 col-sm-2 col-xs-2">
           <b style="font-size:18px;">ค้นหา Tracking :</b>
         </div>
         <div class="col-ms-3 col-sm-3 col-xs-3">
@@ -32,29 +32,29 @@
               v-model="trackingSeach"
               autocomplete="false"
               style="margin-top: 0px;"
-             />
+            />
           </div>
         </div>
         <div class="col-ms-3 col-sm-3 col-xs-3"></div>
       </div>
 
-<div style="overflow-x:auto; height:700px;">
-      <table >
-        <tr>
-          <th style="text-align: center;">Tracking</th>
-          <th style="text-align: center;">Action</th>
-        </tr>
-        <tr v-bind:key="item.id" v-for="item  in filteredResourcesTracking">
-          <td style="text-align: center;">{{ item.tracking }}</td>
-          <td style="text-align: center;">
-            <button class="button-list" v-on:click="getTracking(item.tracking)">
-              <i class="fa fa-keyboard-o" aria-hidden="true"></i>
-            </button>
-          </td>
-        </tr>
-      </table>
-         </div>
-
+      <div style="overflow-x:auto; height:700px;">
+        <table>
+          <tr>
+            <th style="text-align: center;">Tracking</th>
+            <th style="text-align: center;">Action</th>
+          </tr>
+          <tr v-bind:key="item.id" v-for="item  in filteredResourcesTracking">
+            <td style="text-align: center;">{{ item.tracking }}</td>
+            <td style="text-align: center;">
+              <button class="button-list" v-on:click="getTracking(item.tracking)">
+                <i class="fa fa-keyboard-o" aria-hidden="true"></i>
+              </button>
+              <button class="button-list" v-on:click="skipTracking(item.uid)">skip</button>
+            </td>
+          </tr>
+        </table>
+      </div>
     </div>
   </div>
 </template>
@@ -70,6 +70,8 @@ export default {
       listTracking: [],
       phoneNumberKey: "",
       trackingSeach: "",
+      n:0,
+      nModified:0,
       state: {
         isSending: true
       }
@@ -79,29 +81,53 @@ export default {
     if (!this.$session.get("session_username")) {
       this.$router.push({ name: "Main" });
     }
-
     var phoneNumber = this.$route.params.phoneNumber;
-    console.log("phoneNumber =>",phoneNumber);
     this.phoneNumberKey = phoneNumber;
+    this.phoneNumberKey = this.$session.get("numPhoneSet");
     this.getlistTracking();
   },
   methods: {
     getTracking(tracking) {
-      window.open('https://app.my945capture.com/v2/api/parcel-capture/tasks/manual/pick/' + tracking);
+      window.open(
+        "https://app.my945capture.com/v2/api/parcel-capture/tasks/manual/pick/" +
+        // "http://127.0.0.1:8081/v2/api/parcel-capture/tasks/manual/pick/" +
+          tracking
+      );
     },
     getlistTracking() {
-        axios
-          .get("https://app.my945capture.com/v2/api/parcel-capture/tasks/tracking/by-phone/"+this.phoneNumberKey)
-          .then(response => {
-              if(response.data.status=='ok'){
-                  this.listTracking = response.data.results;
-              } else {
-                  alert('ไม่พบข้อมูล');
-              }
-          })
-          .catch(function(error) {
-            console.log(error);
-          });
+      const options = { okLabel: "ตกลง" };
+      axios
+        .get(
+          "https://app.my945capture.com/v2/api/parcel-capture/tasks/tracking/by-phone/" +
+          // "http://127.0.0.1:8081/v2/api/parcel-capture/tasks/tracking/by-phone/" +
+            this.phoneNumberKey
+        )
+        .then(response => {
+          if (response.data.status == "ok") {
+            this.listTracking = response.data.results;
+          } else {
+            this.$dialogs.alert("ไม่พบข้อมูล", options);
+          }
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+    },
+    skipTracking(uid) {
+      const options = { okLabel: "ตกลง" };
+      axios
+        .get("https://app.my945capture.com/v2/api/parcel-capture/tasks/skip-by-tracking/"+uid)
+        // .get("http://127.0.0.1:8081/v2/api/parcel-capture/tasks/skip-by-tracking/"+uid)
+        .then(response => {
+          if(response.data.status=='ok' && response.data.result.nModified===1){
+            this.$dialogs.alert("skip tracking แล้ว", options);
+          } else {
+              this.$dialogs.alert("ไม่พบข้อมูล", options);
+          }
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
     },
     engOnly($event) {
       var englishAlphabetAndWhiteSpace = /[A-Za-z | 0-9]/g;
@@ -117,29 +143,28 @@ export default {
         return true;
       }
       $event.preventDefault();
-    },
-
+    }
   },
-    computed: {
-     filteredResourcesTracking() {
+  computed: {
+    filteredResourcesTracking() {
       if (this.trackingSeach) {
-        return  this.listTracking.filter(item => {
+        return this.listTracking.filter(item => {
           var trackingfind = item.tracking;
           if (trackingfind == null) {
             trackingfind = "";
-          } 
+          }
           return (
             !this.trackingSeach ||
-            trackingfind.toLowerCase().includes(this.trackingSeach.toLowerCase()) 
+            trackingfind
+              .toLowerCase()
+              .includes(this.trackingSeach.toLowerCase())
           );
         });
       } else {
         return this.listTracking;
       }
-    },
-    
-
     }
+  }
 };
 </script>
 
@@ -218,7 +243,7 @@ td {
 tr:nth-child(even) {
   background-color: #f2f2f2;
 }
- input {
-    text-transform: uppercase;
+input {
+  text-transform: uppercase;
 }
 </style>

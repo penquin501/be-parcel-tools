@@ -84,8 +84,7 @@ export default {
     }
     var phoneNumber = this.$route.params.phoneNumber;
     this.phoneInput = phoneNumber;
-
-    // this.setPriority();
+    this.phoneInput = this.$session.get("numPhoneSet");
   },
   methods: {
     isNumber: function(evt) {
@@ -109,11 +108,10 @@ export default {
       axios
         .post(
           "https://app.my945capture.com/v2/api/parcel-capture/tasks/set-priority",
+          // "http://127.0.0.1:8081/v2/api/parcel-capture/tasks/set-priority",
           data
         )
         .then(response => {
-          // console.log();
-
           this.n= response.data.result.n;
           this.nModified= response.data.result.nModified;
         });

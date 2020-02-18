@@ -78,10 +78,9 @@ export default {
     mounted: function() {
     this.$session.start()
     var dataLogin = JSON.parse(localStorage.getItem("dataLoginParcelTool"));
-    // console.log("dataLogin",dataLogin);
+    console.log("dataLogin",dataLogin);
     if (dataLogin != null) {
       this.state = 'blank';
-      this.showMain = true;   
     }
     if(!this.$session.get('session_username')){
       this.state = "login"
@@ -90,7 +89,7 @@ export default {
 
   methods: {
     logIn(){
-      this.state = 'blank';
+      // this.state = 'blank';
       var username =  this.username;
       var password =  this.password;
       //datatoLogin
@@ -102,13 +101,13 @@ export default {
       axios.post("https://945cs.work/login_api" ,queryString.stringify(dataLogin))
           .then(response => {   
             console.log(response.data.name)
-            
-
             if(response.data.status){
               localStorage.setItem("dataLoginParcelTool",JSON.stringify(dataLogin));
-              this.$session.set("session_username",response.data.name)
+              this.$session.set("session_username",response.data.name);
+                 this.state = 'blank';
               // window.location.reload();
             } else {
+                  this.state = 'login';
               // window.location.reload();
             }
           })

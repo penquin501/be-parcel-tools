@@ -44,8 +44,9 @@
             <td style="text-align: center;">{{ item.count }}</td>
             <td style="text-align: center;">{{ item.priority }}</td>
             <td style="text-align: center;">
-            <router-link :to="{ name: 'SetPriority', params: { phoneNumber: item.phoneNumber }}" tag="button" class="button-set"><i class="fa fa-bell" aria-hidden="true"></i></router-link>&nbsp;
-            <router-link :to="{ name: 'ListNotkeyTracking', params: { phoneNumber: item.phoneNumber }}"   tag="button" class="button-list" ><i class="fa fa-bars" aria-hidden="true"></i></router-link>
+            <button v-on:click="setPhone(item.phoneNumber)"  class="button-set"><i class="fa fa-bell" aria-hidden="true"></i></button>&nbsp;
+            <button v-on:click="setlist(item.phoneNumber)" class="button-list"><i class="fa fa-bars" aria-hidden="true"></i></button>
+            <!-- <router-link :to="{ name: 'ListNotkeyTracking', params: { phoneNumber: item.phoneNumber }}"   tag="button" class="button-list" ><i class="fa fa-bars" aria-hidden="true"></i></router-link> -->
           </td>
           </tr>
       </table>
@@ -62,6 +63,7 @@ export default {
       listPhone: [],
       tracking: "",
       phoneSeach:"",
+      // phoneNumber: "",
     };
   },
   mounted() {
@@ -71,15 +73,27 @@ export default {
     }
   },
   methods: {
+    setPhone(phone){
+     var numPhoneSet = phone;
+     this.$session.set("numPhoneSet",numPhoneSet);
+     this.$router.push({ name: 'SetPriority', params: { phoneNumber: phone } });
+    },
+    setlist(phone){
+     var numPhoneSet = phone;
+     this.$session.set("numPhoneSet",numPhoneSet);
+     this.$router.push({ name: 'ListNotkeyTracking', params: { phoneNumber: phone } });
+    },
     getlistPhoneNumber() {
+      const options = { okLabel: "ตกลง" };
         axios
           .get("https://app.my945capture.com/v2/api/parcel-capture/tasks/list/phone/number")
+          // .get("http://127.0.0.1:8081/v2/api/parcel-capture/tasks/list/phone/number")
           .then(response => {
             if (response.data.status=='ok') {
               this.listPhone=response.data.result
               // console.log(this.listPhone);
             } else {
-              alert("ไม่พบข้อมูล");
+              this.$dialogs.alert("ไม่พบข้อมูล", options);
             }
           })
           .catch(function(error) {
