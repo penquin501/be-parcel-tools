@@ -50,7 +50,7 @@
               <button class="button-list" v-on:click="getTracking(item.tracking)">
                 <i class="fa fa-keyboard-o" aria-hidden="true"></i>
               </button>
-              <button class="button-list" v-on:click="skipTracking(item.uid)">skip</button>
+              <!-- <button class="button-list" v-on:click="skipTracking(item.uid)">skip</button> -->
             </td>
           </tr>
         </table>

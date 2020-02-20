@@ -98,8 +98,6 @@ app.post("/save/cancel/tracking", function(req, res) {
 });
 
 app.post("/save/cancel/billing", function(req, res) {
-  console.log(req.body.billing_no);
-
   let billing_no = req.body.billing_no;
   let previous_status = req.body.previous_value;
   // let current_value = "cancel";
