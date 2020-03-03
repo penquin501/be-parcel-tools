@@ -59,12 +59,8 @@ module.exports = {
       billing_connection.query(sqlBilling, dataBilling, (err, results) => {
         resolve(results);
       });
-      billing_connection.query(
-        sqlBillingDelivery,
-        dataBillingDelivery,
-        (err, results2) => {
-          resolve(results2);
-        }
+      billing_connection.query(sqlBillingDelivery,dataBillingDelivery,(err, results2) => {
+          resolve(results2);}
       );
     });
   },

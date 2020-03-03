@@ -10,8 +10,8 @@ module.exports = {
         "SELECT bi.billing_no,bi.tracking,bi.size_id,s.alias_size,bi.size_price,bi.parcel_type as bi_parcel_type, bi.cod_value,bi.zipcode as bi_zipcode," +
         "br.parcel_type as br_parcel_type,br.sender_name,br.sender_phone,br.sender_address,br.receiver_name,br.phone,br.receiver_address," +
         "d.DISTRICT_CODE,br.district_id,br.district_name,br.amphur_id,br.amphur_name,br.province_id,br.province_name,br.zipcode as br_zipcode " +
-        "FROM billing_item_test bi " +
-        "LEFT JOIN billing_receiver_info_test br ON bi.tracking=br.tracking " +
+        "FROM billing_item bi " +
+        "LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking " +
         "LEFT JOIN postinfo_district d ON br.district_id=d.DISTRICT_ID AND br.amphur_id=d.AMPHUR_ID AND br.province_id=d.PROVINCE_ID " +
         "LEFT JOIN size_info s ON bi.size_id= s.size_id " +
         "WHERE bi.tracking=?";
@@ -52,10 +52,10 @@ module.exports = {
     });
   },
   getBillingInfo: (billing) => {
-    let sql = "SELECT billing_no,status FROM billing_test WHERE billing_no=?";
+    let sql = "SELECT billing_no,status FROM billing WHERE billing_no=?";
     let data = [billing];
 
-    let sqlItem = "SELECT count(tracking) as cTracking FROM billing_item_test WHERE billing_no=?";
+    let sqlItem = "SELECT count(tracking) as cTracking FROM billing_item WHERE billing_no=?";
     let dataItem = [billing];
 
     return new Promise(function(resolve, reject) {
@@ -84,9 +84,9 @@ module.exports = {
     });
   },
   getListTrackingNotMatch: () => {
-    let sql="SELECT bInfo.branch_name,b.branch_id,count(bi.tracking) as cTracking FROM billing_test b "+
-    "JOIN billing_item_test bi ON b.billing_no=bi.billing_no "+
-    "LEFT JOIN billing_receiver_info_test br ON bi.tracking=br.tracking "+
+    let sql="SELECT bInfo.branch_name,b.branch_id,count(bi.tracking) as cTracking FROM billing b "+
+    "JOIN billing_item bi ON b.billing_no=bi.billing_no "+
+    "LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking "+
     "LEFT JOIN branch_info bInfo ON b.branch_id=bInfo.branch_id "+
     "WHERE bi.zipcode<>br.zipcode or bi.parcel_type<>br.parcel_type "+
     "GROUP by b.branch_id,bInfo.branch_name"
@@ -109,9 +109,9 @@ module.exports = {
   },
   selectTrackingToCheck: (branch_id) => {
     let sql =
-        "SELECT bi.tracking FROM billing_test b "+
-        "Left JOIN billing_item_test bi ON b.billing_no=bi.billing_no "+
-        "LEFT JOIN billing_receiver_info_test br ON bi.tracking=br.tracking "+
+        "SELECT bi.tracking FROM billing b "+
+        "Left JOIN billing_item bi ON b.billing_no=bi.billing_no "+
+        "LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking "+
         "WHERE (bi.zipcode!=br.zipcode or bi.parcel_type!= br.parcel_type) AND b.branch_id=? LIMIT 1";
     let data=[branch_id];    
 
@@ -132,7 +132,7 @@ module.exports = {
     });
   },
   selectBillingInfo:(billing_no)=>{
-    let sql="SELECT total FROM billing_test WHERE billing_no=?"
+    let sql="SELECT total FROM billing WHERE billing_no=?"
     let data=[billing_no];
 
     return new Promise(function(resolve, reject) {
@@ -164,11 +164,11 @@ module.exports = {
     });
   },
   updateStatusBilling: billing_no => {
-    let updateBilling ="UPDATE billing_test SET status='cancel' WHERE billing_no=?";
+    let updateBilling ="UPDATE billing SET status='cancel' WHERE billing_no=?";
 
-    let selectBillingItem ="SELECT tracking FROM billing_item_test WHERE billing_no=?";
+    let selectBillingItem ="SELECT tracking FROM billing_item WHERE billing_no=?";
 
-    let updateStatusReceiver="UPDATE billing_receiver_info_test SET status='cancel' WHERE tracking=?";
+    let updateStatusReceiver="UPDATE billing_receiver_info SET status='cancel' WHERE tracking=?";
 
     let dataBilling=[billing_no];
 
@@ -186,7 +186,7 @@ module.exports = {
   },
   updateStatusReceiver: tracking => {
     return new Promise(function(resolve, reject) {
-      let sql ="UPDATE billing_receiver_info_test SET status='cancel' WHERE tracking=?";
+      let sql ="UPDATE billing_receiver_info SET status='cancel' WHERE tracking=?";
       let data=[tracking];
       parcel_connection.query(sql,data, (error, results, fields) => {
         resolve(results)
@@ -195,8 +195,8 @@ module.exports = {
   },
   selectParcelSize: billingNo => {
     return new Promise(function(resolve, reject) {
-      let sql ="SELECT b.size_price FROM billing_item_test b "+
-      "JOIN billing_receiver_info_test br ON b.tracking=br.tracking "+
+      let sql ="SELECT b.size_price FROM billing_item b "+
+      "JOIN billing_receiver_info br ON b.tracking=br.tracking "+
       "WHERE b.billing_no=? AND (br.status!='cancel' OR br.status is null)";
       let data=[billingNo];
       parcel_connection.query(sql,data, (error, results, fields) => {
@@ -206,7 +206,7 @@ module.exports = {
   },
   updateBillingInfo: (current_total,billing_no) => {
     return new Promise(function(resolve, reject) {
-      let sql ="UPDATE billing_test SET total=? WHERE billing_no=?";
+      let sql ="UPDATE billing SET total=? WHERE billing_no=?";
       let data=[current_total,billing_no];
       parcel_connection.query(sql,data, (error, results, fields) => {
         resolve(results)
@@ -214,7 +214,7 @@ module.exports = {
     });
   },
   updateReceiverInfo: (tracking, receiver_name, phone, address) => {
-    let sql ="UPDATE billing_receiver_info_test SET receiver_name=?,phone=?,receiver_address=? WHERE tracking=?";
+    let sql ="UPDATE billing_receiver_info SET receiver_name=?,phone=?,receiver_address=? WHERE tracking=?";
     let data=[receiver_name,phone,address,tracking];
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql,data, (error, results, fields) => {
@@ -242,10 +242,10 @@ module.exports = {
     });
   },
   updateCheckerInfo: (tracking, size_id,size_price,cod_value,receiver_name, phone, address, parcel_type, district_id,district_name, amphur_id,amphur_name,province_id,province_name,zipcode) => {
-    let sqlBillingItem ="UPDATE billing_item_test SET zipcode=?,size_id=?,size_price=?,parcel_type=?,cod_value=? WHERE tracking=?";
+    let sqlBillingItem ="UPDATE billing_item SET zipcode=?,size_id=?,size_price=?,parcel_type=?,cod_value=? WHERE tracking=?";
     let dataBillingItem=[zipcode,size_id,size_price,parcel_type,cod_value,tracking];
 
-    let sqlReceiver ="UPDATE billing_receiver_info_test SET parcel_type=?,receiver_name=?,phone=?,receiver_address=?,district_id=?,district_name=?,amphur_id=?,amphur_name=?,province_id=?,province_name=?,zipcode=? WHERE tracking=?";
+    let sqlReceiver ="UPDATE billing_receiver_info SET parcel_type=?,receiver_name=?,phone=?,receiver_address=?,district_id=?,district_name=?,amphur_id=?,amphur_name=?,province_id=?,province_name=?,zipcode=? WHERE tracking=?";
     let dataReceiver=[parcel_type,receiver_name,phone,address,district_id,district_name,amphur_id,amphur_name,province_id,province_name,zipcode,tracking];
 
     return new Promise(function(resolve, reject) {
