@@ -43,6 +43,7 @@ export default {
     },
   methods: {
     getlistTracking() {
+      const options = { okLabel: "ตกลง" };
       axios
         // .get("https://tool.945parcel.com/tools/list/tracking")
         .get("/tools/list/tracking")
@@ -51,7 +52,7 @@ export default {
                 this.listTracking=response.data.listTracking
                 // console.log(this.listTracking);
             } else {
-                alert('ไม่พบข้อมูล');
+                this.$dialogs.alert("ไม่พบข้อมูล",options);
             }
         })
         .catch(function(error) {
