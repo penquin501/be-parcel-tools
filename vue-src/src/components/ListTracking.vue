@@ -31,7 +31,7 @@ export default {
     return {
       inMenu: 1,
       listTracking: [],
-      tracking: "",
+      // tracking: "",
     };
   },
     mounted(){
@@ -44,12 +44,12 @@ export default {
   methods: {
     getlistTracking() {
       axios
-        .get("https://tool.945parcel.com/tools/list/tracking")
-        // .get("http://127.0.0.1:3200/tools/list/tracking")
+        // .get("https://tool.945parcel.com/tools/list/tracking")
+        .get("/tools/list/tracking")
         .then(response => {
             if(response.data.status=='SUCCESS'){
                 this.listTracking=response.data.listTracking
-                console.log(this.listTracking);
+                // console.log(this.listTracking);
             } else {
                 alert('ไม่พบข้อมูล');
             }

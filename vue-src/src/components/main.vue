@@ -1,11 +1,10 @@
 <template>
-  <div  style="margin-top: 60px;">
+  <div style="margin-top: 60px;">
     <div class="search">
-      <b style="font-size:18px;"> กรุณาใส่เลข Tracking :</b>
+      <b style="font-size:18px;">กรุณาใส่เลข Tracking :</b>
       <input maxlength="13" v-model="trackingInput" autocomplete="false" />
 
-      <button v-on:click="getData"  type="button" >Search</button>
-      
+      <button v-on:click="getData" type="button">Search</button>
     </div>
     <div class="content">
       <div class="left">
@@ -28,7 +27,6 @@
               <img style="width: 20px" src="../assets/right.png" />
             </button>
           </div>
-          
         </div>
       </div>
       <div class="center">
@@ -79,7 +77,11 @@
 
         <div>
           <b>ชื่อผู้รับ:</b>
-          <input :disabled="receiverFNameEdit" ref="receiverFNameEdit" v-model="receiver_first_name" />
+          <input
+            :disabled="receiverFNameEdit"
+            ref="receiverFNameEdit"
+            v-model="receiver_first_name"
+          />
         </div>
         <div>
           <b>นามสกุลผู้รับ:</b>
@@ -88,11 +90,20 @@
 
         <div>
           <b>เบอร์โทรศัทพ์ผู้รับ:</b>
-          <input maxlength="10" :disabled="receiverPhoneEdit" ref="receiverPhoneEdit" v-model="phone" />
+          <input
+            maxlength="10"
+            :disabled="receiverPhoneEdit"
+            ref="receiverPhoneEdit"
+            v-model="phone"
+          />
         </div>
         <div>
           <b>ที่อยู่ผู้รับ:</b>
-          <input :disabled="receiverAddressEdit" ref="receiverAddressEdit" v-model="receiver_address" />
+          <input
+            :disabled="receiverAddressEdit"
+            ref="receiverAddressEdit"
+            v-model="receiver_address"
+          />
         </div>
         <div>
           <b>พิกัด:</b>
@@ -111,16 +122,16 @@
     </div>
 
     <div class="select-tool">
-      <b style="font-size:18px;">Tools ที่จะใช้ : </b>
-      <select class="select" v-model="selectValue" v-on:change="selectTools" >
-      <!-- <select class="select" v-model="selectValue"> -->
-        <option value disabled selected> ----- เลือก Tools ----- </option>
+      <b style="font-size:18px;">Tools ที่จะใช้ :</b>
+      <select class="select" v-model="selectValue" v-on:change="selectTools">
+        <!-- <select class="select" v-model="selectValue"> -->
+        <option value disabled selected>----- เลือก Tools -----</option>
         <option value="1">ยกเลิก Tracking</option>
         <option value="2">เปลี่ยนแปลงข้อมูลผู้รับ</option>
       </select>
     </div>
     <div class="group-btn">
-      <button class=" cancel" v-on:click="clearBtn">ยกเลิก</button>
+      <button class="cancel" v-on:click="clearBtn">ยกเลิก</button>
       <button v-on:click="confirmSelectTools">บันทึก</button>
     </div>
   </div>
@@ -148,11 +159,11 @@ export default {
       sender_phone: "",
       sender_address: "",
       previous_value: "",
-      receiver_first_name:"",
-      receiver_last_name:"",
+      receiver_first_name: "",
+      receiver_last_name: "",
       phone: "",
       receiver_address: "",
-      location:"",
+      location: "",
       br_zipcode: "",
       br_parcel_type: "",
 
@@ -165,15 +176,15 @@ export default {
         "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC",
       rotation: 0,
 
-      receiverFNameEdit:true,
-      receiverLNameEdit:true,
+      receiverFNameEdit: true,
+      receiverLNameEdit: true,
       receiverPhoneEdit: true,
-      receiverAddressEdit:true
+      receiverAddressEdit: true
     };
   },
-  mounted(){
-    if(!this.$session.get('session_username')){
-      this.$router.push({ name: "Main"})
+  mounted() {
+    if (!this.$session.get("session_username")) {
+      this.$router.push({ name: "Main" });
     }
   },
   methods: {
@@ -182,9 +193,8 @@ export default {
       var meanStatus;
       axios
         .get(
-          "https://tool.945parcel.com/check/info/tracking?tracking=" +
-          // "http://127.0.0.1:3200/check/info/tracking?tracking=" +
-            this.trackingInput.toUpperCase()
+          // "https://tool.945parcel.com/check/info/tracking?tracking=" +
+          "/check/info/tracking?tracking=" + this.trackingInput.toUpperCase()
         )
         .then(response => {
           // console.log(response.data);
@@ -203,19 +213,21 @@ export default {
 
             var receiver_name = this.billingInfo[0].receiver_name;
             var res = receiver_name.split(" ");
-            this.receiver_first_name=res[0];
-            this.receiver_last_name=res[1];
+            this.receiver_first_name = res[0];
+            this.receiver_last_name = res[1];
 
             this.phone = this.billingInfo[0].phone;
-            this.receiver_address =this.billingInfo[0].receiver_address;
+            this.receiver_address = this.billingInfo[0].receiver_address;
 
-            this.previous_value=receiver_name+"/"+this.phone+"/"+this.receiver_address;
+            this.previous_value =
+              receiver_name + "/" + this.phone + "/" + this.receiver_address;
 
-            this.location=this.billingInfo[0].district_name +
-                          " " +
-                          this.billingInfo[0].amphur_name +
-                          " " +
-                          this.billingInfo[0].province_name;
+            this.location =
+              this.billingInfo[0].district_name +
+              " " +
+              this.billingInfo[0].amphur_name +
+              " " +
+              this.billingInfo[0].province_name;
             this.br_zipcode = this.billingInfo[0].br_zipcode;
             this.br_parcel_type = this.billingInfo[0].br_parcel_type;
 
@@ -230,9 +242,9 @@ export default {
 
               if (this.order_status == "101") {
                 meanStatus = "ยกเลิก";
-              } else if(this.order_status == "102"){
+              } else if (this.order_status == "102") {
                 meanStatus = "ส่งแบบ เรียกเก็บเงินปลายทาง (COD)";
-              } else if(this.order_status == "103"){
+              } else if (this.order_status == "103") {
                 meanStatus = "ส่งแบบ ธรรมดา (NORMAL)";
               } else if (this.order_status == "104") {
                 meanStatus = "ถูกจัดส่ง";
@@ -243,7 +255,7 @@ export default {
               } else {
                 meanStatus = "ยังไม่ได้ส่งข้อมูลไปที่หน้าฟ้า";
               }
-              this.order_status_lb = this.order_status+" - " + meanStatus;
+              this.order_status_lb = this.order_status + " - " + meanStatus;
             }
             this.imgCapture = response.data.imgCapture;
 
@@ -261,107 +273,129 @@ export default {
           console.log(error);
         });
     },
-    selectTools(){
+    selectTools() {
       const options = { okLabel: "ตกลง" };
-      if(this.tracking==""){
+      if (this.tracking == "") {
         this.$dialogs.alert("กรุณาระบุ Tracking เพื่อทำรายการ", options);
-          this.selectValue = "";
+        this.selectValue = "";
+      } else {
+        if (this.selectValue == 1) {
+          this.receiverFNameEdit = true;
+          this.receiverLNameEdit = true;
+          this.receiverPhoneEdit = true;
+          this.receiverAddressEdit = true;
+        } else if (this.selectValue == 2) {
+          this.receiverFNameEdit = false;
+          this.receiverLNameEdit = false;
+          this.receiverPhoneEdit = false;
+          this.receiverAddressEdit = false;
         } else {
-          if (this.selectValue == 1) {
-            this.receiverFNameEdit= true;
-            this.receiverLNameEdit= true;
-            this.receiverPhoneEdit = true;
-            this.receiverAddressEdit= true;
-          } else if (this.selectValue == 2) {
-            this.receiverFNameEdit= false;
-            this.receiverLNameEdit= false;
-            this.receiverPhoneEdit = false;
-            this.receiverAddressEdit= false;
-          } else {
-            this.receiverFNameEdit= true;
-            this.receiverLNameEdit= true;
-            this.receiverPhoneEdit = true;
-            this.receiverAddressEdit= true;
-          }
+          this.receiverFNameEdit = true;
+          this.receiverLNameEdit = true;
+          this.receiverPhoneEdit = true;
+          this.receiverAddressEdit = true;
         }
+      }
     },
     confirmSelectTools() {
       const options = { okLabel: "ตกลง" };
-      if(this.selectValue==""){
+      if (this.selectValue == "") {
         this.$dialogs.alert("กรุณาเลือก Tools เพื่อทำรายการ", options);
-      } else if(this.tracking==""){
+      } else if (this.tracking == "") {
         this.$dialogs.alert("กรุณาระบุ Tracking เพื่อทำรายการ", options);
       } else if (this.order_status == "101") {
-        this.$dialogs.alert("ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถูกยกเลิกไปแล้ว", options);
+        this.$dialogs.alert(
+          "ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถูกยกเลิกไปแล้ว",
+          options
+        );
       } else if (this.order_status == "104") {
-        this.$dialogs.alert("ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถูกจัดส่งไปแล้ว", options);
+        this.$dialogs.alert(
+          "ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถูกจัดส่งไปแล้ว",
+          options
+        );
       } else if (this.order_status == "105") {
-        this.$dialogs.alert("ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถึงปลายทางแล้ว", options);
+        this.$dialogs.alert(
+          "ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถึงปลายทางแล้ว",
+          options
+        );
       } else if (this.order_status == "106") {
-        this.$dialogs.alert("ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถูกตีกลับ", options);
+        this.$dialogs.alert(
+          "ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถูกตีกลับ",
+          options
+        );
       } else if (this.send_booking == 1) {
-        this.$dialogs.alert("ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถูกส่งข้อมูลให้บ. ขนส่งไปแล้ว", options);
+        this.$dialogs.alert(
+          "ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถูกส่งข้อมูลให้บ. ขนส่งไปแล้ว",
+          options
+        );
       } else {
         if (this.selectValue == 1) {
-          var data={
-            tracking:this.tracking,
-            billing_no:this.billing_no,
-            previous_value:this.order_status,
-            user:this.$session.get('session_username')
-          }
+          var data = {
+            tracking: this.tracking,
+            billing_no: this.billing_no,
+            previous_value: this.order_status,
+            user: this.$session.get("session_username")
+          };
           console.log(JSON.stringify(data));
-          axios.post("https://tool.945parcel.com/save/cancel/tracking" ,data)
-          .then(response => {
-            if(response.data.status=='SUCCESS'){
-              this.$dialogs.alert("ยกเลิกเรียบร้อยแล้ว", options);
-              window.location.reload();
-            }
-          })
-          .catch(function(error) {
-            console.log(error);
-          });
+          // axios.post("https://tool.945parcel.com/save/cancel/tracking" ,data)
+          axios
+            .post("/save/cancel/tracking", data)
+            .then(response => {
+              if (response.data.status == "SUCCESS") {
+                this.$dialogs.alert("ยกเลิกเรียบร้อยแล้ว", options);
+                this.$router.push('/');
+              }
+            })
+            .catch(function(error) {
+              console.log(error);
+            });
         } else if (this.selectValue == 2) {
-          var phone=this.phone;
-          if(this.receiver_first_name =="") {
+          var phone = this.phone;
+          if (this.receiver_first_name == "") {
             this.$dialogs.alert("กรุณากรอก ชื่อผู้รับ ให้ถูกต้อง", options);
-          } else if(this.receiver_last_name ==""){
+          } else if (this.receiver_last_name == "") {
             this.$dialogs.alert("กรุณากรอก นามสกุลผู้รับ ให้ถูกต้อง", options);
-          } else if(phone[0]+phone[1] != '06' && phone[0]+phone[1] != '08'&& phone[0]+phone[1] != '09'){
-            this.$dialogs.alert("กรุณากรอก เบอร์โทรศัทพ์ผู้รับ เท่านั้น", options);
-          } else if(phone.length<10){
+          } else if (
+            phone[0] + phone[1] != "06" &&
+            phone[0] + phone[1] != "08" &&
+            phone[0] + phone[1] != "09"
+          ) {
+            this.$dialogs.alert(
+              "กรุณากรอก เบอร์โทรศัทพ์ผู้รับ เท่านั้น",
+              options
+            );
+          } else if (phone.length < 10) {
             this.$dialogs.alert("กรุณากรอก เบอร์โทรศัพท์ ให้ถูกต้อง", options);
-          } else{
-            var dataReceiver={
-                tracking:this.tracking,
-                billing_no:this.billing_no,
-                previous_value:this.previous_value,
-                current_value:{
-                  first_name:this.receiver_first_name,
-                  last_name:this.receiver_last_name,
-                  phone:this.phone,
-                  address:this.receiver_address
-                },
-                user: this.$session.get('session_username')
-              };
-                axios.post("https://tool.945parcel.com/update/receiver/info" ,dataReceiver)
-                // axios.post("http://127.0.0.1:3200/update/receiver/info" ,dataReceiver)
-                .then(response => {
-                  if(response.data.status=='SUCCESS'){
-                    this.$dialogs.alert("แก้ไขข้อมูลผู้รับเรียบร้อยแล้ว", options);
-                    window.location.reload();
-                  }
-                })
-                .catch(function(error) {
-                  console.log(error);
-                });
+          } else {
+            var dataReceiver = {
+              tracking: this.tracking,
+              billing_no: this.billing_no,
+              previous_value: this.previous_value,
+              current_value: {
+                first_name: this.receiver_first_name,
+                last_name: this.receiver_last_name,
+                phone: this.phone,
+                address: this.receiver_address
+              },
+              user: this.$session.get("session_username")
+            };
+            // axios.post("https://tool.945parcel.com/update/receiver/info" ,dataReceiver)
+            axios
+              .post("/update/receiver/info", dataReceiver)
+              .then(response => {
+                if (response.data.status == "SUCCESS") {
+                  this.$dialogs.alert(
+                    "แก้ไขข้อมูลผู้รับเรียบร้อยแล้ว",
+                    options
+                  );
+                  this.$router.push('/');
+                }
+              })
+              .catch(function(error) {
+                console.log(error);
+              });
           }
-          
-        } else {
-          // alert("hello2");
-          window.location.reload();
         }
-
-        // this.disableTracking = false;
       }
     },
     rotateRight() {
@@ -370,16 +404,13 @@ export default {
     rotateLeft() {
       this.rotation -= 90;
     },
-    clearBtn(){
+    clearBtn() {
       window.location.reload();
-    },
+    }
   }
 };
 </script>
 <style lang="scss" >
-
-
-
 .search,
 .select-tool,
 .group-btn {
@@ -426,7 +457,7 @@ export default {
   }
 }
 .content {
-  .left{
+  .left {
     border: 1px solid #000;
   }
   .center,
@@ -481,7 +512,7 @@ export default {
       background: #fff;
     }
 
-    .btnOption{
+    .btnOption {
       text-align: center;
     }
     button {
@@ -504,33 +535,32 @@ export default {
   font-size: 16px;
   font-weight: bold;
 }
- .cancel{
-     padding: 5px 20px;
-    background-color: #fff;
-    border: 2px solid rgb(122, 122, 122) !important;
-    cursor: pointer;
-    color: rgb(122, 122, 122) !important;
-    font-weight: bold;
-    outline: none;
-    transition: 0.5s;
-    &:hover {
-      background-color: rgb(122, 122, 122) !important;
-      color: #fff !important;;
-    }
+.cancel {
+  padding: 5px 20px;
+  background-color: #fff;
+  border: 2px solid rgb(122, 122, 122) !important;
+  cursor: pointer;
+  color: rgb(122, 122, 122) !important;
+  font-weight: bold;
+  outline: none;
+  transition: 0.5s;
+  &:hover {
+    background-color: rgb(122, 122, 122) !important;
+    color: #fff !important;
+  }
 }
-.save{
-     padding: 5px 20px;
-    background-color: #fff;
-    border: 2px solid 	#32CD32 !important;
-    cursor: pointer;
-    color: 	#32CD32 !important;
-    font-weight: bold;
-    outline: none;
-    transition: 0.5s;
-    &:hover {
-      background-color: 	#32CD32 !important;
-      color: #fff !important;;
-    }
+.save {
+  padding: 5px 20px;
+  background-color: #fff;
+  border: 2px solid #32cd32 !important;
+  cursor: pointer;
+  color: #32cd32 !important;
+  font-weight: bold;
+  outline: none;
+  transition: 0.5s;
+  &:hover {
+    background-color: #32cd32 !important;
+    color: #fff !important;
+  }
 }
-
 </style>

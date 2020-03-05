@@ -2,37 +2,37 @@
   <div class="container" style="
     margin-top: 60px;">
     <div class="search">
-      <b style="font-size:18px;">กรุณาใส่เลขที่บิล : </b>
+      <b style="font-size:18px;">กรุณาใส่เลขที่บิล :</b>
       <input maxlength="30" v-model="billingInput" autocomplete="false" />
-      <button v-on:click="getData" type="button" >Search</button>
+      <button v-on:click="getData" type="button">Search</button>
     </div>
 
-     <div class="row">
-       <div class="col-md-4"></div>
-        <div class="col-md-4">
-              <div class="center" >
-      <div>
-        <b style="font-size:16px;">Billing No : {{billingNo}}</b>
-      </div>
-      <div>
-        <b style="font-size:16px;">จำนวน Tracking : {{countTracking}}</b>
-      </div>
-      <div>
-        <b style="font-size:16px;" v-if="!status">
-          สถานะ :
-          <label style="color: red">{{txtStatus}}</label>
-        </b>
-        <b style="font-size:16px;" v-if="status">
-          สถานะ :
-          <label style="color: green">{{txtStatus}}</label>
-        </b>
-      </div>
-    </div>
+    <div class="row">
+      <div class="col-md-4"></div>
+      <div class="col-md-4">
+        <div class="center">
+          <div>
+            <b style="font-size:16px;">Billing No : {{billingNo}}</b>
+          </div>
+          <div>
+            <b style="font-size:16px;">จำนวน Tracking : {{countTracking}}</b>
+          </div>
+          <div>
+            <b style="font-size:16px;" v-if="!status">
+              สถานะ :
+              <label style="color: red">{{txtStatus}}</label>
+            </b>
+            <b style="font-size:16px;" v-if="status">
+              สถานะ :
+              <label style="color: green">{{txtStatus}}</label>
+            </b>
+          </div>
         </div>
-         <div class="col-md-4"></div>
-     </div>
+      </div>
+      <div class="col-md-4"></div>
+    </div>
     <div class="group-btn">
-      <button v-on:click="confirmData" type="button" >บันทึก</button>
+      <button v-on:click="confirmData" type="button">บันทึก</button>
     </div>
   </div>
 </template>
@@ -51,15 +51,15 @@ export default {
       billingInput: "",
       billingNo: "",
       countTracking: "",
-      billingStatus:"",
+      billingStatus: "",
       status: false,
       txtStatus: "",
-      previous_value:{}
+      previous_value: {}
     };
   },
-  mounted(){
-    if(!this.$session.get('session_username')){
-      this.$router.push({ name: "Main"})
+  mounted() {
+    if (!this.$session.get("session_username")) {
+      this.$router.push({ name: "Main" });
     }
   },
   methods: {
@@ -70,13 +70,12 @@ export default {
       } else {
         axios
           .get(
-            "https://tool.945parcel.com/check/info/billing?billing=" +
-              this.billingInput
+            // "https://tool.945parcel.com/check/info/billing?billing=" +
+            "/check/info/billing?billing=" + this.billingInput
           )
           .then(response => {
             if (response.data) {
-              console.log(response.data);
-              this.txtStatus="";
+              this.txtStatus = "";
               var data = response.data.billingInfo;
               this.billingNo = data.billingNo;
               this.billingStatus = data.billingStatus;
@@ -88,8 +87,7 @@ export default {
               } else {
                 this.txtStatus = "ไม่สามารถยกเลิกเลขที่บิลนี้ได้";
               }
-              this.previous_value=this.billingStatus
-              // console.log(this.billingNo);
+              this.previous_value = this.billingStatus;
             } else {
               this.$dialogs.alert("ไม่พบข้อมุล", options);
             }
@@ -104,18 +102,23 @@ export default {
       if (!this.status) {
         this.$dialogs.alert("ไม่สามารถยกเลิกเลขที่บิลนี้ได้", options);
       } else {
-        var dataConfirm={
-            billing_no:this.billingNo,
-            previous_value:this.previous_value,
-            user:this.$session.get('session_username')
-          };
-        axios.post("https://tool.945parcel.com/save/cancel/billing" ,dataConfirm)
-        .then(response => {
-            if(response.data.status=='SUCCESS'){
+        var dataConfirm = {
+          billing_no: this.billingNo,
+          previous_value: this.previous_value,
+          user: this.$session.get("session_username")
+        };
+        // axios.post("https://tool.945parcel.com/save/cancel/billing" ,dataConfirm)
+        axios
+          .post("/save/cancel/billing", dataConfirm)
+          .then(response => {
+            if (response.data.status == "SUCCESS") {
               this.$dialogs.alert("ยกเลิกเรียบร้อยแล้ว", options);
-              window.location.reload();
+              this.$router.push("/");
             }
           })
+          .catch(function(error) {
+            console.log(error);
+          });
       }
     }
   }
@@ -169,7 +172,7 @@ export default {
   }
 }
 .content {
-  .left{
+  .left {
     border: 1px solid #000;
   }
   .center,
@@ -224,7 +227,7 @@ export default {
       background: #fff;
     }
 
-    .btnOption{
+    .btnOption {
       text-align: center;
     }
     button {
@@ -247,33 +250,32 @@ export default {
   font-size: 16px;
   font-weight: bold;
 }
- .cancle{
-     padding: 5px 20px;
-    background-color: #fff;
-    border: 2px solid rgb(122, 122, 122) !important;
-    cursor: pointer;
-    color: rgb(122, 122, 122) !important;
-    font-weight: bold;
-    outline: none;
-    transition: 0.5s;
-    &:hover {
-      background-color: rgb(122, 122, 122) !important;
-      color: #fff !important;;
-    }
+.cancle {
+  padding: 5px 20px;
+  background-color: #fff;
+  border: 2px solid rgb(122, 122, 122) !important;
+  cursor: pointer;
+  color: rgb(122, 122, 122) !important;
+  font-weight: bold;
+  outline: none;
+  transition: 0.5s;
+  &:hover {
+    background-color: rgb(122, 122, 122) !important;
+    color: #fff !important;
+  }
 }
-.save{
-     padding: 5px 20px;
-    background-color: #fff;
-    border: 2px solid 	#32CD32 !important;
-    cursor: pointer;
-    color: 	#32CD32 !important;
-    font-weight: bold;
-    outline: none;
-    transition: 0.5s;
-    &:hover {
-      background-color: 	#32CD32 !important;
-      color: #fff !important;;
-    }
+.save {
+  padding: 5px 20px;
+  background-color: #fff;
+  border: 2px solid #32cd32 !important;
+  cursor: pointer;
+  color: #32cd32 !important;
+  font-weight: bold;
+  outline: none;
+  transition: 0.5s;
+  &:hover {
+    background-color: #32cd32 !important;
+    color: #fff !important;
+  }
 }
-
 </style>

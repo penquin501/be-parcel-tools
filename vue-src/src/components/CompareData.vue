@@ -1,7 +1,7 @@
 <template>
-  <div  style="margin-top: 60px;">
+  <div style="margin-top: 60px;">
     <!-- <section v-if="menu == 1" class="table">  -->
-    <div class="content" >
+    <div class="content">
       <div class="left">
         <div class="item2">
           <div>
@@ -33,25 +33,38 @@
         </div>-->
         <div>
           <b>ประเภทการจัดส่ง:</b>
-           <input :disabled="billingInfo" v-model="bi_parcel_type" />
+          <input :disabled="billingInfo" v-model="bi_parcel_type" />
           <br />
           <!-- <select class="selectType" v-model="bi_parcel_type" v-on:change="selectType">
             <option value="NORMAL">NORMAL</option>
             <option value="COD">COD</option>
-          </select> --> 
-        <div style="display: grid ; grid-template-columns: .5fr 1fr .5fr 1fr" >
-          <input style="margin-top: 5%" v-model="radio_parcel_type" type="radio" v-on:change="selectType('COD')" value="COD"/>COD
-          <input style="margin-top: 5%" v-model="radio_parcel_type" type="radio" v-on:change="selectType('NORMAL')" value="NORMAL"/>NORMAL
-        </div>
-
-
+          </select>-->
+          <div style="display: grid ; grid-template-columns: .5fr 1fr .5fr 1fr">
+            <input
+              style="margin-top: 5%"
+              v-model="radio_parcel_type"
+              type="radio"
+              v-on:change="selectType('COD')"
+              value="COD"
+            />COD
+            <input
+              style="margin-top: 5%"
+              v-model="radio_parcel_type"
+              type="radio"
+              v-on:change="selectType('NORMAL')"
+              value="NORMAL"
+            />NORMAL
+          </div>
         </div>
         <div>
           <b>มูลค่า COD:</b>
-          <input :disabled="codValueEdit" 
-                 ref="codValueEdit" 
-                 v-model="cod_value" maxlength="5"
-                 v-on:keypress="onlyNumber"/>
+          <input
+            :disabled="codValueEdit"
+            ref="codValueEdit"
+            v-model="cod_value"
+            maxlength="5"
+            v-on:keypress="onlyNumber"
+          />
         </div>
         <div>
           <b>รหัสไปรษณีย์:</b>
@@ -61,13 +74,13 @@
           <b>ขนาดพัสดุ:</b>
           <input :disabled="billingInfo" v-model="alias_size" />
           <!-- <select class="selectSize" v-model="alias_size" v-on:change="selectSize"> -->
-            <!-- <option :value="alias_size" :selected="alias_size" disabled>{{alias_size}}</option> -->
-            <!-- <option
+          <!-- <option :value="alias_size" :selected="alias_size" disabled>{{alias_size}}</option> -->
+          <!-- <option
               :value="boxSize[index].alias_size.toUpperCase()"
               v-for="(item , index) in boxSize"
               :key="item.id"
             >{{boxSize[index].alias_size.toUpperCase()}}</option>
-          </select> -->
+          </select>-->
         </div>
 
         <div>
@@ -95,17 +108,18 @@
             :disabled="receiverFNameEdit"
             ref="receiverFNameEdit"
             v-model="receiver_first_name"
-            v-on:keypress="inputCheckName" 
+            v-on:keypress="inputCheckName"
             maxlength="100"
           />
         </div>
         <div>
           <b>นามสกุลผู้รับ:</b>
-          <input :disabled="receiverLNameEdit" 
-          ref="receiverLNameEdit" 
-          v-model="receiver_last_name" 
-          v-on:keypress="inputCheckName" 
-          maxlength="100"
+          <input
+            :disabled="receiverLNameEdit"
+            ref="receiverLNameEdit"
+            v-model="receiver_last_name"
+            v-on:keypress="inputCheckName"
+            maxlength="100"
           />
         </div>
 
@@ -156,7 +170,7 @@
       </div>
     </div>
     <div class="group-btn">
-      <button  v-on:click="confirmData">แก้ไขข้อมูล</button>
+      <button v-on:click="confirmData">แก้ไขข้อมูล</button>
     </div>
     <!-- </section> -->
   </div>
@@ -219,12 +233,12 @@ export default {
       dataZipcode: [],
       trackingIn: "",
 
-      radio_parcel_type:"",
+      radio_parcel_type: ""
     };
   },
   mounted() {
-     if(!this.$session.get('session_username')){
-       this.$router.push({ name: "Main"})
+    if (!this.$session.get("session_username")) {
+      this.$router.push({ name: "Main" });
     }
     // var tracking = this.$props.selectedTracking.tracking;
     var branch_id = this.$route.params.branch_id;
@@ -233,36 +247,41 @@ export default {
     // this.parcelSizeList();
   },
   methods: {
-    selectTrackingToCheck(branch_id){
+    selectTrackingToCheck(branch_id) {
       const options = { okLabel: "ตกลง" };
       var resTracking;
-      if(branch_id==""){
-        this.$dialogs.alert("กรุณาเลือกสาขาที่ต้องการตรวจสอบให้ถูกต้อง", options);
-      } else{
-        axios.get(
-          "https://tool.945parcel.com/select/tracking/check?branch_id=" +
-             branch_id
-        )
-        .then(response => {
+      if (branch_id == "") {
+        this.$dialogs.alert(
+          "กรุณาเลือกสาขาที่ต้องการตรวจสอบให้ถูกต้อง",
+          options
+        );
+      } else {
+        axios
+          .get(
+            // "https://tool.945parcel.com/select/tracking/check?branch_id=" +
+            "/select/tracking/check?branch_id=" + branch_id
+          )
+          .then(response => {
             // console.log(response.data.tracking);
-            if(response.data.status=="SUCCESS"){
-              resTracking=response.data.tracking[0].tracking;
+            if (
+              response.data.status == "SUCCESS" &&
+              response.data.tracking !== false
+            ) {
+              resTracking = response.data.tracking[0].tracking;
               this.getData(resTracking);
             }
-        });
+          });
       }
     },
     getData(trackingIn) {
-      this.trackingIn = trackingIn; 
-      
+      this.trackingIn = trackingIn;
+
       axios
         .get(
-          "https://tool.945parcel.com/check/info/tracking?tracking=" +
-          // "http://127.0.0.1:3200/check/info/tracking?tracking=" +
-             this.trackingIn.toUpperCase()
+          // "https://tool.945parcel.com/check/info/tracking?tracking=" +
+          "/check/info/tracking?tracking=" + this.trackingIn.toUpperCase()
         )
         .then(response => {
-          
           if (response.data.status == "SUCCESS") {
             // console.log(response.data.billingInfo);
             this.billingInfo = response.data.billingInfo;
@@ -271,7 +290,7 @@ export default {
             this.bi_parcel_type = this.billingInfo[0].bi_parcel_type;
             this.district_code = this.billingInfo[0].DISTRICT_CODE;
             this.size_id = this.billingInfo[0].size_id;
-            this.alias_size = this.billingInfo[0].alias_size.toUpperCase(); 
+            this.alias_size = this.billingInfo[0].alias_size.toUpperCase();
             this.size_price = this.billingInfo[0].size_price;
             this.cod_value = this.billingInfo[0].cod_value;
             this.bi_zipcode = this.billingInfo[0].bi_zipcode;
@@ -309,8 +328,7 @@ export default {
             } else {
               this.imgUrl = this.imgCapture[0].image_url;
             }
-            
-            
+
             this.previous_value = response.data.billingInfo[0];
           } else {
             alert("ไม่พบข้อมุล");
@@ -327,20 +345,15 @@ export default {
         $event.preventDefault();
       }
     },
-    inputCheckName($event) {    
+    inputCheckName($event) {
       var englishAlphabetAndWhiteSpace = /[a-zA-Z0-9กขฃคฅฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรฤลฦวศษสหฬอฮฯะัาำิีึืฺุูเแโใไๅๆ็่้๊๋์]/;
       var key = String.fromCharCode(event.which);
-        var ew = event.which;
-        if(ew == 32)
-            return true;
-        if(48 <= ew && ew <= 57)
-            return true;
-        if(65 <= ew && ew <= 90)
-            return true;
-        if(97 <= ew && ew <= 122)
-            return true;
-        if(englishAlphabetAndWhiteSpace.test(key))
-            return true;
+      var ew = event.which;
+      if (ew == 32) return true;
+      if (48 <= ew && ew <= 57) return true;
+      if (65 <= ew && ew <= 90) return true;
+      if (97 <= ew && ew <= 122) return true;
+      if (englishAlphabetAndWhiteSpace.test(key)) return true;
       $event.preventDefault();
     },
     // parcelSizeList() {
@@ -383,8 +396,8 @@ export default {
       }
     },
     selectType(parcel_type) {
-      this.bi_parcel_type=parcel_type;
-      this.br_parcel_type=parcel_type;
+      this.bi_parcel_type = parcel_type;
+      this.br_parcel_type = parcel_type;
     },
     selectSize() {
       var dataSize = {
@@ -397,7 +410,7 @@ export default {
           let parcelSizeSelect = response.data;
           if (response.data != undefined) {
             this.size_price = parcelSizeSelect[0].parcel_price;
-            this.size_id=parcelSizeSelect[0].size_id;
+            this.size_id = parcelSizeSelect[0].size_id;
           }
         })
         .catch(function(error) {
@@ -406,8 +419,11 @@ export default {
     },
     confirmData() {
       const options = { okLabel: "ตกลง" };
-      if(this.bi_parcel_type == "COD" && this.cod_value>=10000){
-        this.$dialogs.alert("กรุณาแน่ใจว่า ค่าเก็บเงินปลายทางเกิน 10000 หรือไม่", options);
+      if (this.bi_parcel_type == "COD" && this.cod_value >= 10000) {
+        this.$dialogs.alert(
+          "กรุณาแน่ใจว่า ค่าเก็บเงินปลายทางเกิน 10000 หรือไม่",
+          options
+        );
       }
       var phone = this.phone;
       var receiver_last_name;
@@ -421,54 +437,66 @@ export default {
         this.$dialogs.alert("กรุณากรอก เบอร์โทรศัทพ์ผู้รับ เท่านั้น", options);
       } else if (phone.length < 10) {
         this.$dialogs.alert("กรุณากรอก เบอร์โทรศัพท์ ให้ถูกต้อง", options);
-      } else if(this.br_zipcode == ""){
+      } else if (this.br_zipcode == "") {
         this.$dialogs.alert("กรุณากรอก รหัสไปรษณีย์ผู้รับให้ถูกต้อง", options);
-      } else if(this.br_zipcode != this.bi_zipcode){
-        this.$dialogs.alert("กรุณากรอก รหัสไปรษณีย์ผู้รับ ให้ตรงกับหน้ากล่องผู้รับ", options);
-      } else if(this.bi_parcel_type != this.br_parcel_type){
-        this.$dialogs.alert("กรุณากรอก ประเภทการจัดส่ง ให้ตรงกับหน้ากล่องผู้รับ", options);
-      } else if(this.bi_parcel_type == "COD" && (this.cod_value=="" || this.cod_value==0)){
+      } else if (this.br_zipcode != this.bi_zipcode) {
+        this.$dialogs.alert(
+          "กรุณากรอก รหัสไปรษณีย์ผู้รับ ให้ตรงกับหน้ากล่องผู้รับ",
+          options
+        );
+      } else if (this.bi_parcel_type != this.br_parcel_type) {
+        this.$dialogs.alert(
+          "กรุณากรอก ประเภทการจัดส่ง ให้ตรงกับหน้ากล่องผู้รับ",
+          options
+        );
+      } else if (
+        this.bi_parcel_type == "COD" &&
+        (this.cod_value == "" || this.cod_value == 0)
+      ) {
         this.$dialogs.alert("กรุณากรอก ค่าเก็บเงินปลายทาง ให้ถูกต้อง", options);
-      } else if(this.bi_parcel_type == "NORMAL" && this.cod_value>0){
+      } else if (this.bi_parcel_type == "NORMAL" && this.cod_value > 0) {
         this.$dialogs.alert("กรุณากรอก ค่าเก็บเงินปลายทาง ให้ถูกต้อง", options);
       } else {
-        // console.log("ok",this.cod_value);
-        if(this.receiver_last_name=="" || this.receiver_last_name==undefined){
-          receiver_last_name=""
+        if (
+          this.receiver_last_name == "" ||
+          this.receiver_last_name == undefined
+        ) {
+          receiver_last_name = "";
         } else {
-          receiver_last_name=this.receiver_last_name
+          receiver_last_name = this.receiver_last_name;
         }
 
-        var dataConfirm={
-            tracking:this.tracking,
-            billing_no:this.billing_no,
-            previous_value:this.previous_value,
-            current_value:{
-              parcel_type:this.bi_parcel_type,
-              cod_value: this.cod_value,
-              size_id:this.size_id,
-              size_price:this.size_price,
+        var dataConfirm = {
+          tracking: this.tracking,
+          billing_no: this.billing_no,
+          previous_value: this.previous_value,
+          current_value: {
+            parcel_type: this.bi_parcel_type,
+            cod_value: this.cod_value,
+            size_id: this.size_id,
+            size_price: this.size_price,
 
-              first_name:this.receiver_first_name,
-              last_name: receiver_last_name,
-              phone:this.phone,
-              address:this.receiver_address,
-              district_code:this.district_code,
-              br_zipcode:this.br_zipcode
-            },
-            user:this.$session.get('session_username')
-          };
-          // console.log(JSON.stringify(dataConfirm));
-        axios.post("https://tool.945parcel.com/confirm/match/data/info" ,dataConfirm)
-        .then(response => {
-          if(response.data.status=='SUCCESS'){
-            this.$dialogs.alert("แก้ไขข้อมูลผู้รับเรียบร้อยแล้ว", options);
-            window.location.reload();
-          }
-        })
-        .catch(function(error) {
-          console.log(error);
-        });
+            first_name: this.receiver_first_name,
+            last_name: receiver_last_name,
+            phone: this.phone,
+            address: this.receiver_address,
+            district_code: this.district_code,
+            br_zipcode: this.br_zipcode
+          },
+          user: this.$session.get("session_username")
+        };
+        // axios.post("https://tool.945parcel.com/confirm/match/data/info" ,dataConfirm)
+        axios
+          .post("/confirm/match/data/info", dataConfirm)
+          .then(response => {
+            if (response.data.status == "SUCCESS") {
+              this.$dialogs.alert("แก้ไขข้อมูลผู้รับเรียบร้อยแล้ว", options);
+              this.$router.push("/listtracking");
+            }
+          })
+          .catch(function(error) {
+            console.log(error);
+          });
       }
     },
     rotateRight() {
@@ -497,15 +525,12 @@ export default {
       this.br_zipcode = item.zipcode;
       this.district_code = item.DISTRICT_CODE;
       this.selectSize();
-
-      // console.log('ter' , this.district_code);
     }
   }
 };
 </script>
 
 <style lang="scss" scoped>
-
 .group-btn {
   text-align: center;
   button {
@@ -611,7 +636,7 @@ export default {
     .btnOption {
       text-align: center;
     }
-button {
+    button {
       background-color: rgb(0, 136, 148);
       border: none;
       border-radius: 5px;
@@ -653,18 +678,18 @@ button {
     }
   }
 }
-.warn{
-    padding: 5px 20px;
-    background-color: #fff;
-    border: 2px solid 		#FF8C00 !important;
-    cursor: pointer;
-    color: 		#FF8C00 !important;
-    font-weight: bold;
-    outline: none;
-    transition: 0.5s;
-    &:hover {
-      background-color: 		#FF8C00 !important;
-      color: #fff !important;;
-    }
+.warn {
+  padding: 5px 20px;
+  background-color: #fff;
+  border: 2px solid #ff8c00 !important;
+  cursor: pointer;
+  color: #ff8c00 !important;
+  font-weight: bold;
+  outline: none;
+  transition: 0.5s;
+  &:hover {
+    background-color: #ff8c00 !important;
+    color: #fff !important;
+  }
 }
 </style>
