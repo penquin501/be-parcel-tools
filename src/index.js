@@ -29,6 +29,56 @@ app.use(function(req, res, next) {
   next();
 });
 
+app.post("/test-dhl-response", function(req, res) {
+  var input_data= req.body
+  var tracking=input_data.manifestRequest.bd.shipmentItems[0].shipmentID;
+
+  var statusCode="";
+  var message="";
+
+  parcelServices.saveTracking(tracking).then(function(data) {
+    if(data===true){
+      statusCode="200";
+      message="SUCCESS";
+    } else {
+      statusCode="400";
+      message="FAILED";
+    }
+
+      var result_res={
+      "manifestResponse": {
+        "hdr": {
+          "messageType": "SHIPMENT",
+          "messageDateTime": new Date(),
+          "messageVersion": "1.0",
+          "messageLanguage": "en"
+        },
+        "bd": {
+          "shipmentItems": [{
+            "shipmentID": tracking,
+            "deliveryConfirmationNo": null,
+            "responseStatus": {
+              "code": statusCode+"==> test",
+              "message": message+"==> test",
+              "messageDetails": [{
+                "messageDetail": "Please provide a Shipment ID which has not been used within the last 97 days"
+              }]
+            }
+          }],
+          "responseStatus": {
+            "code": statusCode,
+            "message": message,
+            "messageDetails": [{
+              "messageDetail": "No shipments are processed due to run time/system errors;  Check shipment level response for more details"
+            }]
+          }
+        }
+      }
+    };
+  res.send(result_res);
+
+  })
+});
 // app.get("/", function (req, res) {
 //   res.json({ 'hello': 'World' });
 // });
