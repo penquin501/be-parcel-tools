@@ -52,6 +52,12 @@ const routes = [
         component: () => import("../components/ListNotKeyTracking.vue"),
         hidden: true
     },
+    {
+        path: "/listbilling",
+        name: 'ViewBilling',
+        component: () => import("../components/ViewBilling.vue"),
+        hidden: true
+    },
 
   
 ];

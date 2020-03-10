@@ -4,7 +4,7 @@ const request = require("request");
 const path = require("path");
 const app = express();
 const moment = require("moment");
-const port = process.env.PORT || 3200;
+const port = process.env.PORT || 3000;
 moment.locale("th");
 app.use(express.json());
 app.use(express.static("public"));

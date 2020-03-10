@@ -38,6 +38,9 @@
        <li class="nav-item">
            <router-link to="/listphone"><a class="nav-link"  id="navbarDropdown" v-on:click="toView" role="button"  aria-haspopup="true" aria-expanded="false">KEY-IN Helper</a></router-link>
       </li>
+       <li class="nav-item">
+           <router-link to="/listbilling"><a class="nav-link" v-on:click="toView" role="button"  aria-haspopup="true" aria-expanded="false">Report Biling</a></router-link>
+      </li>
 
 
     </ul>
