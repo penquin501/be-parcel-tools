@@ -86,7 +86,7 @@ module.exports = {
       "JOIN billing_item bi ON b.billing_no=bi.billing_no " +
       "LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking " +
       "LEFT JOIN branch_info bInfo ON b.branch_id=bInfo.branch_id " +
-      "WHERE (bi.zipcode<>br.zipcode OR bi.parcel_type<>br.parcel_type) AND (br.status not in ('cancel','SUCCESS','success') OR br.status is null)" +
+      "WHERE (bi.zipcode<>br.zipcode OR bi.parcel_type<>br.parcel_type OR (bi.parcel_type='COD' AND bi.cod_value=0) OR (bi.parcel_type='NORMAL' AND bi.cod_value > 0)) AND (br.status not in ('cancel','SUCCESS','success') OR br.status is null)" +
       "GROUP by b.branch_id,bInfo.branch_name";
 
     return new Promise(function(resolve, reject) {
@@ -109,7 +109,7 @@ module.exports = {
       "SELECT bi.tracking FROM billing b " +
       "Left JOIN billing_item bi ON b.billing_no=bi.billing_no " +
       "LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking " +
-      "WHERE (bi.zipcode!=br.zipcode or bi.parcel_type!= br.parcel_type) AND (br.status not in ('cancel','SUCCESS','success') OR br.status is null) AND b.branch_id=? LIMIT 1";
+      "WHERE (bi.zipcode<>br.zipcode OR bi.parcel_type<>br.parcel_type OR (bi.parcel_type='COD' AND bi.cod_value=0) OR (bi.parcel_type='NORMAL' AND bi.cod_value > 0)) AND (br.status not in ('cancel','SUCCESS','success') OR br.status is null) AND b.branch_id=? LIMIT 1";
     let data = [branch_id];
 
     return new Promise(function(resolve, reject) {
