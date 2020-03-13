@@ -62,8 +62,7 @@ export default {
       axios
         .get("http://localhost:3355/genBillNo/daily-report")
         .then(response => {
-          console.log(response);
-          console.log(response.data);
+          console.log("DATA",response.data);
           this.dataBilling = response.data;
         })
         .catch(function(error) {
@@ -72,7 +71,7 @@ export default {
     },
     getDate(){
         var monthNamesThai = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤษจิกายน","ธันวาคม"];
-        var dayNames = ["วันอาทิตย์ที่","วันจันทร์ที่","วันอังคารที่","วันพุทธที่","วันพฤหัสบดีที่","วันศุกร์ที่","วันเสาร์ที่"];
+        var dayNames = ["วันอาทิตย์ที่","วันจันทร์ที่","วันอังคารที่","วันพุธที่","วันพฤหัสบดีที่","วันศุกร์ที่","วันเสาร์ที่"];
         var d = new Date();
         this.date = dayNames[d.getDay()]+"  "+d.getDate()+"  "+monthNamesThai[d.getMonth()]+"  "+d.getFullYear();
     },
