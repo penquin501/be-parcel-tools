@@ -2,8 +2,11 @@ require('dotenv').config()
 const express = require("express");
 const request = require("request");
 const path = require("path");
+var xl = require("excel4node");
+var mailer = require("nodemailer");
 const app = express();
 const moment = require("moment");
+const m = require("moment-timezone");
 const port = process.env.PORT || 3000;
 moment.locale("th");
 app.use(express.json());
@@ -94,15 +97,12 @@ app.get("/check/info/tracking", function(req, res) {
       if (data.length == 0 || data == false) {
         res.json({ status: "ERR_NO_DATA_PARCEL" });
       } else {
-        mainServices.checkStatusParcelRef(tracking).then(function(data2) {
-          res.json({
-            status: "SUCCESS",
-            imgCapture: dataImg,
-            billingInfo: data,
-            statusParcel: data2
-          });
-          // }
+        res.json({
+          status: "SUCCESS",
+          imgCapture: dataImg,
+          billingInfo: data
         });
+        // mainServices.checkStatusParcelRef(tracking).then(function(data2) {});
       }
     });
   });
@@ -308,17 +308,142 @@ app.post("/confirm/match/data/info", function(req, res) {
       } else {
         operation_key=data[0].operator_id;
       }
-      
-
         parcelServices.updateCheckerInfo(tracking, size_id,size_price,cod_value,receiver_name, phone, address, parcel_type, district_id,district_name, amphur_id,amphur_name,province_id,province_name,zipcode).then(function(data) {});
         parcelServices.saveLogQlChecker(branch_id, user_id, billing_no, error_code, error_maker, cs_name, tracking, operation_key).then(function(data) {});
         parcelServices.insertLog(billing_no,log_previous_value,log_current_value,module_name,cs_name,tracking).then(function(data) {});
     })
     res.json({ status: "SUCCESS" });
   });
-  
-  
-  
+});
+
+var smtp = {
+  pool: true,
+  host: "smtp.gmail.com", //set to your host name or ip
+  port: 587, //25, 465, 587 depend on your
+  secure: false, // use SSL
+  auth: {
+    user: "booking@945holding.com", //user account
+    pass: "0df8a533a82d162726f3754cfe38a6f1" //user password
+  }
+};
+
+var smtpTransport = mailer.createTransport(smtp);
+
+app.get("/dhl-excel", function(req, res) {
+  var date_now=new Date();
+  var current_date = m(date_now).tz("Asia/Bangkok").format("YYYY-MM-DD", true);
+  var current_date_excel = m(date_now).tz("Asia/Bangkok").format("YYMMDDHHmmss", true);
+  var random_number = Math.floor(Math.random() * (999 - 111)) + 111;
+  var number_parcel = 0;
+
+  var filename =
+    "My945_Parcel_TDZ_" + current_date_excel + "_" + random_number + ".xlsx";
+  var wb = new xl.Workbook();
+  var ws = wb.addWorksheet("945holding_" + current_date);
+
+  const bgStyle = wb.createStyle({
+    fill: {
+      type: "pattern",
+      patternType: "solid",
+      bgColor: "#0D701C",
+      fgColor: "#0D701C"
+    }
+  });
+
+  ws.cell(1, 1).string("Customer Confirmation Number").style(bgStyle);
+  ws.cell(1, 2).string("Recipient").style(bgStyle);
+  ws.cell(1, 3).string("AddressLine1").style(bgStyle);
+  ws.cell(1, 4).string("AddressLine2").style(bgStyle);
+  ws.cell(1, 5).string("District").style(bgStyle);
+  ws.cell(1, 6).string("State").style(bgStyle);
+  ws.cell(1, 7).string("Zip").style(bgStyle);
+  ws.cell(1, 8).string("Phone").style(bgStyle);
+  ws.cell(1, 9).string("COD Amount").style(bgStyle);
+  ws.cell(1, 10).string("Insurance Amount").style(bgStyle);
+  ws.cell(1, 11).string("Invoice(ref.)").style(bgStyle);
+
+  parcelServices.getBookingLog().then(function(data) {
+    if(data===null){
+      res.end("no data");
+    } else {
+      number_parcel = data.length;
+      for (i = 0; i < data.length; i++) {
+        if (data[i].status == "fail") {
+          var cellBgStyle = wb.createStyle({
+            fill: {
+              type: "pattern",
+              patternType: "solid",
+              bgColor: "#cc0000",
+              fgColor: "#cc0000"
+            }
+          });
+        } else {
+          if ((i - 1) % 2 == 0) {
+            var cellBgStyle = wb.createStyle({
+              fill: {
+                type: "pattern",
+                patternType: "solid",
+                bgColor: "#deede3",
+                fgColor: "#deede3"
+              }
+            });
+          } else {
+            var cellBgStyle = wb.createStyle({
+              fill: {
+                type: "pattern",
+                patternType: "solid",
+                bgColor: "#c2e0ed",
+                fgColor: "#c2e0ed"
+              }
+            });
+          }
+        }
+        ws.cell(i + 2, 1).string(data[i].tracking).style(cellBgStyle);
+        ws.cell(i + 2, 2).string(data[i].receiver_name).style(cellBgStyle);
+        ws.cell(i + 2, 3).string(data[i].receiver_address).style(cellBgStyle);
+        ws.cell(i + 2, 4).string("").style(cellBgStyle);
+        ws.cell(i + 2, 5).string(data[i].DISTRICT_NAME).style(cellBgStyle);
+        ws.cell(i + 2, 6).string(data[i].PROVINCE_NAME).style(cellBgStyle);
+        ws.cell(i + 2, 7).string(data[i].zipcode).style(cellBgStyle);
+        ws.cell(i + 2, 8).string(data[i].phone).style(cellBgStyle);
+        ws.cell(i + 2, 9).number(data[i].cod_value).style(cellBgStyle);
+        ws.cell(i + 2, 10).string("").style(cellBgStyle);
+        ws.cell(i + 2, 11).string(data[i].billing_no).style(cellBgStyle);
+      }
+      wb.write(filename);
+    }
+    
+    var mail = {
+      from: "booking@945holding.com", //from email (option)
+      to: "penquin501@gmail.com", //to email (require) cs@945holding.com
+      subject: "TDZ-My945Parcel-" + current_date + " ", //subject
+      html:
+        ` &nbsp;Good day DHL team,<br><br>\r\n\r\n&nbsp;&nbsp;&nbsp;This attachment file is My945Parcel(945Holding) booking file for dhl express at ` +
+        current_date +
+        `<br>\r\n The total number of shipments : ` +
+        number_parcel +
+        ` pcs. <br>\r\n And so, this mail was generate by automatically system.<br>\r\n&nbsp;&nbsp;&nbsp;If you have any concerned or some question, Please contact to My945Parcel Call Center 0914271551<br><br>\r\n\r\n&nbsp;Best Regards,<br>\r\n&nbsp;945Holding`, //email body
+      attachments: [
+        {
+          filename: filename,
+          path: __dirname + "/" + filename
+        }
+      ]
+    };
+
+    smtpTransport.sendMail(mail, function(error, response) {
+      smtpTransport.close();
+      if (error) {
+        //error handler
+        console.log("send email error", error);
+      } else {
+        //success handler
+        console.log("send email success");
+        res.end("send email success");
+      }
+    });
+  });
+
 });
 
 app.listen(port, () => console.log(`listening on port ${port}!`));

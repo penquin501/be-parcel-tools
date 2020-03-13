@@ -2,6 +2,7 @@ const parcel_connection = require("../env/parceldb.js");
 const bodyParser = require("body-parser");
 const request = require("request");
 const moment = require("moment");
+const m = require("moment-timezone");
 moment.locale("th");
 
 module.exports = {
@@ -9,7 +10,8 @@ module.exports = {
     let sql =
       "SELECT bi.billing_no,bi.tracking,bi.size_id,s.alias_size,bi.size_price,bi.parcel_type as bi_parcel_type, bi.cod_value,bi.zipcode as bi_zipcode," +
       "br.parcel_type as br_parcel_type,br.sender_name,br.sender_phone,br.sender_address,br.receiver_name,br.phone,br.receiver_address," +
-      "d.DISTRICT_CODE,br.district_id,br.district_name,br.amphur_id,br.amphur_name,br.province_id,br.province_name,br.zipcode as br_zipcode " +
+      "d.DISTRICT_CODE,br.district_id,br.district_name,br.amphur_id,br.amphur_name,br.province_id,br.province_name,br.zipcode as br_zipcode," +
+      "br.booking_status, br.status "+
       "FROM billing_item bi " +
       "LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking " +
       "LEFT JOIN postinfo_district d ON br.district_id=d.DISTRICT_ID AND br.amphur_id=d.AMPHUR_ID AND br.province_id=d.PROVINCE_ID " +
@@ -407,5 +409,33 @@ module.exports = {
         }
       });
     });
-  }
+  },
+  getBookingLog: () => {
+    var current_date = m(new Date()).tz("Asia/Bangkok").format("YYYY-MM-DD", true);
+    var sqlBilling = "SELECT bb.tracking, bb.status, bi.tracking, bi.billing_no,bi.cod_value,br.receiver_name,br.phone,br.receiver_address,"+
+    "d.DISTRICT_NAME,a.AMPHUR_NAME,p.PROVINCE_NAME,br.zipcode "+
+    "FROM booking_tracking_batch bb "+
+    "LEFT JOIN billing_item bi ON bb.tracking=bi.tracking "+
+    "LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking "+
+    "LEFT JOIN postinfo_district d ON br.district_id=d.DISTRICT_ID AND br.amphur_id=d.AMPHUR_ID AND br.province_id=d.PROVINCE_ID "+
+    "LEFT JOIN postinfo_amphur a ON br.amphur_id=a.AMPHUR_ID "+
+    "LEFT JOIN postinfo_province p ON br.province_id=p.PROVINCE_ID "+
+    "WHERE Date(bb.send_record_at)=?";
+    var data = [current_date];
+    return new Promise(function(resolve, reject) {
+      parcel_connection.query(sqlBilling, data, (error, results, fields) => {
+        if (error === null) {
+          if(results.length<=0){
+            resolve(null);
+          } else {
+            resolve(results);
+          }
+          
+        } else {
+          console.log("getBookingLog error=>", error);
+          resolve(null);
+        }
+      });
+    });
+  },
 };
