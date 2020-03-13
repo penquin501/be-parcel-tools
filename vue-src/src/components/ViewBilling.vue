@@ -49,21 +49,29 @@ export default {
   data: function() {
     return {
       dataBilling: [],
-      billingSeach: "",
+      billingSearch: "",
       date: "",
     };
   },
   mounted() {
+    if(!this.$session.get('session_username')){
+       this.$router.push({ name: "Main"})
+    }
     this.getBilingNo();
     this.getDate();
   },
   methods: {
     getBilingNo() {
+      const options = { okLabel: "ตกลง" };
       axios
-        .get("http://localhost:3355/genBillNo/daily-report")
+        .get("/daily-report")
         .then(response => {
-          console.log("DATA",response.data);
           this.dataBilling = response.data;
+          if(response.data===null){
+            this.$dialogs.alert("ไม่พบข้อมูล",options);
+          } else {
+            this.dataBilling = response.data;
+          }
         })
         .catch(function(error) {
           console.log(error);
@@ -78,7 +86,7 @@ export default {
   },
   computed: {
     filteredResourcesBilling() {
-      if (this.billingSeach) {
+      if (this.billingSearch) {
         return this.dataBilling.filter(item => {
             var branch_name = item.branch_name;
             var billing_no = item.billing_no;
@@ -91,7 +99,7 @@ export default {
                 cTracking = ""
             }
           return (
-            !this.billingSeach ||
+            !this.billingSearch ||
              branch_name.includes(this.billingSeach) ||
              billing_no.toLowerCase().indexOf(this.billingSeach.toLowerCase()) > -1 ||
              sender_name.includes(this.billingSeach)

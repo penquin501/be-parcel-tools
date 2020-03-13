@@ -316,6 +316,19 @@ app.post("/confirm/match/data/info", function(req, res) {
   });
 });
 
+
+app.get("/daily-report", (req, res) => {
+
+  parcelServices.dailyReport().then(function(data) {
+    if(data==false){
+      res.json([]);
+    } else{
+      res.json(data);
+    }
+    
+  });
+});
+
 var smtp = {
   pool: true,
   host: "smtp.gmail.com", //set to your host name or ip

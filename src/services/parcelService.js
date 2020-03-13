@@ -438,4 +438,30 @@ module.exports = {
       });
     });
   },
+  dailyReport: () => {
+    var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD");
+    console.log("daily report =>",today);
+    var sql = "SELECT bInfo.branch_name,b.billing_no,br.sender_name,count(bi.tracking) as cTracking "+
+    "FROM billing b "+
+    "LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no "+
+    "LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking "+
+    "LEFT JOIN branch_info bInfo ON b.branch_id=bInfo.branch_id "+
+    "WHERE Date(b.billing_date) = ? AND b.status NOT IN ('cancel','SUCCESS','complete') "+
+    "GROUP BY b.member_code,b.branch_id,bInfo.branch_name,b.billing_no,br.sender_name "+
+    "ORDER BY b.branch_id ASC";
+    var data=[today];
+    return new Promise(function(resolve, reject) {
+      parcel_connection.query(sql,data, (err, results) => {
+        if(err===null){
+          if(results.length<=0){
+            resolve(false);
+          } else {
+            resolve(results);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
 };
