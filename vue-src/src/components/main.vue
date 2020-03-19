@@ -146,7 +146,6 @@ export default {
   data: function() {
     return {
       billingInfo: [],
-      // trackingInput: "TDZ20211025",
       trackingInput: "",
       billing_no: "",
       tracking: "",
@@ -192,14 +191,11 @@ export default {
   methods: {
     getData() {
       const options = { okLabel: "ตกลง" };
-      // var meanStatus;
       axios
         .get(
-          // "https://tool.945parcel.com/check/info/tracking?tracking=" +
           "/check/info/tracking?tracking=" + this.trackingInput.toUpperCase()
         )
         .then(response => {
-          // console.log(response.data);
           if (response.data.status == "SUCCESS") {
             this.billingInfo = response.data.billingInfo;
             
@@ -242,31 +238,7 @@ export default {
             } else {
               this.order_status_lb="สามารถแก้ไขได้";
             }
-            // if (this.dataParcel == false) {
-            //   this.order_status = "";
-            //   this.send_booking = "";
-            //   this.order_status_lb = "";
-            // } else {
-            //   this.order_status = this.dataParcel[0].orderstatus;
-            //   this.send_booking = this.dataParcel[0].send_booking;
 
-            //   if (this.order_status == "101") {
-            //     meanStatus = "ยกเลิก";
-            //   } else if (this.order_status == "102") {
-            //     meanStatus = "ส่งแบบ เรียกเก็บเงินปลายทาง (COD)";
-            //   } else if (this.order_status == "103") {
-            //     meanStatus = "ส่งแบบ ธรรมดา (NORMAL)";
-            //   } else if (this.order_status == "104") {
-            //     meanStatus = "ถูกจัดส่ง";
-            //   } else if (this.order_status == "105") {
-            //     meanStatus = "ถึงปลายทาง";
-            //   } else if (this.order_status == "106") {
-            //     meanStatus = "ตีกลับ";
-            //   } else {
-            //     meanStatus = "ยังไม่ได้ส่งข้อมูลไปที่หน้าฟ้า";
-            //   }
-            //   this.order_status_lb = this.order_status + " - " + meanStatus;
-            // }
             this.imgCapture = response.data.imgCapture;
 
             if (this.imgCapture == false) {
@@ -313,26 +285,7 @@ export default {
         this.$dialogs.alert("กรุณาเลือก Tools เพื่อทำรายการ", options);
       } else if (this.tracking == "") {
         this.$dialogs.alert("กรุณาระบุ Tracking เพื่อทำรายการ", options);
-      // } else if (this.order_status == "101") {
-      //   this.$dialogs.alert(
-      //     "ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถูกยกเลิกไปแล้ว",
-      //     options
-      //   );
-      // } else if (this.order_status == "104") {
-      //   this.$dialogs.alert(
-      //     "ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถูกจัดส่งไปแล้ว",
-      //     options
-      //   );
-      // } else if (this.order_status == "105") {
-      //   this.$dialogs.alert(
-      //     "ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถึงปลายทางแล้ว",
-      //     options
-      //   );
-      // } else if (this.order_status == "106") {
-      //   this.$dialogs.alert(
-      //     "ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถูกตีกลับ",
-      //     options
-      //   );
+
       } else if (this.booking_status == 100) {
         this.$dialogs.alert(
           "ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถูกส่งข้อมูลให้บ. ขนส่งไปแล้ว",
@@ -346,8 +299,7 @@ export default {
             previous_value: this.booking_status,
             user: this.$session.get("session_username")
           };
-          console.log(JSON.stringify(data));
-          // axios.post("https://tool.945parcel.com/save/cancel/tracking" ,data)
+ 
           axios
             .post("/save/cancel/tracking", data)
             .then(response => {
@@ -389,7 +341,7 @@ export default {
               },
               user: this.$session.get("session_username")
             };
-            // axios.post("https://tool.945parcel.com/update/receiver/info" ,dataReceiver)
+
             axios
               .post("/update/receiver/info", dataReceiver)
               .then(response => {

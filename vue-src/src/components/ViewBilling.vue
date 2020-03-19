@@ -17,7 +17,7 @@
         <div class="col-ms-3 col-sm-3 col-xs-3">
           <div class="search">
             <input
-              v-model="billingSeach"
+              v-model="billingSearch"
               autocomplete="false"
               style="margin-top: 0px;"
              />
@@ -32,12 +32,19 @@
         <th style="text-align:center;">เลขที่บิล</th>
         <th style="text-align:center;">ชื่อผู้ส่ง</th>
         <th style="text-align:center;">จำนวน</th>
+        <th style="text-align:center;">สถานะ</th>
       </tr>
-      <tr v-bind:key="item.id" v-for="item in filteredResourcesBilling">
+      <tr v-for="(item, index) in filteredResourcesBilling" v-bind:key="item.id">
+        
         <td style="text-align: center;">{{ item.branch_name }}</td>
-        <td style="text-align: center;">{{ item.billing_no }}</td>
+        <td style="text-align: center;">
+        <router-link :to="{ name: 'ViewTracking', params: { billing_no: filteredResourcesBilling[index].billing_no }}">
+          {{ item.billing_no }}
+        </router-link> </td>
         <td style="text-align: center;">{{ item.sender_name }}</td>
         <td style="text-align: center;">{{ item.cTracking }}</td>
+        <td style="text-align: center;">{{ item.status }}</td>
+        
       </tr>
     </table>
   </div>
@@ -66,8 +73,7 @@ export default {
       axios
         .get("/daily-report")
         .then(response => {
-          this.dataBilling = response.data;
-          if(response.data===null){
+          if(response.data.length===0){
             this.$dialogs.alert("ไม่พบข้อมูล",options);
           } else {
             this.dataBilling = response.data;
@@ -78,10 +84,12 @@ export default {
         });
     },
     getDate(){
-        var monthNamesThai = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤษจิกายน","ธันวาคม"];
-        var dayNames = ["วันอาทิตย์ที่","วันจันทร์ที่","วันอังคารที่","วันพุธที่","วันพฤหัสบดีที่","วันศุกร์ที่","วันเสาร์ที่"];
+        var monthNamesThai = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
+        var dayNames = ["วันอาทิตย์","วันจันทร์","วันอังคาร","วันพุธ","วันพฤหัสบดี","วันศุกร์","วันเสาร์"];
         var d = new Date();
-        this.date = dayNames[d.getDay()]+"  "+d.getDate()+"  "+monthNamesThai[d.getMonth()]+"  "+d.getFullYear();
+        var y = parseInt(d.getFullYear())+543 
+
+        this.date = dayNames[d.getDay()]+"  "+d.getDate()+"  "+monthNamesThai[d.getMonth()]+"  "+y;
     },
   },
   computed: {
@@ -92,17 +100,19 @@ export default {
             var billing_no = item.billing_no;
             var sender_name = item.sender_name;
             var cTracking = item.cTracking;
-            if(branch_name == null || billing_no == null || sender_name == null || cTracking == null){
+            var status = item.status;
+            if(branch_name == null || billing_no == null || sender_name == null || cTracking == null || status == null){
                 branch_name = "";
                 billing_no = "";
                 sender_name = "";
-                cTracking = ""
+                cTracking = "";
+                status = "";
             }
           return (
             !this.billingSearch ||
-             branch_name.includes(this.billingSeach) ||
-             billing_no.toLowerCase().indexOf(this.billingSeach.toLowerCase()) > -1 ||
-             sender_name.includes(this.billingSeach)
+             branch_name.includes(this.billingSearch) ||
+             billing_no.toLowerCase().indexOf(this.billingSearch.toLowerCase()) > -1 ||
+             sender_name.includes(this.billingSearch)
            );
         });
       } else {

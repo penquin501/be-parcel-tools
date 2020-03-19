@@ -39,7 +39,7 @@
            <router-link to="/listphone"><a class="nav-link"  id="navbarDropdown" v-on:click="toView" role="button"  aria-haspopup="true" aria-expanded="false">KEY-IN Helper</a></router-link>
       </li>
        <li class="nav-item">
-           <router-link to="/listbilling"><a class="nav-link" v-on:click="toView" role="button"  aria-haspopup="true" aria-expanded="false">Report Billing</a></router-link>
+           <router-link to="/list-daily-billing"><a class="nav-link" v-on:click="toView" role="button"  aria-haspopup="true" aria-expanded="false">Report Billing</a></router-link>
       </li>
 
 
@@ -81,7 +81,7 @@ export default {
     mounted: function() {
     this.$session.start()
     var dataLogin = JSON.parse(localStorage.getItem("dataLoginParcelTool"));
-    console.log("dataLogin",dataLogin);
+    // console.log("dataLogin",dataLogin);
     if (dataLogin != null) {
       this.state = 'blank';
     }

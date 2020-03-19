@@ -441,15 +441,39 @@ module.exports = {
   dailyReport: () => {
     var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD");
     console.log("daily report =>",today);
-    var sql = "SELECT bInfo.branch_name,b.billing_no,br.sender_name,count(bi.tracking) as cTracking "+
+    var sql = "SELECT bInfo.branch_name,b.billing_no,br.sender_name,count(bi.tracking) as cTracking,b.status, b.id "+
     "FROM billing b "+
     "LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no "+
     "LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking "+
     "LEFT JOIN branch_info bInfo ON b.branch_id=bInfo.branch_id "+
-    "WHERE Date(b.billing_date) = ? AND b.status NOT IN ('cancel','SUCCESS','complete') "+
-    "GROUP BY b.member_code,b.branch_id,bInfo.branch_name,b.billing_no,br.sender_name "+
-    "ORDER BY b.branch_id ASC";
-    var data=[today];
+    "WHERE Date(b.billing_date) = ? AND b.status NOT IN ('cancel','SUCCESS') "+
+    "GROUP BY b.member_code,b.branch_id,bInfo.branch_name,b.billing_no,br.sender_name,b.status, b.id "+
+    "ORDER BY b.branch_id, b.id ASC";
+    var data=['2020-03-04'];
+    return new Promise(function(resolve, reject) {
+      parcel_connection.query(sql,data, (err, results) => {
+        if(err===null){
+          if(results.length<=0){
+            resolve(false);
+          } else {
+            resolve(results);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
+  listTracking: (billing_no) => {
+
+    var sql = "SELECT bi.tracking,s.size_name,bi.size_price,bi.parcel_type as bi_parcel_type,bi.zipcode as bi_zipcode,bi.cod_value,"+
+    "br.parcel_type as br_parcel_type,br.sender_name,br.sender_phone,br.sender_address,br.receiver_name,br.phone,br.receiver_address,"+
+    "br.district_name,br.amphur_name,br.province_name,br.zipcode as br_zipcode,br.status,br.sending_date,br.booking_status,br.booking_date,bi.source "+
+    "FROM billing_item bi "+
+    "LEFT JOIN billing_receiver_info br ON bi.tracking = br.tracking "+
+    "LEFT JOIN size_info s ON bi.size_id = s.size_id "+
+    "WHERE bi.billing_no=?";
+    var data=[billing_no];
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql,data, (err, results) => {
         if(err===null){

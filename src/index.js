@@ -12,7 +12,7 @@ moment.locale("th");
 app.use(express.json());
 app.use(express.static("public"));
 
-const mainServices = require("./services/mainService.js");
+// const mainServices = require("./services/mainService.js");
 const parcelServices = require("./services/parcelService.js");
 
 if (process.env.NODE_ENV === 'production') {
@@ -23,7 +23,7 @@ if (process.env.NODE_ENV === 'production') {
 app.use(express.static("public"));
 
 app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Origin", "*");  
   res.header("Access-Control-Allow-Headers", "Content-Type");
   res.header(
     "Access-Control-Allow-Methods",
@@ -110,15 +110,13 @@ app.get("/check/info/tracking", function(req, res) {
 
 app.get("/check/info/billing", function(req, res) {
   let billing = req.query.billing;
-  console.log(billing);
+
   parcelServices.getBillingInfo(billing).then(function(data) {
-    mainServices.checkStatusBilling(billing).then(function(data2) {
-      res.json({
-        status: "SUCCESS",
-        billingInfo: data,
-        statusParcel: data2
-      });
+    res.json({
+      status: "SUCCESS",
+      billingInfo: data
     });
+    // mainServices.checkStatusBilling(billing).then(function(data2) {});
   });
 });
 
@@ -143,16 +141,26 @@ app.post("/save/cancel/tracking", function(req, res) {
 
         parcelServices.updateBillingInfo(current_total,billing_no).then(function(data) {})
 
-        var previous_value=previous_status+"/"+previous_total[0].total
-        var current_value="cancel/"+current_total
+        var previous_value=previous_status+"/"+previous_total[0].total;
+        var current_value="cancel/"+current_total;
 
-        mainServices.updateStatusCancelTracking(tracking).then(function(data) {});
+        // mainServices.updateStatusCancelTracking(tracking).then(function(data) {});
         parcelServices.insertLog(billing_no,previous_value,current_value,module_name,user,tracking).then(function(data) {});
 
         res.json({ status: "SUCCESS" });
       })
     });
   })
+
+  // request(
+  //   {
+  //     url: "https://www.945api.com/parcel/list/bill/data/api",
+  //     method: "POST",
+  //     body: data,
+  //     json: true
+  //   },
+  //   (err, res2, body) => {});
+
 });
 
 app.post("/save/cancel/billing", function(req, res) {
@@ -172,11 +180,21 @@ app.post("/save/cancel/billing", function(req, res) {
         var previous_value=previous_status+"/"+previous_total[0].total
         var current_value="cancel/"+current_total
 
-        mainServices.updateStatusCancelBilling(billing_no).then(function(data) {});
+        // mainServices.updateStatusCancelBilling(billing_no).then(function(data) {});
         parcelServices.insertLog(billing_no,previous_value, current_value,module_name,user,billing_no).then(function(data) {});
         res.json({ status: "SUCCESS" });
     
   })
+
+  // request(
+  //   {
+  //     url: "https://www.945api.com/parcel/list/bill/data/api",
+  //     method: "POST",
+  //     body: data,
+  //     json: true
+  //   },
+  //   (err, res2, body) => {});
+
 });
 
 app.post("/update/receiver/info", function(req, res) {
@@ -195,9 +213,19 @@ app.post("/update/receiver/info", function(req, res) {
   let user = req.body.user;
 
   parcelServices.updateReceiverInfo(tracking, receiver_name, phone, address).then(function(data) {});
-  mainServices.updateBillingReceiverInfo(tracking, receiver_name, phone, address).then(function(data) {});
+  // mainServices.updateBillingReceiverInfo(tracking, receiver_name, phone, address).then(function(data) {});
   parcelServices.insertLog(billing_no,previous_value,log_current_value,module_name,user,tracking).then(function(data) {});
   res.json({ status: "SUCCESS" });
+
+  // request(
+  //   {
+  //     url: "https://www.945api.com/parcel/list/bill/data/api",
+  //     method: "POST",
+  //     body: data,
+  //     json: true
+  //   },
+  //   (err, res2, body) => {});
+
 });
 
 app.get("/tools/list/tracking", function(req, res) {
@@ -320,6 +348,19 @@ app.post("/confirm/match/data/info", function(req, res) {
 app.get("/daily-report", (req, res) => {
 
   parcelServices.dailyReport().then(function(data) {
+    if(data==false){
+      res.json([]);
+    } else{
+      res.json(data);
+    }
+    
+  });
+});
+
+app.get("/list-tracking-bill", (req, res) => {
+  let billing_no = req.query.billing_no;
+
+  parcelServices.listTracking(billing_no).then(function(data) {
     if(data==false){
       res.json([]);
     } else{

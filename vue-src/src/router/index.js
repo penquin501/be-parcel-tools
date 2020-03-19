@@ -53,12 +53,17 @@ const routes = [
         hidden: true
     },
     {
-        path: "/listbilling",
+        path: "/list-daily-billing",
         name: 'ViewBilling',
         component: () => import("../components/ViewBilling.vue"),
         hidden: true
     },
-
+    {
+        path: "/list-daily-tracking",
+        name: 'ViewTracking',
+        component: () => import("../components/ViewTracking.vue"),
+        hidden: true
+    },
   
 ];
 
