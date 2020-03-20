@@ -1,53 +1,54 @@
 <template>
   <div style="margin-top: 60px;">
-   <div class="container" style="overflow-x:auto;">
-    <div class="row">
-      <div class="col-ms-1 col-sm-1 col-xs-1"></div>
-     <div class="col-ms-10 col-sm-10 col-xs-10" style="text-align:center;">
-           <h2>รายการบิลประจำวัน {{ date }}</h2>
-     </div>
-     <div class="col-ms-1 col-sm-1 col-xs-1"></div>
-     </div>
-  
-       <div class="row">
+    <div class="container" style="overflow-x:auto;">
+      <div class="row">
+        <div class="col-ms-1 col-sm-1 col-xs-1"></div>
+        <div class="col-ms-10 col-sm-10 col-xs-10" style="text-align:center;">
+          <h2>รายการบิลประจำวัน {{ date }}</h2>
+        </div>
+        <div class="col-ms-1 col-sm-1 col-xs-1"></div>
+      </div>
+
+      <div class="row">
         <div class="col-ms-3 col-sm-3 col-xs-3"></div>
-        <div class="col-ms-3 col-sm-3 col-xs-3" style=" text-align: right;" >
+        <div class="col-ms-3 col-sm-3 col-xs-3" style=" text-align: right;">
           <b style="font-size:18px;">ค้นหา :</b>
         </div>
         <div class="col-ms-3 col-sm-3 col-xs-3">
           <div class="search">
-            <input
-              v-model="billingSearch"
-              autocomplete="false"
-              style="margin-top: 0px;"
-             />
+            <input v-model="billingSearch" autocomplete="false" style="margin-top: 0px;" />
           </div>
         </div>
         <div class="col-ms-3 col-sm-3 col-xs-3"></div>
       </div>
 
-    <table>
-      <tr>
-        <th style="text-align:center;">ชื่อสาขา</th>
-        <th style="text-align:center;">เลขที่บิล</th>
-        <th style="text-align:center;">ชื่อผู้ส่ง</th>
-        <th style="text-align:center;">จำนวน</th>
-        <th style="text-align:center;">สถานะ</th>
-      </tr>
-      <tr v-for="(item, index) in filteredResourcesBilling" v-bind:key="item.id">
-        
-        <td style="text-align: center;">{{ item.branch_name }}</td>
-        <td style="text-align: center;">
-        <router-link :to="{ name: 'ViewTracking', params: { billing_no: filteredResourcesBilling[index].billing_no }}">
-          {{ item.billing_no }}
-        </router-link> </td>
-        <td style="text-align: center;">{{ item.sender_name }}</td>
-        <td style="text-align: center;">{{ item.cTracking }}</td>
-        <td style="text-align: center;">{{ item.status }}</td>
-        
-      </tr>
-    </table>
-  </div>
+      <table>
+        <tr>
+          <th style="text-align:center;">ชื่อสาขา</th>
+          <th style="text-align:center;">เลขที่บิล</th>
+          <th style="text-align:center;">ชื่อผู้ส่ง</th>
+          <th style="text-align:center;">จำนวน</th>
+          <th style="text-align:center;">สถานะ</th>
+        </tr>
+        <tr v-for="(item, index) in filteredResourcesBilling" v-bind:key="item.id">
+          <td style="text-align: center;">{{ item.branch_name }}</td>
+          <td style="text-align: center;">
+            <router-link
+              :to="{ name: 'ViewTracking', params: { billing_no: filteredResourcesBilling[index].billing_no }}"
+            >{{ item.billing_no }}</router-link>
+          </td>
+          <td style="text-align: center;">{{ item.sender_name }}</td>
+          <td style="text-align: center;">{{ item.cTracking }}</td>
+          <td style="text-align: center;">{{ item.status }}</td>
+        </tr>
+      </table>
+    </div>
+    <div style="margin-top: 10px; text-align: center;">
+      <p>complete = สาขาทำรายการ</p>
+      <p>checking = ข้อมูลกำลังถูกส่งไปยัง บ. ขนส่ง</p>
+      <p>booked = ข้อมูลถูกส่งไปยัง บ. ขนส่ง ทั้งหมดแล้ว</p>
+      <p>pass = server หลัก กำลังบันทึกข้อมูล</p>
+    </div>
   </div>
 </template>
 <script>
@@ -57,12 +58,12 @@ export default {
     return {
       dataBilling: [],
       billingSearch: "",
-      date: "",
+      date: ""
     };
   },
   mounted() {
-    if(!this.$session.get('session_username')){
-       this.$router.push({ name: "Main"})
+    if (!this.$session.get("session_username")) {
+      this.$router.push({ name: "Main" });
     }
     this.getBilingNo();
     this.getDate();
@@ -73,8 +74,8 @@ export default {
       axios
         .get("/daily-report")
         .then(response => {
-          if(response.data.length===0){
-            this.$dialogs.alert("ไม่พบข้อมูล",options);
+          if (response.data.length === 0) {
+            this.$dialogs.alert("ไม่พบข้อมูล", options);
           } else {
             this.dataBilling = response.data;
           }
@@ -83,40 +84,75 @@ export default {
           console.log(error);
         });
     },
-    getDate(){
-        var monthNamesThai = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
-        var dayNames = ["วันอาทิตย์","วันจันทร์","วันอังคาร","วันพุธ","วันพฤหัสบดี","วันศุกร์","วันเสาร์"];
-        var d = new Date();
-        var y = parseInt(d.getFullYear())+543 
+    getDate() {
+      var monthNamesThai = [
+        "มกราคม",
+        "กุมภาพันธ์",
+        "มีนาคม",
+        "เมษายน",
+        "พฤษภาคม",
+        "มิถุนายน",
+        "กรกฎาคม",
+        "สิงหาคม",
+        "กันยายน",
+        "ตุลาคม",
+        "พฤศจิกายน",
+        "ธันวาคม"
+      ];
+      var dayNames = [
+        "วันอาทิตย์",
+        "วันจันทร์",
+        "วันอังคาร",
+        "วันพุธ",
+        "วันพฤหัสบดี",
+        "วันศุกร์",
+        "วันเสาร์"
+      ];
+      var d = new Date();
+      var y = parseInt(d.getFullYear()) + 543;
 
-        this.date = dayNames[d.getDay()]+"  "+d.getDate()+"  "+monthNamesThai[d.getMonth()]+"  "+y;
-    },
+      this.date =
+        dayNames[d.getDay()] +
+        "  " +
+        d.getDate() +
+        "  " +
+        monthNamesThai[d.getMonth()] +
+        "  " +
+        y;
+    }
   },
   computed: {
     filteredResourcesBilling() {
       if (this.billingSearch) {
         return this.dataBilling.filter(item => {
-            var branch_name = item.branch_name;
-            var billing_no = item.billing_no;
-            var sender_name = item.sender_name;
-            var cTracking = item.cTracking;
-            var status = item.status;
-            if(branch_name == null || billing_no == null || sender_name == null || cTracking == null || status == null){
-                branch_name = "";
-                billing_no = "";
-                sender_name = "";
-                cTracking = "";
-                status = "";
-            }
+          var branch_name = item.branch_name;
+          var billing_no = item.billing_no;
+          var sender_name = item.sender_name;
+          var cTracking = item.cTracking;
+          var status = item.status;
+          if (
+            branch_name == null ||
+            billing_no == null ||
+            sender_name == null ||
+            cTracking == null ||
+            status == null
+          ) {
+            branch_name = "";
+            billing_no = "";
+            sender_name = "";
+            cTracking = "";
+            status = "";
+          }
           return (
             !this.billingSearch ||
-             branch_name.includes(this.billingSearch) ||
-             billing_no.toLowerCase().indexOf(this.billingSearch.toLowerCase()) > -1 ||
-             sender_name.includes(this.billingSearch)
-           );
+            branch_name.includes(this.billingSearch) ||
+            billing_no.toLowerCase().indexOf(this.billingSearch.toLowerCase()) >
+              -1 ||
+            sender_name.includes(this.billingSearch)
+          );
         });
       } else {
-        return this.dataBilling
+        return this.dataBilling;
       }
     }
   }
@@ -124,14 +160,14 @@ export default {
 </script>
 <style lang="scss">
 input {
-    margin: 10px 5px 10px 5px;
-    background: none;
-    border: none;
-    border-bottom: 1px solid #000;
-    outline: none;
-    width: 200px;
-    text-align: center;
-  }
+  margin: 10px 5px 10px 5px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid #000;
+  outline: none;
+  width: 200px;
+  text-align: center;
+}
 .button-set {
   padding: 5px 20px;
   background-color: #fff;
@@ -166,7 +202,7 @@ input {
     outline: 5px auto rgb(169, 170, 170);
   }
 }
-.button-re{
+.button-re {
   padding: 5px 20px;
   background-color: #fff;
   // border: 2px solid rgb(169, 170, 170);
@@ -183,7 +219,6 @@ input {
   &:focus {
     outline: 5px auto rgb(169, 170, 170);
   }
-
 }
 
 table {

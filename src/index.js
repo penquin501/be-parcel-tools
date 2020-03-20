@@ -360,7 +360,7 @@ app.get("/daily-report", (req, res) => {
 app.get("/list-tracking-bill", (req, res) => {
   let billing_no = req.query.billing_no;
 
-  parcelServices.listTracking(billing_no).then(function(data) {
+  parcelServices.dailyListTracking(billing_no).then(function(data) {
     if(data==false){
       res.json([]);
     } else{

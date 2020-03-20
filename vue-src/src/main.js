@@ -19,6 +19,13 @@ library.add(faUserSecret)
 Vue.component('font-awesome-icon', FontAwesomeIcon)
 Vue.component('v-select', vSelect)
 
+const moment = require('moment')
+require('moment/locale/th')
+
+Vue.use(require('vue-moment'), {
+  moment
+})
+
 Vue.use(VueZoomer)
 
 Vue.config.productionTip = false

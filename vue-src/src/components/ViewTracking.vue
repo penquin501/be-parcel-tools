@@ -1,6 +1,6 @@
 <template>
   <div style="margin-top: 60px;">
-    <div class="container" style="overflow-x:auto;">
+    <div style="overflow-x:auto;">
       <div class="row">
         <div class="col-ms-3 col-sm-3 col-xs-3"></div>
         <div class="col-ms-3 col-sm-3 col-xs-3" style=" text-align: right;">
@@ -23,9 +23,6 @@
           <th style="text-align:center;">รหัสไปรษณีย์(QL)</th>
           <th style="text-align:center;">มูลค่า COD</th>
           <th style="text-align:center;">ประเภท(KI)</th>
-          <th style="text-align:center;">ชื่อผู้ส่ง</th>
-          <th style="text-align:center;">เบอร์ผู้ส่ง</th>
-          <th style="text-align:center;">ที่อยู่ผู้ส่ง</th>
           <th style="text-align:center;">ชื่อผู้รับ</th>
           <th style="text-align:center;">เบอร์ผู้รับ</th>
           <th style="text-align:center;">ที่อยู่ผู้รับ</th>
@@ -35,21 +32,16 @@
           <th style="text-align:center;">รหัสไปรษณีย์(KI)</th>
           <th style="text-align:center;">สถานะ</th>
           <th style="text-align:center;">วัน/เวลา ส่งข้อมูล</th>
-          <th style="text-align:center;">booking status</th>
           <th style="text-align:center;">วัน/เวลา booking</th>
-          <th style="text-align:center;">ที่มา</th>
         </tr>
-        <tr v-bind:key="item.id" v-for="item in dataBilling">
+        <tr v-bind:key="item.id" v-for="item in filteredResources">
           <td style="text-align: center;">{{ item.tracking }}</td>
-          <td style="text-align: center;">{{ item.size_name }}</td>
+          <td style="text-align: center;">{{ item.alias_size }}</td>
           <td style="text-align: center;">{{ item.size_price }}</td>
           <td style="text-align: center;">{{ item.bi_parcel_type }}</td>
           <td style="text-align: center;">{{ item.bi_zipcode }}</td>
           <td style="text-align: center;">{{ item.cod_value }}</td>
           <td style="text-align: center;">{{ item.br_parcel_type }}</td>
-          <td style="text-align: center;">{{ item.sender_name }}</td>
-          <td style="text-align: center;">{{ item.sender_phone }}</td>
-          <td style="text-align: center;">{{ item.sender_address }}</td>
           <td style="text-align: center;">{{ item.receiver_name }}</td>
           <td style="text-align: center;">{{ item.phone }}</td>
           <td style="text-align: center;">{{ item.receiver_address }}</td>
@@ -58,12 +50,16 @@
           <td style="text-align: center;">{{ item.province_name }}</td>
           <td style="text-align: center;">{{ item.br_zipcode }}</td>
           <td style="text-align: center;">{{ item.status }}</td>
-          <td style="text-align: center;">{{ item.sending_date }}</td>
-          <td style="text-align: center;">{{ item.booking_status }}</td>
-          <td style="text-align: center;">{{ item.booking_date }}</td>
-          <td style="text-align: center;">{{ item.source }}</td>
+          <td style="text-align: center;">{{ item.sending_date | moment("YYYY-MM-DD HH:mm:ss") }}</td>
+          <td style="text-align: center;">{{ item.booking_date | moment("YYYY-MM-DD HH:mm:ss") }}</td>
         </tr>
       </table>
+    </div>
+    <div style="margin-top: 10px; text-align: center;">
+      <p>ready = ข้อมูลกำลังถูกส่งไปยัง บ. ขนส่ง</p>
+      <p>booked = ข้อมูลถูกส่งไปยัง บ. ขนส่ง แล้ว</p>
+      <p>booking = ไม่สามารถส่งข้อมูลไปยัง บ. ขนส่ง</p>
+      <p>SUCCESS = ข้อมูลได้ส่งเข้า server หลักแล้ว</p>
     </div>
   </div>
 </template>
@@ -74,14 +70,17 @@ export default {
   data: function() {
     return {
       dataBilling: [],
-      billing_no: ""
+      billing_no: "",
+      str_billing_no: "",
+      billingSearch: ""
     };
   },
   mounted() {
     if (!this.$session.get("session_username")) {
       this.$router.push({ name: "Main" });
     }
-    this.billing_no = this.$route.params.billing_no;
+    var str_billing_no = this.$route.params.billing_no;
+    this.billing_no = str_billing_no;
     this.getData();
   },
   methods: {
@@ -90,7 +89,6 @@ export default {
       axios
         .get("/list-tracking-bill?billing_no=" + this.billing_no)
         .then(response => {
-          console.log(response);
           if (response.data.length === 0) {
             this.$dialogs.alert("ไม่พบข้อมูล", options);
           } else {
@@ -103,30 +101,18 @@ export default {
     }
   },
   computed: {
-    filteredResourcesBilling() {
+    filteredResources() {
       if (this.billingSearch) {
         return this.dataBilling.filter(item => {
-            var branch_name = item.branch_name;
-            var billing_no = item.billing_no;
-            var sender_name = item.sender_name;
-            var cTracking = item.cTracking;
-            var status = item.status;
-            if(branch_name == null || billing_no == null || sender_name == null || cTracking == null || status == null){
-                branch_name = "";
-                billing_no = "";
-                sender_name = "";
-                cTracking = "";
-                status = "";
-            }
-          return (
-            !this.billingSearch ||
-             branch_name.includes(this.billingSearch) ||
-             billing_no.toLowerCase().indexOf(this.billingSearch.toLowerCase()) > -1 ||
-             sender_name.includes(this.billingSearch)
-           );
+          var tracking = item.tracking;
+
+          if (tracking == null) {
+            tracking = "";
+          }
+          return !this.billingSearch || tracking.includes(this.billingSearch);
         });
       } else {
-        return this.dataBilling
+        return this.dataBilling;
       }
     }
   }
@@ -207,6 +193,7 @@ th,
 td {
   text-align: left;
   padding: 8px;
+  word-wrap: break-word;
 }
 
 tr:nth-child(even) {

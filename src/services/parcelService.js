@@ -449,7 +449,7 @@ module.exports = {
     "WHERE Date(b.billing_date) = ? AND b.status NOT IN ('cancel','SUCCESS') "+
     "GROUP BY b.member_code,b.branch_id,bInfo.branch_name,b.billing_no,br.sender_name,b.status, b.id "+
     "ORDER BY b.branch_id, b.id ASC";
-    var data=['2020-03-04'];
+    var data=[today];
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql,data, (err, results) => {
         if(err===null){
@@ -464,9 +464,9 @@ module.exports = {
       });
     });
   },
-  listTracking: (billing_no) => {
+  dailyListTracking: (billing_no) => {
 
-    var sql = "SELECT bi.tracking,s.size_name,bi.size_price,bi.parcel_type as bi_parcel_type,bi.zipcode as bi_zipcode,bi.cod_value,"+
+    var sql = "SELECT bi.tracking,s.alias_size,bi.size_price,bi.parcel_type as bi_parcel_type,bi.zipcode as bi_zipcode,bi.cod_value,"+
     "br.parcel_type as br_parcel_type,br.sender_name,br.sender_phone,br.sender_address,br.receiver_name,br.phone,br.receiver_address,"+
     "br.district_name,br.amphur_name,br.province_name,br.zipcode as br_zipcode,br.status,br.sending_date,br.booking_status,br.booking_date,bi.source "+
     "FROM billing_item bi "+
