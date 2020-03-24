@@ -54,7 +54,7 @@
       </table>
     </div>
     <div style="margin-top: 10px; text-align: center;">
-      <p>complete = สาขาทำรายการ</p>
+      <p>complete = สาขาทำรายการเข้าระบบ</p>
       <p>checking = ข้อมูลกำลังถูกส่งไปยัง บ. ขนส่ง</p>
       <p>booked = ข้อมูลถูกส่งไปยัง บ. ขนส่ง ทั้งหมดแล้ว</p>
       <p>pass = server หลัก กำลังบันทึกข้อมูล</p>

@@ -64,7 +64,12 @@ const routes = [
         component: () => import("../components/ViewTracking.vue"),
         hidden: true
     },
-  
+    {
+        path: "/list-skip-tracking",
+        name: 'ListSkipTracking',
+        component: () => import("../components/ReportSkipKey.vue"),
+        hidden: true
+    },
 ];
 
 export default new Router({

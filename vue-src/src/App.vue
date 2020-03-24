@@ -35,9 +35,16 @@
           <router-link to="/listtracking"><a v-on:click="toView"  class="dropdown-item" >QL Checker</a></router-link>
         </div>
       </li>
-       <li class="nav-item">
-           <router-link to="/listphone"><a class="nav-link"  id="navbarDropdown" v-on:click="toView" role="button"  aria-haspopup="true" aria-expanded="false">KEY-IN Helper</a></router-link>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">KEY-IN Helper</a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <router-link to="/listphone"><a v-on:click="toView"  class="dropdown-item" >List Sender</a></router-link>
+          <router-link to="/list-skip-tracking"><a v-on:click="toView"  class="dropdown-item" >List Skip Tracking</a></router-link>
+        </div>
       </li>
+       <!-- <li class="nav-item">
+           <router-link to="/listphone"><a class="nav-link"  id="navbarDropdown" v-on:click="toView" role="button"  aria-haspopup="true" aria-expanded="false">KEY-IN Helper</a></router-link>
+      </li> -->
        <li class="nav-item">
            <router-link to="/list-daily-billing"><a class="nav-link" v-on:click="toView" role="button"  aria-haspopup="true" aria-expanded="false">Report Billing</a></router-link>
       </li>
