@@ -69,7 +69,6 @@ export default {
       listSkipTracking: [],
       tracking: "",
       trackingSearch: ""
-      // phoneNumber: "",
     };
   },
   mounted() {

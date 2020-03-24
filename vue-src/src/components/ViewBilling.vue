@@ -60,6 +60,7 @@
       <p>pass = server หลัก กำลังบันทึกข้อมูล</p>
     </div>
   </div>
+  </div>
 </template>
 <script>
 const axios = require("axios");
