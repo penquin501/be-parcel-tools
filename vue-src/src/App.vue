@@ -180,6 +180,7 @@ export default {
     Logout() {
       this.$session.clear();
       this.state = "login";
+      this.$router.push('/');
     },
 
     toView() {

@@ -10,7 +10,7 @@
       <table class="table table-striped">
     <tbody style="text-align:center;">
       <tr v-for="(item, index) in listTracking" v-bind:key="item.id">
-           <router-link  :to="{ name: 'CompareData', params: { branch_id: listTracking[index].branch_id }}">
+           <router-link :to="{ name: 'CompareData', params: { branch_id: listTracking[index].branch_id }}">
              <td >{{listTracking[index].branch_name}}({{ listTracking[index].cTracking }})</td></router-link> 
       </tr>
        
@@ -25,13 +25,11 @@
 const axios = require("axios");
 export default {
   components: {
-    // CompareData
   },
   data: function() {
     return {
       inMenu: 1,
       listTracking: [],
-      // tracking: "",
     };
   },
     mounted(){
@@ -45,12 +43,10 @@ export default {
     getlistTracking() {
       const options = { okLabel: "ตกลง" };
       axios
-        // .get("https://tool.945parcel.com/tools/list/tracking")
         .get("/tools/list/tracking")
         .then(response => {
             if(response.data.status=='SUCCESS'){
                 this.listTracking=response.data.listTracking
-                // console.log(this.listTracking);
             } else {
                 this.$dialogs.alert("ไม่พบข้อมูล",options);
             }

@@ -102,6 +102,7 @@ export default {
         .then(response => {
           if (response.data.length === 0) {
             this.$dialogs.alert("ไม่พบข้อมูล", options);
+            this.dataBilling = [];
           } else {
             this.dataBilling = response.data;
           }
