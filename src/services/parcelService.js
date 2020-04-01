@@ -279,12 +279,18 @@ module.exports = {
                           resolve(total);
                         }
                       );
+                    } else {
+                      console.log("resultsReceiver", resultsReceiver);
+                      resolve(false);
                     }
                   } else {
                     console.log("error2", error2);
                     resolve(false);
                   }
                 });
+            } else {
+              console.log("resultsItem", resultsItem);
+              resolve(false);
             }
           } else {
             console.log("error1", error1);

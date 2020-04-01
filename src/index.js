@@ -325,7 +325,7 @@ app.post("/confirm/match/data/info", function(req, res) {
       error_code="both";
       error_maker="system";
     }
-    console.log(error_code,error_maker);
+    console.log("confirm :",tracking,error_code,error_maker);
     parcelServices.findOperator(tracking).then(function(data) {
       let operation_key="";
       if(data.length<=0){
@@ -345,6 +345,8 @@ app.post("/confirm/match/data/info", function(req, res) {
             parcelServices.insertLog(billing_no,log_previous_value,log_current_value,module_name,cs_name,tracking).then(function(data) {});
   
             res.json({ status: "SUCCESS" });
+          } else {
+            res.json({ status: "ERROR" });
           }
           
         });
