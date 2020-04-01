@@ -266,23 +266,31 @@ module.exports = {
 
     let total=0;
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sqlBillingItem, dataBillingItem, (error, resultsItem, fields) => {
-          if (resultsItem.affectedRows > 0) {
-            parcel_connection.query(sqlReceiver, dataReceiver, (error, resultsReceiver, fields) => {
-                if (resultsReceiver.affectedRows > 0) {
-                  parcel_connection.query(sqlSizeItem, dataSizeItem, (error, resultsSizeItem, fields) => {
-                    for(i=0;i<resultsSizeItem.length;i++){
-                      total+=resultsSizeItem[i].size_price;
+      parcel_connection.query(sqlBillingItem,dataBillingItem,(error1, resultsItem, fields) => {
+          if (error1 === null) {
+            if (resultsItem.affectedRows > 0) {
+              parcel_connection.query(sqlReceiver,dataReceiver,(error2, resultsReceiver, fields) => {
+                  if (error2 === null) {
+                    if (resultsReceiver.affectedRows > 0) {
+                      parcel_connection.query(sqlSizeItem,dataSizeItem,(error, resultsSizeItem, fields) => {
+                          for (i = 0; i < resultsSizeItem.length; i++) {
+                            total += resultsSizeItem[i].size_price;
+                          }
+                          resolve(total);
+                        }
+                      );
                     }
-                      resolve(total);
-                    }
-                  );
-                }
-              }
-            );
+                  } else {
+                    console.log("error2", error2);
+                    resolve(false);
+                  }
+                });
+            }
+          } else {
+            console.log("error1", error1);
+            resolve(false);
           }
-        }
-      );
+        });
     });
   },
   updateBilling:(billing_no,current_total)=>{

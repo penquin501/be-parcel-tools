@@ -336,15 +336,17 @@ app.post("/confirm/match/data/info", function(req, res) {
       parcelServices.selectPreviousTotal(billing_no).then(function(previous_total) {
 
         parcelServices.updateCheckerInfo(billing_no,tracking, size_id,size_price,cod_value,receiver_name, phone, address, parcel_type, district_id,district_name, amphur_id,amphur_name,province_id,province_name,zipcode).then(function(current_total) {
-
-          parcelServices.updateBilling(billing_no,current_total).then(function(data) {});
-          parcelServices.saveLogQlChecker(branch_id, user_id, billing_no, error_code, error_maker, cs_name, tracking, operation_key).then(function(data) {});
-
-          log_previous_value+="/total="+previous_total[0].total;
-          log_current_value+="/total="+current_total;
-          parcelServices.insertLog(billing_no,log_previous_value,log_current_value,module_name,cs_name,tracking).then(function(data) {});
-
-          res.json({ status: "SUCCESS" });
+          if(current_total!==false){
+            parcelServices.updateBilling(billing_no,current_total).then(function(data) {});
+            parcelServices.saveLogQlChecker(branch_id, user_id, billing_no, error_code, error_maker, cs_name, tracking, operation_key).then(function(data) {});
+  
+            log_previous_value+="/total="+previous_total[0].total;
+            log_current_value+="/total="+current_total;
+            parcelServices.insertLog(billing_no,log_previous_value,log_current_value,module_name,cs_name,tracking).then(function(data) {});
+  
+            res.json({ status: "SUCCESS" });
+          }
+          
         });
         
       })
