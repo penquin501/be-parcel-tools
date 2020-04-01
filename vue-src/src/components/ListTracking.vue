@@ -7,6 +7,14 @@
 </div>
 
     <section v-if="inMenu == 1  || inMenu == 2.5"  class="table">
+      <div class="row">
+         <div class="col-ms-9 col-sm-9 col-xs-9"></div>
+          <div class="col-ms-2 col-sm-2 col-xs-2" style="text-align:right;">
+          <label style="margin-top: 5px;">Refresh</label>
+        </div>
+        <div class="col-ms-1 col-sm-1 col-xs-1" style="margin-bottom: 5px;">
+          <button class="button-re"  v-on:click="getlistTracking()"><i class="fa fa-refresh" aria-hidden="true"></i></button>
+        </div>
       <table class="table table-striped">
     <tbody style="text-align:center;">
       <tr v-for="(item, index) in listTracking" v-bind:key="item.id">
@@ -78,6 +86,25 @@ export default {
   &:hover{
     color: #fff;
     background-color: red;
+  }
+}
+
+.button-re {
+  padding: 5px 20px;
+  background-color: #fff;
+  // border: 2px solid rgb(169, 170, 170);
+  // border-radius: 70px;
+  cursor: pointer;
+  color: rgb(169, 170, 170);
+  font-weight: bold;
+  outline: none;
+  transition: 0.5s;
+  &:hover {
+    background-color: rgb(169, 170, 170);
+    color: #fff;
+  }
+  &:focus {
+    outline: 5px auto rgb(169, 170, 170);
   }
 }
 </style>

@@ -254,62 +254,30 @@ module.exports = {
       });
     });
   },
-  updateCheckerInfo: (
-    tracking,
-    size_id,
-    size_price,
-    cod_value,
-    receiver_name,
-    phone,
-    address,
-    parcel_type,
-    district_id,
-    district_name,
-    amphur_id,
-    amphur_name,
-    province_id,
-    province_name,
-    zipcode
-  ) => {
-    let sqlBillingItem =
-      "UPDATE billing_item SET zipcode=?,size_id=?,size_price=?,parcel_type=?,cod_value=? WHERE tracking=?";
-    let dataBillingItem = [
-      zipcode,
-      size_id,
-      size_price,
-      parcel_type,
-      cod_value,
-      tracking
-    ];
+  updateCheckerInfo: (billing_no,tracking,size_id,size_price,cod_value,receiver_name,phone,address,parcel_type,district_id,district_name,amphur_id,amphur_name,province_id,province_name,zipcode) => {
+    let sqlBillingItem = "UPDATE billing_item SET zipcode=?,size_id=?,size_price=?,parcel_type=?,cod_value=? WHERE tracking=?";
+    let dataBillingItem = [zipcode,size_id,size_price,parcel_type,cod_value,tracking];
 
-    let sqlReceiver =
-      "UPDATE billing_receiver_info SET parcel_type=?,receiver_name=?,phone=?,receiver_address=?,district_id=?,district_name=?,amphur_id=?,amphur_name=?,province_id=?,province_name=?,zipcode=? WHERE tracking=?";
-    let dataReceiver = [
-      parcel_type,
-      receiver_name,
-      phone,
-      address,
-      district_id,
-      district_name,
-      amphur_id,
-      amphur_name,
-      province_id,
-      province_name,
-      zipcode,
-      tracking
-    ];
+    let sqlReceiver ="UPDATE billing_receiver_info SET parcel_type=?,receiver_name=?,phone=?,receiver_address=?,district_id=?,district_name=?,amphur_id=?,amphur_name=?,province_id=?,province_name=?,zipcode=? WHERE tracking=?";
+    let dataReceiver = [parcel_type,receiver_name,phone,address,district_id,district_name,amphur_id,amphur_name,province_id,province_name,zipcode,tracking];
 
+    let sqlSizeItem="SELECT size_price FROM billing_item WHERE billing_no=?"
+    let dataSizeItem=[billing_no];
+
+    let total=0;
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(
-        sqlBillingItem,
-        dataBillingItem,
-        (error, resultsItem, fields) => {
+      parcel_connection.query(sqlBillingItem, dataBillingItem, (error, resultsItem, fields) => {
           if (resultsItem.affectedRows > 0) {
-            parcel_connection.query(
-              sqlReceiver,
-              dataReceiver,
-              (error, resultsReceiver, fields) => {
-                resolve(resultsReceiver);
+            parcel_connection.query(sqlReceiver, dataReceiver, (error, resultsReceiver, fields) => {
+                if (resultsReceiver.affectedRows > 0) {
+                  parcel_connection.query(sqlSizeItem, dataSizeItem, (error, resultsSizeItem, fields) => {
+                    for(i=0;i<resultsSizeItem.length;i++){
+                      total+=resultsSizeItem[i].size_price;
+                    }
+                      resolve(total);
+                    }
+                  );
+                }
               }
             );
           }
@@ -317,29 +285,19 @@ module.exports = {
       );
     });
   },
-  saveLogQlChecker: (
-    branch_id,
-    user_id,
-    billing_no,
-    error_code,
-    error_maker,
-    cs_name,
-    tracking,
-    operation_key
-  ) => {
+  updateBilling:(billing_no,current_total)=>{
+    let sql = "UPDATE billing SET total=? WHERE billing_no=?";
+    let data = [current_total,billing_no];
+    return new Promise(function(resolve, reject) {
+      parcel_connection.query(sql, data, (error, results, fields) => {
+        resolve(results);
+      });
+    });
+  },
+  saveLogQlChecker: (branch_id,user_id,billing_no,error_code,error_maker,cs_name,tracking,operation_key) => {
     let sql =
       "INSERT INTO log_ql_checker(branch_id, user_id, billing_no, error_code, error_maker, cs_name, tracking, operation_key, record_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    let data = [
-      branch_id,
-      user_id,
-      billing_no,
-      error_code,
-      error_maker,
-      cs_name,
-      tracking,
-      operation_key,
-      new Date()
-    ];
+    let data = [branch_id,user_id,billing_no,error_code,error_maker,cs_name,tracking,operation_key,new Date()];
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql, data, (error, results, fields) => {
         if (error === null) {
@@ -362,25 +320,21 @@ module.exports = {
       });
     });
   },
-  insertLog: (
-    billing_no,
-    previous_value,
-    current_value,
-    module_name,
-    user,
-    ref
-  ) => {
+  selectPreviousTotal: billing_no => {
+    let sql = "SELECT total FROM billing WHERE billing_no =?";
+    let data = [billing_no];
+    return new Promise(function(resolve, reject) {
+      parcel_connection.query(sql, data, (error, results, fields) => {
+        if (error === null) {
+          resolve(results);
+        }
+      });
+    });
+  },
+  insertLog: (billing_no,previous_value,current_value,module_name,user,ref) => {
     let sql =
       "INSERT INTO log_parcel_tool(billing_no, time_to_system, previous_value, current_value, module_name, user, ref) VALUES (?,?,?,?,?,?,?)";
-    let data = [
-      billing_no,
-      new Date(),
-      previous_value,
-      current_value,
-      module_name,
-      user,
-      ref
-    ];
+    let data = [billing_no,new Date(),previous_value,current_value,module_name,user,ref];
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql, data, (error, results, fields) => {
         resolve(results);

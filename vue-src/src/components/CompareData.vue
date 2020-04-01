@@ -27,18 +27,14 @@
         </div>
       </div>
       <div class="center">
-        <!-- <div>
-          <b>Tracking:</b>
-          <input :disabled="billingInfo" v-model="tracking" />
-        </div>-->
+        <div>
+          <b>เลขที่บิล :</b>
+          <input :disabled="billingInfo" v-model="billing_no" />
+        </div>
         <div>
           <b>ประเภทการจัดส่ง:</b>
           <input :disabled="billingInfo" v-model="bi_parcel_type" />
           <br />
-          <!-- <select class="selectType" v-model="bi_parcel_type" v-on:change="selectType">
-            <option value="NORMAL">NORMAL</option>
-            <option value="COD">COD</option>
-          </select>-->
           <div style="display: grid ; grid-template-columns: .5fr 1fr .5fr 1fr">
             <input
               style="margin-top: 5%"
@@ -73,14 +69,6 @@
         <div>
           <b>ขนาดพัสดุ:</b>
           <input :disabled="billingInfo" v-model="alias_size" />
-          <!-- <select class="selectSize" v-model="alias_size" v-on:change="selectSize"> -->
-          <!-- <option :value="alias_size" :selected="alias_size" disabled>{{alias_size}}</option> -->
-          <!-- <option
-              :value="boxSize[index].alias_size.toUpperCase()"
-              v-for="(item , index) in boxSize"
-              :key="item.id"
-            >{{boxSize[index].alias_size.toUpperCase()}}</option>
-          </select>-->
         </div>
 
         <div>
@@ -141,13 +129,8 @@
             v-model="receiver_address"
           />
         </div>
-        <!-- <div>
-          <b>Location:</b>
-          <input :disabled="billingInfo" v-model="location" />
-        </div>-->
         <div>
           <b>รหัสไปรษณีย์:</b>
-          <!-- <input :disabled="receriverZipcodeEdit" ref="receriverZipcodeEdit" v-model="br_zipcode"/> -->
           <input
             v-model="displayAddress"
             class="input"
@@ -180,10 +163,7 @@
 const axios = require("axios");
 
 export default {
-  // props: {
-  //   selectedTracking: Object,
-  //   // tracking: 'msg',
-  // },
+
   data: function() {
     return {
       imgUrl:
@@ -240,11 +220,8 @@ export default {
     if (!this.$session.get("session_username")) {
       this.$router.push({ name: "Main" });
     }
-    // var tracking = this.$props.selectedTracking.tracking;
     var branch_id = this.$route.params.branch_id;
     this.selectTrackingToCheck(branch_id);
-    // this.getData(trackingIn);
-    // this.parcelSizeList();
   },
   methods: {
     selectTrackingToCheck(branch_id) {
@@ -258,11 +235,9 @@ export default {
       } else {
         axios
           .get(
-            // "https://tool.945parcel.com/select/tracking/check?branch_id=" +
             "/select/tracking/check?branch_id=" + branch_id
           )
           .then(response => {
-            // console.log(response.data.tracking);
             if (
               response.data.status == "SUCCESS" &&
               response.data.tracking !== false
@@ -278,7 +253,6 @@ export default {
 
       axios
         .get(
-          // "https://tool.945parcel.com/check/info/tracking?tracking=" +
           "/check/info/tracking?tracking=" + this.trackingIn.toUpperCase()
         )
         .then(response => {
@@ -356,17 +330,6 @@ export default {
       if (englishAlphabetAndWhiteSpace.test(key)) return true;
       $event.preventDefault();
     },
-    // parcelSizeList() {
-    //   axios
-    //    .get("https://tool.945parcel.com/tools/parcel/size/list")
-    //     // .get("http://127.0.0.1:3200/tools/parcel/size/list")
-    //     .then(response => {
-    //       this.boxSize = response.data.parcelSizeList;
-    //     })
-    //     .catch(function(error) {
-    //       console.log(error);
-    //     });
-    // },
     parcelAddressList(zipcode) {
       axios
         .get(
@@ -485,7 +448,7 @@ export default {
           },
           user: this.$session.get("session_username")
         };
-        // axios.post("https://tool.945parcel.com/confirm/match/data/info" ,dataConfirm)
+
         axios
           .post("/confirm/match/data/info", dataConfirm)
           .then(response => {
@@ -511,7 +474,6 @@ export default {
       this.openZipcode = true;
     },
     selectItem(item) {
-      // console.log(item);
       this.displayAddress =
         item.zipcode +
         " " +

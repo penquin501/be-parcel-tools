@@ -300,11 +300,9 @@ app.post("/confirm/match/data/info", function(req, res) {
     let error_code;
     let error_maker;
     /* error_maker = shop staff,key operator, system */
-    
     if(previous_value.bi_parcel_type!==previous_value.br_parcel_type){
       /* error_zipcode = zipcode ไม่ตรงกัน */
       error_code="error_parcel_type";
-
       if(parcel_type!==previous_value.bi_parcel_type){
         error_maker="shop staff";
       } else if(parcel_type!==previous_value.br_parcel_type){
@@ -327,7 +325,6 @@ app.post("/confirm/match/data/info", function(req, res) {
       error_code="both";
       error_maker="system";
     }
-
     console.log(error_code,error_maker);
     parcelServices.findOperator(tracking).then(function(data) {
       let operation_key="";
@@ -336,11 +333,24 @@ app.post("/confirm/match/data/info", function(req, res) {
       } else {
         operation_key=data[0].operator_id;
       }
-        parcelServices.updateCheckerInfo(tracking, size_id,size_price,cod_value,receiver_name, phone, address, parcel_type, district_id,district_name, amphur_id,amphur_name,province_id,province_name,zipcode).then(function(data) {});
-        parcelServices.saveLogQlChecker(branch_id, user_id, billing_no, error_code, error_maker, cs_name, tracking, operation_key).then(function(data) {});
-        parcelServices.insertLog(billing_no,log_previous_value,log_current_value,module_name,cs_name,tracking).then(function(data) {});
+      parcelServices.selectPreviousTotal(billing_no).then(function(previous_total) {
+
+        parcelServices.updateCheckerInfo(billing_no,tracking, size_id,size_price,cod_value,receiver_name, phone, address, parcel_type, district_id,district_name, amphur_id,amphur_name,province_id,province_name,zipcode).then(function(current_total) {
+
+          parcelServices.updateBilling(billing_no,current_total).then(function(data) {});
+          parcelServices.saveLogQlChecker(branch_id, user_id, billing_no, error_code, error_maker, cs_name, tracking, operation_key).then(function(data) {});
+
+          log_previous_value+="/total="+previous_total[0].total;
+          log_current_value+="/total="+current_total;
+          parcelServices.insertLog(billing_no,log_previous_value,log_current_value,module_name,cs_name,tracking).then(function(data) {});
+
+          res.json({ status: "SUCCESS" });
+        });
+        
+      })
+        
     })
-    res.json({ status: "SUCCESS" });
+    
   });
 });
 
