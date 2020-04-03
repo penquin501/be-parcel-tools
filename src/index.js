@@ -131,36 +131,37 @@ app.post("/save/cancel/tracking", function(req, res) {
 
   parcelServices.selectBillingInfo(billing_no).then(function(previous_total) {
 
-    parcelServices.updateStatusReceiver(tracking).then(function(data) {
-      parcelServices.selectParcelSize(billing_no).then(function(dataListPrice) {
+    parcelServices.updateStatusReceiver(tracking).then(function(res_update_status) {
+      if(res_update_status!==false){
+        parcelServices.selectParcelSize(billing_no).then(function(dataListPrice) {
 
-        let current_total=0;
-        for(i=0;i<dataListPrice.length;i++){
-          current_total+=dataListPrice[i].size_price;
-        }
-
-        parcelServices.updateBillingInfo(current_total,billing_no).then(function(data) {})
-
-        var previous_value=previous_status+"/"+previous_total[0].total;
-        var current_value="cancel/"+current_total;
-
-        // mainServices.updateStatusCancelTracking(tracking).then(function(data) {});
-        parcelServices.insertLog(billing_no,previous_value,current_value,module_name,user,tracking).then(function(data) {});
-
-        res.json({ status: "SUCCESS" });
-      })
+          let current_total=0;
+          for(i=0;i<dataListPrice.length;i++){
+            current_total+=dataListPrice[i].size_price;
+          }
+  
+          parcelServices.updateBillingInfo(current_total,billing_no).then(function(data) {})
+  
+          var previous_value=previous_status+"/total="+previous_total[0].total;
+          var current_value="cancel/total="+current_total;
+          parcelServices.insertLog(billing_no,previous_value,current_value,module_name,user,tracking).then(function(data) {});
+  
+          // request(
+          //   {
+          //     url: "https://www.945api.com/parcel/list/bill/data/api",
+          //     method: "POST",
+          //     body: data,
+          //     json: true
+          //   },
+          //   (err, res2, body) => {
+            res.json({ status: "SUCCESS" });
+          //   });
+        })
+      } else {
+        res.json({ status: "ERROR" });
+      }
     });
   })
-
-  // request(
-  //   {
-  //     url: "https://www.945api.com/parcel/list/bill/data/api",
-  //     method: "POST",
-  //     body: data,
-  //     json: true
-  //   },
-  //   (err, res2, body) => {});
-
 });
 
 app.post("/save/cancel/billing", function(req, res) {
@@ -384,6 +385,40 @@ app.get("/list-tracking-bill", (req, res) => {
   });
 });
 
+app.get("/list-error-maker", (req, res) => {
+  parcelServices.listErrorMaker().then(function(data) {
+    if(data==false){
+      res.json([]);
+    } else{
+      res.json(data);
+    }
+    
+  });
+});
+
+app.get("/booking-report", (req, res) => {
+  let tracking = req.query.tracking;
+  parcelServices.bookingReport(tracking).then(function(data) {
+    if(data==false){
+      res.json([]);
+    } else{
+      res.json(data);
+    }
+    
+  });
+});
+
+app.get("/log-parcel-tool", (req, res) => {
+  let ref = req.query.ref;
+  parcelServices.log_parcel_tool(ref).then(function(data) {
+    if(data==false){
+      res.json([]);
+    } else{
+      res.json(data);
+    }
+    
+  });
+});
 var smtp = {
   pool: true,
   host: "smtp.gmail.com", //set to your host name or ip

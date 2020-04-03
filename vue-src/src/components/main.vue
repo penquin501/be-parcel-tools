@@ -35,6 +35,10 @@
           <input :disabled="billingInfo" v-model="tracking" />
         </div>
         <div>
+          <b>เลขที่บิล:</b>
+          <input :disabled="billingInfo" v-model="billing_no" />
+        </div>
+        <div>
           <b>ขนาดพัสดุ:</b>
           <input :disabled="billingInfo" v-model="size_id" />
         </div>
@@ -125,9 +129,9 @@
       <b style="font-size:18px;">Tools ที่จะใช้ :</b>
       <select class="select" v-model="selectValue" v-on:change="selectTools">
         <!-- <select class="select" v-model="selectValue"> -->
-        <option value disabled selected>----- เลือก Tools -----</option>
+        <option value="0" disabled selected>----- เลือก Tools -----</option>
         <option value="1">ยกเลิก Tracking</option>
-        <option value="2">เปลี่ยนแปลงข้อมูลผู้รับ</option>
+        <!-- <option value="2">เปลี่ยนแปลงข้อมูลผู้รับ</option> -->
       </select>
     </div>
     <div class="group-btn">
@@ -172,7 +176,7 @@ export default {
       order_status_lb: "",
       send_booking: "",
 
-      selectValue: "",
+      selectValue: "0",
       imgUrl:
         "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC",
       rotation: 0,
@@ -198,7 +202,7 @@ export default {
         .then(response => {
           if (response.data.status == "SUCCESS") {
             this.billingInfo = response.data.billingInfo;
-            
+
             this.billing_no = this.billingInfo[0].billing_no;
             this.tracking = this.billingInfo[0].tracking;
             this.bi_parcel_type = this.billingInfo[0].bi_parcel_type;
@@ -231,12 +235,16 @@ export default {
             this.br_parcel_type = this.billingInfo[0].br_parcel_type;
 
             this.status = this.billingInfo[0].status;
-            this.booking_status = this.billingInfo[0].booking_status;
-
-            if(this.status=="booked" && this.booking_status==100){
-              this.order_status_lb="ไม่สามารถแก้ไขข้อมูลได้ เนื่องจาก ข้อมูลได้ถูกส่งให้กับ บ. ขนส่งแล้ว";
+            if (this.status == "booked") {
+              this.order_status_lb = "ข้อมูลได้ถูกส่งให้กับ บ. ขนส่งแล้ว";
+            } else if (this.status == "SUCCESS") {
+              this.order_status_lb = "ข้อมูลได้ส่งเข้า server หลักแล้ว";
+            } else if (this.status == "ready") {
+              this.order_status_lb = "ข้อมูลกำลังถูกส่งไปยัง บ. ขนส่ง";
+            } else if (this.status == "cancel") {
+              this.order_status_lb = "ข้อมูลถูกยกเลิกแล้ว";
             } else {
-              this.order_status_lb="สามารถแก้ไขได้";
+              this.order_status_lb = "";
             }
 
             this.imgCapture = response.data.imgCapture;
@@ -249,11 +257,36 @@ export default {
             }
           } else {
             this.$dialogs.alert("ไม่พบข้อมูล", options);
+            this.emptyBox();
           }
         })
         .catch(function(error) {
           console.log(error);
         });
+    },
+    emptyBox() {
+      this.selectValue="0";
+      this.billing_no = "";
+      this.tracking = "";
+      this.bi_parcel_type = "";
+      this.size_id = "";
+      this.size_price = "";
+      this.cod_value = "";
+      this.bi_zipcode = "";
+      this.sender_name = "";
+      this.sender_phone = "";
+      this.sender_address = "";
+      this.receiver_first_name = "";
+      this.receiver_last_name = "";
+      this.phone = "";
+      this.receiver_address = "";
+      this.previous_value = "";
+      this.location = "";
+      this.br_zipcode = "";
+      this.br_parcel_type = "";
+      this.status = "";
+      this.order_status_lb = "";
+      this.imgUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC";
     },
     selectTools() {
       const options = { okLabel: "ตกลง" };
@@ -285,10 +318,9 @@ export default {
         this.$dialogs.alert("กรุณาเลือก Tools เพื่อทำรายการ", options);
       } else if (this.tracking == "") {
         this.$dialogs.alert("กรุณาระบุ Tracking เพื่อทำรายการ", options);
-
-      } else if (this.booking_status == 100) {
+      } else if (this.status == "cancel") {
         this.$dialogs.alert(
-          "ไม่สามารถทำรายการ Tracking นี้ได้ เนื่องจาก Tracking นี้ ถูกส่งข้อมูลให้บ. ขนส่งไปแล้ว",
+          "รายการนี้ได้ถูกยกเลิกไปแล้ว",
           options
         );
       } else {
@@ -296,16 +328,16 @@ export default {
           var data = {
             tracking: this.tracking,
             billing_no: this.billing_no,
-            previous_value: this.booking_status,
+            previous_value: this.status,
             user: this.$session.get("session_username")
           };
- 
+
           axios
             .post("/save/cancel/tracking", data)
             .then(response => {
               if (response.data.status == "SUCCESS") {
                 this.$dialogs.alert("ยกเลิกเรียบร้อยแล้ว", options);
-                this.$router.push('/');
+                this.$router.push("/");
               }
             })
             .catch(function(error) {
@@ -347,10 +379,10 @@ export default {
               .then(response => {
                 if (response.data.status == "SUCCESS") {
                   this.$dialogs.alert(
-                    "แก้ไขข้อมูลผู้รับเรียบร้อยแล้ว", 
+                    "แก้ไขข้อมูลผู้รับเรียบร้อยแล้ว",
                     options
                   );
-                  this.$router.push('/');
+                  this.$router.push("/");
                 }
               })
               .catch(function(error) {

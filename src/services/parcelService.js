@@ -199,7 +199,15 @@ module.exports = {
         "UPDATE billing_receiver_info SET status='cancel' WHERE tracking=?";
       let data = [tracking];
       parcel_connection.query(sql, data, (error, results, fields) => {
-        resolve(results);
+        if(error===null){
+          if(results.affectedRows>0){
+            resolve(tracking);
+          } else {
+            resolve(false);
+          }
+        } else {
+          resolve(false);
+        }
       });
     });
   },
@@ -442,6 +450,61 @@ module.exports = {
     "LEFT JOIN size_info s ON bi.size_id = s.size_id "+
     "WHERE bi.billing_no=?";
     var data=[billing_no];
+    return new Promise(function(resolve, reject) {
+      parcel_connection.query(sql,data, (err, results) => {
+        if(err===null){
+          if(results.length<=0){
+            resolve(false);
+          } else {
+            resolve(results);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
+  listErrorMaker:()=>{
+    var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+
+    var sql = "SELECT branch_id, user_id, billing_no, error_code, error_maker, cs_name, tracking, operation_key, record_date FROM log_ql_checker WHERE Date(record_date) >= ?";
+    var data=[today];
+    return new Promise(function(resolve, reject) {
+      parcel_connection.query(sql,data, (err, results) => {
+        if(err===null){
+          if(results.length<=0){
+            resolve(false);
+          } else {
+            resolve(results);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
+  bookingReport:(tracking)=>{
+
+    var sql = "SELECT tracking, status, send_record_at, prepare_json, response_record_at, res_json FROM booking_tracking_batch WHERE tracking=?";
+    var data=[tracking];
+    return new Promise(function(resolve, reject) {
+      parcel_connection.query(sql,data, (err, results) => {
+        if(err===null){
+          if(results.length<=0){
+            resolve(false);
+          } else {
+            resolve(results);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
+  log_parcel_tool:(ref)=>{
+
+    var sql = "SELECT billing_no, time_to_system, previous_value, current_value, module_name, user, ref FROM log_parcel_tool WHERE ref=?";
+    var data=[ref];
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql,data, (err, results) => {
         if(err===null){
