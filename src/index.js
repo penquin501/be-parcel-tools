@@ -12,7 +12,6 @@ moment.locale("th");
 app.use(express.json());
 app.use(express.static("public"));
 
-// const mainServices = require("./services/mainService.js");
 const parcelServices = require("./services/parcelService.js");
 
 if (process.env.NODE_ENV === "production") {
@@ -32,63 +31,6 @@ app.use(function(req, res, next) {
   next();
 });
 
-app.post("/test-dhl-response", function(req, res) {
-  var input_data = req.body;
-  var tracking = input_data.manifestRequest.bd.shipmentItems[0].shipmentID;
-
-  var statusCode = "";
-  var message = "";
-
-  parcelServices.saveTracking(tracking).then(function(data) {
-    if (data === true) {
-      statusCode = "200";
-      message = "SUCCESS";
-    } else {
-      statusCode = "400";
-      message = "FAILED";
-    }
-
-    var result_res = {
-      manifestResponse: {
-        hdr: {
-          messageType: "SHIPMENT",
-          messageDateTime: new Date(),
-          messageVersion: "1.0",
-          messageLanguage: "en"
-        },
-        bd: {
-          shipmentItems: [
-            {
-              shipmentID: tracking,
-              deliveryConfirmationNo: null,
-              responseStatus: {
-                code: statusCode + "==> test",
-                message: message + "==> test",
-                messageDetails: [
-                  {
-                    messageDetail:
-                      "Please provide a Shipment ID which has not been used within the last 97 days"
-                  }
-                ]
-              }
-            }
-          ],
-          responseStatus: {
-            code: statusCode,
-            message: message,
-            messageDetails: [
-              {
-                messageDetail:
-                  "No shipments are processed due to run time/system errors;  Check shipment level response for more details"
-              }
-            ]
-          }
-        }
-      }
-    };
-    res.send(result_res);
-  });
-});
 // app.get("/", function (req, res) {
 //   res.json({ 'hello': 'World' });
 // });
@@ -109,7 +51,6 @@ app.get("/check/info/tracking", function(req, res) {
           imgCapture: dataImg,
           billingInfo: data
         });
-        // mainServices.checkStatusParcelRef(tracking).then(function(data2) {});
       }
     });
   });
@@ -123,7 +64,6 @@ app.get("/check/info/billing", function(req, res) {
       status: "SUCCESS",
       billingInfo: data
     });
-    // mainServices.checkStatusBilling(billing).then(function(data2) {});
   });
 });
 
@@ -154,8 +94,7 @@ app.post("/save/cancel/tracking", function(req, res) {
     if (status == "SUCCESS") {
       request(
         {
-          url:
-            "https://www.945holding.com/webservice/restful/parcel/order_record/v11/cancel_order_by_tracking",
+          url: "https://www.945holding.com/webservice/restful/parcel/order_record/v11/cancel_order_by_tracking",
           method: "POST",
           body: data_api,
           json: true,
@@ -213,84 +152,34 @@ app.post("/save/cancel/tracking", function(req, res) {
 app.post("/save/cancel/billing", function(req, res) {
   let billing_no = req.body.billing_no;
   let previous_status = req.body.previous_value;
-  // let current_value = "cancel";
   let module_name = "cancel_billing";
   let user = req.body.user;
 
   parcelServices.selectBillingInfo(billing_no).then(function(previous_total) {
     parcelServices.updateStatusBilling(billing_no).then(function(data) {});
-
     let current_total = 0;
-    parcelServices
-      .updateBillingInfo(current_total, billing_no)
-      .then(function(data) {});
-
+    parcelServices.updateBillingInfo(current_total, billing_no).then(function(data) {});
     var previous_value = previous_status + "/" + previous_total[0].total;
     var current_value = "cancel/" + current_total;
-
-    // mainServices.updateStatusCancelBilling(billing_no).then(function(data) {});
-    parcelServices
-      .insertLog(
-        billing_no,
-        previous_value,
-        current_value,
-        module_name,
-        user,
-        billing_no
-      )
-      .then(function(data) {});
+    parcelServices.insertLog(billing_no,previous_value,current_value,module_name,user,billing_no).then(function(data) {});
     res.json({ status: "SUCCESS" });
   });
-
-  // request(
-  //   {
-  //     url: "https://www.945api.com/parcel/list/bill/data/api",
-  //     method: "POST",
-  //     body: data,
-  //     json: true
-  //   },
-  //   (err, res2, body) => {});
 });
 
 app.post("/update/receiver/info", function(req, res) {
   let tracking = req.body.tracking;
   let billing_no = req.body.billing_no;
   let previous_value = req.body.previous_value;
-
   let current_value = req.body.current_value;
   let receiver_name = current_value.first_name + " " + current_value.last_name;
   let phone = current_value.phone;
   let address = current_value.address;
-
   let log_current_value = receiver_name + "/" + phone + "/" + address;
-
   let module_name = "change_receiver_info";
   let user = req.body.user;
-
-  parcelServices
-    .updateReceiverInfo(tracking, receiver_name, phone, address)
-    .then(function(data) {});
-  // mainServices.updateBillingReceiverInfo(tracking, receiver_name, phone, address).then(function(data) {});
-  parcelServices
-    .insertLog(
-      billing_no,
-      previous_value,
-      log_current_value,
-      module_name,
-      user,
-      tracking
-    )
-    .then(function(data) {});
+  parcelServices.updateReceiverInfo(tracking, receiver_name, phone, address).then(function(data) {});
+  parcelServices.insertLog(billing_no,previous_value,log_current_value,module_name,user,tracking).then(function(data) {});
   res.json({ status: "SUCCESS" });
-
-  // request(
-  //   {
-  //     url: "https://www.945api.com/parcel/list/bill/data/api",
-  //     method: "POST",
-  //     body: data,
-  //     json: true
-  //   },
-  //   (err, res2, body) => {});
 });
 
 app.get("/tools/list/tracking", function(req, res) {
@@ -329,9 +218,7 @@ app.post("/confirm/match/data/info", function(req, res) {
   let tracking = req.body.tracking;
   let billing_no = req.body.billing_no;
   let previous_value = req.body.previous_value;
-
   let current_value = req.body.current_value;
-
   let receiver_name = current_value.first_name + " " + current_value.last_name;
   let phone = current_value.phone;
   let address = current_value.address;
@@ -341,18 +228,9 @@ app.post("/confirm/match/data/info", function(req, res) {
   let size_id = current_value.size_id;
   let size_price = current_value.size_price;
   let br_zipcode = current_value.br_zipcode;
-
-  let log_previous_value =
-    previous_value.bi_parcel_type +
-    "/" +
-    previous_value.br_parcel_type +
-    "/" +
-    previous_value.bi_zipcode +
-    "/" +
-    previous_value.br_zipcode;
+  let log_previous_value = previous_value.bi_parcel_type +"/" +previous_value.br_parcel_type +"/" +previous_value.bi_zipcode +"/" +previous_value.br_zipcode;
   let log_current_value = parcel_type + "/" + br_zipcode;
   let module_name = "ql_checker";
-  // let user = req.body.user;
   let cs_name = req.body.user;
 
   parcelServices.addressInfo(district_code).then(function(data) {
@@ -405,58 +283,15 @@ app.post("/confirm/match/data/info", function(req, res) {
       } else {
         operation_key = data[0].operator_id;
       }
-      parcelServices
-        .selectPreviousTotal(billing_no)
-        .then(function(previous_total) {
-          parcelServices
-            .updateCheckerInfo(
-              billing_no,
-              tracking,
-              size_id,
-              size_price,
-              cod_value,
-              receiver_name,
-              phone,
-              address,
-              parcel_type,
-              district_id,
-              district_name,
-              amphur_id,
-              amphur_name,
-              province_id,
-              province_name,
-              zipcode
-            )
-            .then(function(current_total) {
+      parcelServices.selectPreviousTotal(billing_no).then(function(previous_total) {
+          parcelServices.updateCheckerInfo(billing_no,tracking,size_id,size_price,cod_value,receiver_name,phone,address,parcel_type,district_id,district_name,amphur_id,amphur_name,province_id,province_name,zipcode).then(function(current_total) {
               if (current_total !== false) {
-                parcelServices
-                  .updateBilling(billing_no, current_total)
-                  .then(function(data) {});
-                parcelServices
-                  .saveLogQlChecker(
-                    branch_id,
-                    user_id,
-                    billing_no,
-                    error_code,
-                    error_maker,
-                    cs_name,
-                    tracking,
-                    operation_key
-                  )
-                  .then(function(data) {});
+                parcelServices.updateBilling(billing_no, current_total).then(function(data) {});
+                parcelServices.saveLogQlChecker(branch_id,user_id,billing_no,error_code,error_maker,cs_name,tracking,operation_key).then(function(data) {});
 
                 log_previous_value += "/total=" + previous_total[0].total;
                 log_current_value += "/total=" + current_total;
-                parcelServices
-                  .insertLog(
-                    billing_no,
-                    log_previous_value,
-                    log_current_value,
-                    module_name,
-                    cs_name,
-                    tracking
-                  )
-                  .then(function(data) {});
+                parcelServices.insertLog(billing_no,log_previous_value,log_current_value,module_name,cs_name,tracking).then(function(data) {});
 
                 res.json({ status: "SUCCESS" });
               } else {
@@ -536,17 +371,12 @@ var smtpTransport = mailer.createTransport(smtp);
 
 app.get("/dhl-excel", function(req, res) {
   var date_now = new Date();
-  var current_date = m(date_now)
-    .tz("Asia/Bangkok")
-    .format("YYYY-MM-DD", true);
-  var current_date_excel = m(date_now)
-    .tz("Asia/Bangkok")
-    .format("YYMMDDHHmmss", true);
+  var current_date = m(date_now).tz("Asia/Bangkok").format("YYYY-MM-DD", true);
+  var current_date_excel = m(date_now).tz("Asia/Bangkok").format("YYMMDDHHmmss", true);
   var random_number = Math.floor(Math.random() * (999 - 111)) + 111;
   var number_parcel = 0;
 
-  var filename =
-    "My945_Parcel_TDZ_" + current_date_excel + "_" + random_number + ".xlsx";
+  var filename ="My945_Parcel_TDZ_" + current_date_excel + "_" + random_number + ".xlsx";
   var wb = new xl.Workbook();
   var ws = wb.addWorksheet("945holding_" + current_date);
 
@@ -559,39 +389,17 @@ app.get("/dhl-excel", function(req, res) {
     }
   });
 
-  ws.cell(1, 1)
-    .string("Customer Confirmation Number")
-    .style(bgStyle);
-  ws.cell(1, 2)
-    .string("Recipient")
-    .style(bgStyle);
-  ws.cell(1, 3)
-    .string("AddressLine1")
-    .style(bgStyle);
-  ws.cell(1, 4)
-    .string("AddressLine2")
-    .style(bgStyle);
-  ws.cell(1, 5)
-    .string("District")
-    .style(bgStyle);
-  ws.cell(1, 6)
-    .string("State")
-    .style(bgStyle);
-  ws.cell(1, 7)
-    .string("Zip")
-    .style(bgStyle);
-  ws.cell(1, 8)
-    .string("Phone")
-    .style(bgStyle);
-  ws.cell(1, 9)
-    .string("COD Amount")
-    .style(bgStyle);
-  ws.cell(1, 10)
-    .string("Insurance Amount")
-    .style(bgStyle);
-  ws.cell(1, 11)
-    .string("Invoice(ref.)")
-    .style(bgStyle);
+  ws.cell(1, 1).string("Customer Confirmation Number").style(bgStyle);
+  ws.cell(1, 2).string("Recipient").style(bgStyle);
+  ws.cell(1, 3).string("AddressLine1").style(bgStyle);
+  ws.cell(1, 4).string("AddressLine2").style(bgStyle);
+  ws.cell(1, 5).string("District").style(bgStyle);
+  ws.cell(1, 6).string("State").style(bgStyle);
+  ws.cell(1, 7).string("Zip").style(bgStyle);
+  ws.cell(1, 8).string("Phone").style(bgStyle);
+  ws.cell(1, 9).string("COD Amount").style(bgStyle);
+  ws.cell(1, 10).string("Insurance Amount").style(bgStyle);
+  ws.cell(1, 11).string("Invoice(ref.)").style(bgStyle);
 
   parcelServices.getBookingLog().then(function(data) {
     if (data === null) {
@@ -629,39 +437,17 @@ app.get("/dhl-excel", function(req, res) {
             });
           }
         }
-        ws.cell(i + 2, 1)
-          .string(data[i].tracking)
-          .style(cellBgStyle);
-        ws.cell(i + 2, 2)
-          .string(data[i].receiver_name)
-          .style(cellBgStyle);
-        ws.cell(i + 2, 3)
-          .string(data[i].receiver_address)
-          .style(cellBgStyle);
-        ws.cell(i + 2, 4)
-          .string("")
-          .style(cellBgStyle);
-        ws.cell(i + 2, 5)
-          .string(data[i].DISTRICT_NAME)
-          .style(cellBgStyle);
-        ws.cell(i + 2, 6)
-          .string(data[i].PROVINCE_NAME)
-          .style(cellBgStyle);
-        ws.cell(i + 2, 7)
-          .string(data[i].zipcode)
-          .style(cellBgStyle);
-        ws.cell(i + 2, 8)
-          .string(data[i].phone)
-          .style(cellBgStyle);
-        ws.cell(i + 2, 9)
-          .number(data[i].cod_value)
-          .style(cellBgStyle);
-        ws.cell(i + 2, 10)
-          .string("")
-          .style(cellBgStyle);
-        ws.cell(i + 2, 11)
-          .string(data[i].billing_no)
-          .style(cellBgStyle);
+        ws.cell(i + 2, 1).string(data[i].tracking).style(cellBgStyle);
+        ws.cell(i + 2, 2).string(data[i].receiver_name).style(cellBgStyle);
+        ws.cell(i + 2, 3).string(data[i].receiver_address).style(cellBgStyle);
+        ws.cell(i + 2, 4).string("").style(cellBgStyle);
+        ws.cell(i + 2, 5).string(data[i].DISTRICT_NAME).style(cellBgStyle);
+        ws.cell(i + 2, 6).string(data[i].PROVINCE_NAME).style(cellBgStyle);
+        ws.cell(i + 2, 7).string(data[i].zipcode).style(cellBgStyle);
+        ws.cell(i + 2, 8).string(data[i].phone).style(cellBgStyle);
+        ws.cell(i + 2, 9).number(data[i].cod_value).style(cellBgStyle);
+        ws.cell(i + 2, 10).string("").style(cellBgStyle);
+        ws.cell(i + 2, 11).string(data[i].billing_no).style(cellBgStyle);
       }
       wb.write(filename);
     }
