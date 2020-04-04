@@ -1,4 +1,4 @@
-require('dotenv').config()
+require("dotenv").config();
 const express = require("express");
 const request = require("request");
 const path = require("path");
@@ -15,15 +15,15 @@ app.use(express.static("public"));
 // const mainServices = require("./services/mainService.js");
 const parcelServices = require("./services/parcelService.js");
 
-if (process.env.NODE_ENV === 'production') {
-  console.log('In production mode');
+if (process.env.NODE_ENV === "production") {
+  console.log("In production mode");
 } else {
-  console.log('In development mode');
+  console.log("In development mode");
 }
 app.use(express.static("public"));
 
 app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");  
+  res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Content-Type");
   res.header(
     "Access-Control-Allow-Methods",
@@ -33,54 +33,61 @@ app.use(function(req, res, next) {
 });
 
 app.post("/test-dhl-response", function(req, res) {
-  var input_data= req.body
-  var tracking=input_data.manifestRequest.bd.shipmentItems[0].shipmentID;
+  var input_data = req.body;
+  var tracking = input_data.manifestRequest.bd.shipmentItems[0].shipmentID;
 
-  var statusCode="";
-  var message="";
+  var statusCode = "";
+  var message = "";
 
   parcelServices.saveTracking(tracking).then(function(data) {
-    if(data===true){
-      statusCode="200";
-      message="SUCCESS";
+    if (data === true) {
+      statusCode = "200";
+      message = "SUCCESS";
     } else {
-      statusCode="400";
-      message="FAILED";
+      statusCode = "400";
+      message = "FAILED";
     }
 
-      var result_res={
-      "manifestResponse": {
-        "hdr": {
-          "messageType": "SHIPMENT",
-          "messageDateTime": new Date(),
-          "messageVersion": "1.0",
-          "messageLanguage": "en"
+    var result_res = {
+      manifestResponse: {
+        hdr: {
+          messageType: "SHIPMENT",
+          messageDateTime: new Date(),
+          messageVersion: "1.0",
+          messageLanguage: "en"
         },
-        "bd": {
-          "shipmentItems": [{
-            "shipmentID": tracking,
-            "deliveryConfirmationNo": null,
-            "responseStatus": {
-              "code": statusCode+"==> test",
-              "message": message+"==> test",
-              "messageDetails": [{
-                "messageDetail": "Please provide a Shipment ID which has not been used within the last 97 days"
-              }]
+        bd: {
+          shipmentItems: [
+            {
+              shipmentID: tracking,
+              deliveryConfirmationNo: null,
+              responseStatus: {
+                code: statusCode + "==> test",
+                message: message + "==> test",
+                messageDetails: [
+                  {
+                    messageDetail:
+                      "Please provide a Shipment ID which has not been used within the last 97 days"
+                  }
+                ]
+              }
             }
-          }],
-          "responseStatus": {
-            "code": statusCode,
-            "message": message,
-            "messageDetails": [{
-              "messageDetail": "No shipments are processed due to run time/system errors;  Check shipment level response for more details"
-            }]
+          ],
+          responseStatus: {
+            code: statusCode,
+            message: message,
+            messageDetails: [
+              {
+                messageDetail:
+                  "No shipments are processed due to run time/system errors;  Check shipment level response for more details"
+              }
+            ]
           }
         }
       }
     };
-  res.send(result_res);
-
-  })
+    res.send(result_res);
+  });
 });
 // app.get("/", function (req, res) {
 //   res.json({ 'hello': 'World' });
@@ -121,47 +128,86 @@ app.get("/check/info/billing", function(req, res) {
 });
 
 app.post("/save/cancel/tracking", function(req, res) {
-  console.log("save_cancel_tracking",req.body.tracking);
+  console.log("save_cancel_tracking", req.body.tracking);
   let tracking = req.body.tracking;
   let billing_no = req.body.billing_no;
-  let previous_status = req.body.previous_value;
-  // let current_value = "cancel";
+  let previous_value = req.body.previous_value;
   let module_name = "cancel_tracking";
   let user = req.body.user;
 
+  let status="";
+  if(previous_value[0].status===null || previous_value[0].status===undefined || previous_value[0].status===""){
+    status="";
+  } else {
+    status=previous_value[0].status.toUpperCase();
+  }
+
   parcelServices.selectBillingInfo(billing_no).then(function(previous_total) {
-
-    parcelServices.updateStatusReceiver(tracking).then(function(res_update_status) {
-      if(res_update_status!==false){
-        parcelServices.selectParcelSize(billing_no).then(function(dataListPrice) {
-
-          let current_total=0;
-          for(i=0;i<dataListPrice.length;i++){
-            current_total+=dataListPrice[i].size_price;
+    var data_api = {
+      billNo: previous_value[0].billing_no,
+      trackingNo: previous_value[0].tracking,
+      orderDateTime: m(previous_total[0].billing_date).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss", true),
+      orderPrice: previous_value[0].size_price,
+      orderPhoneNo: previous_value[0].phone,
+      parcelMethod: previous_value[0].bi_parcel_type
+    };
+    if (status == "SUCCESS") {
+      request(
+        {
+          url:
+            "https://www.945holding.com/webservice/restful/parcel/order_record/v11/cancel_order_by_tracking",
+          method: "POST",
+          body: data_api,
+          json: true,
+          headers: {
+            apikey: "XbOiHrrpH8aQXObcWj69XAom1b0ac5eda2b"
           }
-  
-          parcelServices.updateBillingInfo(current_total,billing_no).then(function(data) {})
-  
-          var previous_value=previous_status+"/total="+previous_total[0].total;
-          var current_value="cancel/total="+current_total;
-          parcelServices.insertLog(billing_no,previous_value,current_value,module_name,user,tracking).then(function(data) {});
-  
-          // request(
-          //   {
-          //     url: "https://www.945api.com/parcel/list/bill/data/api",
-          //     method: "POST",
-          //     body: data,
-          //     json: true
-          //   },
-          //   (err, res2, body) => {
-            res.json({ status: "SUCCESS" });
-          //   });
-        })
-      } else {
-        res.json({ status: "ERROR" });
-      }
-    });
-  })
+        },
+        (err, res2, body) => {
+          if (res2.body.status === "success") {
+            parcelServices.updateStatusReceiver(tracking).then(function(res_update_status) {
+                if (res_update_status !== false) {
+                  parcelServices.selectParcelSize(billing_no).then(function(dataListPrice) {
+                      let current_total = 0;
+                      for (i = 0; i < dataListPrice.length; i++) {
+                        current_total += dataListPrice[i].size_price;
+                      }
+                      parcelServices.updateBillingInfo(current_total, billing_no).then(function(data) {});
+                      var previous_value = status + "/total=" + previous_total[0].total;
+                      var current_value = "cancel/total=" + current_total;
+                      parcelServices.insertLog(billing_no,previous_value,current_value,module_name,user,tracking).then(function(data) {});
+
+                      res.json({ status: "SUCCESS" });
+                    });
+                } else {
+                  res.json({ status: "ERROR", reason: "No_data" });
+                }
+              });
+          } else {
+            res.json({ status: res2.body.status, reason: res2.body.reason });
+          }
+        });
+    } else {
+      parcelServices.updateStatusReceiver(tracking).then(function(res_update_status) {
+          if (res_update_status !== false) {
+            parcelServices.selectParcelSize(billing_no).then(function(dataListPrice) {
+                let current_total = 0;
+                for (i = 0; i < dataListPrice.length; i++) {
+                  current_total += dataListPrice[i].size_price;
+                }
+                parcelServices.updateBillingInfo(current_total, billing_no).then(function(data) {});
+                var previous_value = status + "/total=" + previous_total[0].total;
+                var current_value = "cancel/total=" + current_total;
+                parcelServices.insertLog(billing_no,previous_value,current_value,module_name,user,tracking).then(function(data) {});
+
+                res.json({ status: "SUCCESS" });
+              });
+          } else {
+            res.json({ status: "ERROR", reason: "No_data" });
+          }
+        });
+    }
+  });
 });
 
 app.post("/save/cancel/billing", function(req, res) {
@@ -172,20 +218,29 @@ app.post("/save/cancel/billing", function(req, res) {
   let user = req.body.user;
 
   parcelServices.selectBillingInfo(billing_no).then(function(previous_total) {
+    parcelServices.updateStatusBilling(billing_no).then(function(data) {});
 
-    parcelServices.updateStatusBilling(billing_no).then(function(data) {})
+    let current_total = 0;
+    parcelServices
+      .updateBillingInfo(current_total, billing_no)
+      .then(function(data) {});
 
-        let current_total=0;
-        parcelServices.updateBillingInfo(current_total,billing_no).then(function(data) {})
+    var previous_value = previous_status + "/" + previous_total[0].total;
+    var current_value = "cancel/" + current_total;
 
-        var previous_value=previous_status+"/"+previous_total[0].total
-        var current_value="cancel/"+current_total
-
-        // mainServices.updateStatusCancelBilling(billing_no).then(function(data) {});
-        parcelServices.insertLog(billing_no,previous_value, current_value,module_name,user,billing_no).then(function(data) {});
-        res.json({ status: "SUCCESS" });
-    
-  })
+    // mainServices.updateStatusCancelBilling(billing_no).then(function(data) {});
+    parcelServices
+      .insertLog(
+        billing_no,
+        previous_value,
+        current_value,
+        module_name,
+        user,
+        billing_no
+      )
+      .then(function(data) {});
+    res.json({ status: "SUCCESS" });
+  });
 
   // request(
   //   {
@@ -195,7 +250,6 @@ app.post("/save/cancel/billing", function(req, res) {
   //     json: true
   //   },
   //   (err, res2, body) => {});
-
 });
 
 app.post("/update/receiver/info", function(req, res) {
@@ -213,9 +267,20 @@ app.post("/update/receiver/info", function(req, res) {
   let module_name = "change_receiver_info";
   let user = req.body.user;
 
-  parcelServices.updateReceiverInfo(tracking, receiver_name, phone, address).then(function(data) {});
+  parcelServices
+    .updateReceiverInfo(tracking, receiver_name, phone, address)
+    .then(function(data) {});
   // mainServices.updateBillingReceiverInfo(tracking, receiver_name, phone, address).then(function(data) {});
-  parcelServices.insertLog(billing_no,previous_value,log_current_value,module_name,user,tracking).then(function(data) {});
+  parcelServices
+    .insertLog(
+      billing_no,
+      previous_value,
+      log_current_value,
+      module_name,
+      user,
+      tracking
+    )
+    .then(function(data) {});
   res.json({ status: "SUCCESS" });
 
   // request(
@@ -226,7 +291,6 @@ app.post("/update/receiver/info", function(req, res) {
   //     json: true
   //   },
   //   (err, res2, body) => {});
-
 });
 
 app.get("/tools/list/tracking", function(req, res) {
@@ -278,97 +342,139 @@ app.post("/confirm/match/data/info", function(req, res) {
   let size_price = current_value.size_price;
   let br_zipcode = current_value.br_zipcode;
 
-  let log_previous_value = previous_value.bi_parcel_type + "/" + previous_value.br_parcel_type + "/" + previous_value.bi_zipcode+"/"+previous_value.br_zipcode;
+  let log_previous_value =
+    previous_value.bi_parcel_type +
+    "/" +
+    previous_value.br_parcel_type +
+    "/" +
+    previous_value.bi_zipcode +
+    "/" +
+    previous_value.br_zipcode;
   let log_current_value = parcel_type + "/" + br_zipcode;
   let module_name = "ql_checker";
   // let user = req.body.user;
-  let cs_name=req.body.user;
+  let cs_name = req.body.user;
 
   parcelServices.addressInfo(district_code).then(function(data) {
-    let addressInfo=data[0]
-    let district_id=addressInfo.DISTRICT_ID;
-    let district_name=addressInfo.DISTRICT_NAME;
-    let amphur_id=addressInfo.AMPHUR_ID;
-    let amphur_name=addressInfo.AMPHUR_NAME;
-    let province_id=addressInfo.PROVINCE_ID;
-    let province_name=addressInfo.PROVINCE_NAME;
-    let zipcode=addressInfo.zipcode;
+    let addressInfo = data[0];
+    let district_id = addressInfo.DISTRICT_ID;
+    let district_name = addressInfo.DISTRICT_NAME;
+    let amphur_id = addressInfo.AMPHUR_ID;
+    let amphur_name = addressInfo.AMPHUR_NAME;
+    let province_id = addressInfo.PROVINCE_ID;
+    let province_name = addressInfo.PROVINCE_NAME;
+    let zipcode = addressInfo.zipcode;
 
-    let billing_no_str=billing_no.split('-');
-    let branch_id=billing_no_str[0];
-    let user_id=billing_no_str[1];
+    let billing_no_str = billing_no.split("-");
+    let branch_id = billing_no_str[0];
+    let user_id = billing_no_str[1];
 
     let error_code;
     let error_maker;
     /* error_maker = shop staff,key operator, system */
-    if(previous_value.bi_parcel_type!==previous_value.br_parcel_type){
+    if (previous_value.bi_parcel_type !== previous_value.br_parcel_type) {
       /* error_zipcode = zipcode ไม่ตรงกัน */
-      error_code="error_parcel_type";
-      if(parcel_type!==previous_value.bi_parcel_type){
-        error_maker="shop staff";
-      } else if(parcel_type!==previous_value.br_parcel_type){
-        error_maker="key operator";
+      error_code = "error_parcel_type";
+      if (parcel_type !== previous_value.bi_parcel_type) {
+        error_maker = "shop staff";
+      } else if (parcel_type !== previous_value.br_parcel_type) {
+        error_maker = "key operator";
       } else {
-        error_maker="system";
+        error_maker = "system";
       }
-    } else if(previous_value.bi_zipcode!==previous_value.br_zipcode){
+    } else if (previous_value.bi_zipcode !== previous_value.br_zipcode) {
       /* error_parcel_type = type ไม่ตรงกัน */
-      error_code="error_zipcode";
+      error_code = "error_zipcode";
 
-      if(zipcode!==previous_value.bi_zipcode){
-        error_maker="shop staff";
-      } else if(parcel_type!==previous_value.br_zipcode){
-        error_maker="key operator";
+      if (zipcode !== previous_value.bi_zipcode) {
+        error_maker = "shop staff";
+      } else if (parcel_type !== previous_value.br_zipcode) {
+        error_maker = "key operator";
       } else {
-        error_maker="system";
+        error_maker = "system";
       }
     } else {
-      error_code="both";
-      error_maker="system";
+      error_code = "both";
+      error_maker = "system";
     }
-    console.log("confirm :",tracking,error_code,error_maker);
+    console.log("confirm :", tracking, error_code, error_maker);
     parcelServices.findOperator(tracking).then(function(data) {
-      let operation_key="";
-      if(data.length<=0){
-        operation_key="";
+      let operation_key = "";
+      if (data.length <= 0) {
+        operation_key = "";
       } else {
-        operation_key=data[0].operator_id;
+        operation_key = data[0].operator_id;
       }
-      parcelServices.selectPreviousTotal(billing_no).then(function(previous_total) {
+      parcelServices
+        .selectPreviousTotal(billing_no)
+        .then(function(previous_total) {
+          parcelServices
+            .updateCheckerInfo(
+              billing_no,
+              tracking,
+              size_id,
+              size_price,
+              cod_value,
+              receiver_name,
+              phone,
+              address,
+              parcel_type,
+              district_id,
+              district_name,
+              amphur_id,
+              amphur_name,
+              province_id,
+              province_name,
+              zipcode
+            )
+            .then(function(current_total) {
+              if (current_total !== false) {
+                parcelServices
+                  .updateBilling(billing_no, current_total)
+                  .then(function(data) {});
+                parcelServices
+                  .saveLogQlChecker(
+                    branch_id,
+                    user_id,
+                    billing_no,
+                    error_code,
+                    error_maker,
+                    cs_name,
+                    tracking,
+                    operation_key
+                  )
+                  .then(function(data) {});
 
-        parcelServices.updateCheckerInfo(billing_no,tracking, size_id,size_price,cod_value,receiver_name, phone, address, parcel_type, district_id,district_name, amphur_id,amphur_name,province_id,province_name,zipcode).then(function(current_total) {
-          if(current_total!==false){
-            parcelServices.updateBilling(billing_no,current_total).then(function(data) {});
-            parcelServices.saveLogQlChecker(branch_id, user_id, billing_no, error_code, error_maker, cs_name, tracking, operation_key).then(function(data) {});
-  
-            log_previous_value+="/total="+previous_total[0].total;
-            log_current_value+="/total="+current_total;
-            parcelServices.insertLog(billing_no,log_previous_value,log_current_value,module_name,cs_name,tracking).then(function(data) {});
-  
-            res.json({ status: "SUCCESS" });
-          } else {
-            res.json({ status: "ERROR" });
-          }
-          
+                log_previous_value += "/total=" + previous_total[0].total;
+                log_current_value += "/total=" + current_total;
+                parcelServices
+                  .insertLog(
+                    billing_no,
+                    log_previous_value,
+                    log_current_value,
+                    module_name,
+                    cs_name,
+                    tracking
+                  )
+                  .then(function(data) {});
+
+                res.json({ status: "SUCCESS" });
+              } else {
+                res.json({ status: "ERROR" });
+              }
+            });
         });
-        
-      })
-        
-    })
-    
+    });
   });
 });
 
-
 app.get("/daily-report", (req, res) => {
-
   parcelServices.dailyReport().then(function(data) {
-    if(data==false){
+    if (data == false) {
       res.json([]);
-    } else{
+    } else {
       res.json(data);
     }
-    
   });
 });
 
@@ -376,47 +482,43 @@ app.get("/list-tracking-bill", (req, res) => {
   let billing_no = req.query.billing_no;
 
   parcelServices.dailyListTracking(billing_no).then(function(data) {
-    if(data==false){
+    if (data == false) {
       res.json([]);
-    } else{
+    } else {
       res.json(data);
     }
-    
   });
 });
 
 app.get("/list-error-maker", (req, res) => {
   parcelServices.listErrorMaker().then(function(data) {
-    if(data==false){
+    if (data == false) {
       res.json([]);
-    } else{
+    } else {
       res.json(data);
     }
-    
   });
 });
 
 app.get("/booking-report", (req, res) => {
   let tracking = req.query.tracking;
   parcelServices.bookingReport(tracking).then(function(data) {
-    if(data==false){
+    if (data == false) {
       res.json([]);
-    } else{
+    } else {
       res.json(data);
     }
-    
   });
 });
 
 app.get("/log-parcel-tool", (req, res) => {
   let ref = req.query.ref;
   parcelServices.log_parcel_tool(ref).then(function(data) {
-    if(data==false){
+    if (data == false) {
       res.json([]);
-    } else{
+    } else {
       res.json(data);
     }
-    
   });
 });
 var smtp = {
@@ -433,9 +535,13 @@ var smtp = {
 var smtpTransport = mailer.createTransport(smtp);
 
 app.get("/dhl-excel", function(req, res) {
-  var date_now=new Date();
-  var current_date = m(date_now).tz("Asia/Bangkok").format("YYYY-MM-DD", true);
-  var current_date_excel = m(date_now).tz("Asia/Bangkok").format("YYMMDDHHmmss", true);
+  var date_now = new Date();
+  var current_date = m(date_now)
+    .tz("Asia/Bangkok")
+    .format("YYYY-MM-DD", true);
+  var current_date_excel = m(date_now)
+    .tz("Asia/Bangkok")
+    .format("YYMMDDHHmmss", true);
   var random_number = Math.floor(Math.random() * (999 - 111)) + 111;
   var number_parcel = 0;
 
@@ -453,20 +559,42 @@ app.get("/dhl-excel", function(req, res) {
     }
   });
 
-  ws.cell(1, 1).string("Customer Confirmation Number").style(bgStyle);
-  ws.cell(1, 2).string("Recipient").style(bgStyle);
-  ws.cell(1, 3).string("AddressLine1").style(bgStyle);
-  ws.cell(1, 4).string("AddressLine2").style(bgStyle);
-  ws.cell(1, 5).string("District").style(bgStyle);
-  ws.cell(1, 6).string("State").style(bgStyle);
-  ws.cell(1, 7).string("Zip").style(bgStyle);
-  ws.cell(1, 8).string("Phone").style(bgStyle);
-  ws.cell(1, 9).string("COD Amount").style(bgStyle);
-  ws.cell(1, 10).string("Insurance Amount").style(bgStyle);
-  ws.cell(1, 11).string("Invoice(ref.)").style(bgStyle);
+  ws.cell(1, 1)
+    .string("Customer Confirmation Number")
+    .style(bgStyle);
+  ws.cell(1, 2)
+    .string("Recipient")
+    .style(bgStyle);
+  ws.cell(1, 3)
+    .string("AddressLine1")
+    .style(bgStyle);
+  ws.cell(1, 4)
+    .string("AddressLine2")
+    .style(bgStyle);
+  ws.cell(1, 5)
+    .string("District")
+    .style(bgStyle);
+  ws.cell(1, 6)
+    .string("State")
+    .style(bgStyle);
+  ws.cell(1, 7)
+    .string("Zip")
+    .style(bgStyle);
+  ws.cell(1, 8)
+    .string("Phone")
+    .style(bgStyle);
+  ws.cell(1, 9)
+    .string("COD Amount")
+    .style(bgStyle);
+  ws.cell(1, 10)
+    .string("Insurance Amount")
+    .style(bgStyle);
+  ws.cell(1, 11)
+    .string("Invoice(ref.)")
+    .style(bgStyle);
 
   parcelServices.getBookingLog().then(function(data) {
-    if(data===null){
+    if (data === null) {
       res.end("no data");
     } else {
       number_parcel = data.length;
@@ -501,21 +629,43 @@ app.get("/dhl-excel", function(req, res) {
             });
           }
         }
-        ws.cell(i + 2, 1).string(data[i].tracking).style(cellBgStyle);
-        ws.cell(i + 2, 2).string(data[i].receiver_name).style(cellBgStyle);
-        ws.cell(i + 2, 3).string(data[i].receiver_address).style(cellBgStyle);
-        ws.cell(i + 2, 4).string("").style(cellBgStyle);
-        ws.cell(i + 2, 5).string(data[i].DISTRICT_NAME).style(cellBgStyle);
-        ws.cell(i + 2, 6).string(data[i].PROVINCE_NAME).style(cellBgStyle);
-        ws.cell(i + 2, 7).string(data[i].zipcode).style(cellBgStyle);
-        ws.cell(i + 2, 8).string(data[i].phone).style(cellBgStyle);
-        ws.cell(i + 2, 9).number(data[i].cod_value).style(cellBgStyle);
-        ws.cell(i + 2, 10).string("").style(cellBgStyle);
-        ws.cell(i + 2, 11).string(data[i].billing_no).style(cellBgStyle);
+        ws.cell(i + 2, 1)
+          .string(data[i].tracking)
+          .style(cellBgStyle);
+        ws.cell(i + 2, 2)
+          .string(data[i].receiver_name)
+          .style(cellBgStyle);
+        ws.cell(i + 2, 3)
+          .string(data[i].receiver_address)
+          .style(cellBgStyle);
+        ws.cell(i + 2, 4)
+          .string("")
+          .style(cellBgStyle);
+        ws.cell(i + 2, 5)
+          .string(data[i].DISTRICT_NAME)
+          .style(cellBgStyle);
+        ws.cell(i + 2, 6)
+          .string(data[i].PROVINCE_NAME)
+          .style(cellBgStyle);
+        ws.cell(i + 2, 7)
+          .string(data[i].zipcode)
+          .style(cellBgStyle);
+        ws.cell(i + 2, 8)
+          .string(data[i].phone)
+          .style(cellBgStyle);
+        ws.cell(i + 2, 9)
+          .number(data[i].cod_value)
+          .style(cellBgStyle);
+        ws.cell(i + 2, 10)
+          .string("")
+          .style(cellBgStyle);
+        ws.cell(i + 2, 11)
+          .string(data[i].billing_no)
+          .style(cellBgStyle);
       }
       wb.write(filename);
     }
-    
+
     var mail = {
       from: "booking@945holding.com", //from email (option)
       to: "penquin501@gmail.com", //to email (require) cs@945holding.com
@@ -546,7 +696,6 @@ app.get("/dhl-excel", function(req, res) {
       }
     });
   });
-
 });
 
 app.listen(port, () => console.log(`listening on port ${port}!`));

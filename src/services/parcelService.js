@@ -130,7 +130,7 @@ module.exports = {
     });
   },
   selectBillingInfo: billing_no => {
-    let sql = "SELECT total FROM billing WHERE billing_no=?";
+    let sql = "SELECT billing_date,total FROM billing WHERE billing_no=?";
     let data = [billing_no];
 
     return new Promise(function(resolve, reject) {

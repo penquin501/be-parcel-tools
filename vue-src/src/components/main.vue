@@ -222,8 +222,8 @@ export default {
             this.phone = this.billingInfo[0].phone;
             this.receiver_address = this.billingInfo[0].receiver_address;
 
-            this.previous_value =
-              receiver_name + "/" + this.phone + "/" + this.receiver_address;
+            this.previous_value = this.billingInfo;
+              // receiver_name + "/" + this.phone + "/" + this.receiver_address;
 
             this.location =
               this.billingInfo[0].district_name +
@@ -314,21 +314,18 @@ export default {
     },
     confirmSelectTools() {
       const options = { okLabel: "ตกลง" };
-      if (this.selectValue == "") {
+      if (this.selectValue == "0") {
         this.$dialogs.alert("กรุณาเลือก Tools เพื่อทำรายการ", options);
       } else if (this.tracking == "") {
         this.$dialogs.alert("กรุณาระบุ Tracking เพื่อทำรายการ", options);
       } else if (this.status == "cancel") {
-        this.$dialogs.alert(
-          "รายการนี้ได้ถูกยกเลิกไปแล้ว",
-          options
-        );
+        this.$dialogs.alert("รายการนี้ได้ถูกยกเลิกไปแล้ว",options);
       } else {
         if (this.selectValue == 1) {
           var data = {
             tracking: this.tracking,
             billing_no: this.billing_no,
-            previous_value: this.status,
+            previous_value: this.previous_value,
             user: this.$session.get("session_username")
           };
 
@@ -337,6 +334,9 @@ export default {
             .then(response => {
               if (response.data.status == "SUCCESS") {
                 this.$dialogs.alert("ยกเลิกเรียบร้อยแล้ว", options);
+                this.$router.push("/");
+              } else {
+                this.$dialogs.alert("ไม่สามารถ ยกเลิกรายการนี้ได้เนื่องจาก "+response.data.reason, options);
                 this.$router.push("/");
               }
             })
