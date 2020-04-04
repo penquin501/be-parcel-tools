@@ -94,12 +94,12 @@ app.post("/save/cancel/tracking", function(req, res) {
     if (status == "SUCCESS") {
       request(
         {
-          url: "https://www.945holding.com/webservice/restful/parcel/order_record/v11/cancel_order_by_tracking",
+          url: process.env.W945_CANCEL_TRACKING_API,
           method: "POST",
           body: data_api,
           json: true,
           headers: {
-            apikey: "XbOiHrrpH8aQXObcWj69XAom1b0ac5eda2b"
+            apikey: process.env.W945_APIKEY
           }
         },
         (err, res2, body) => {
