@@ -142,9 +142,6 @@
 </template>
 <script>
 const axios = require("axios");
-// import Vue from "vue";
-// import "v-slim-dialog/dist/v-slim-dialog.css";
-// import SlimDialog from "v-slim-dialog";
 
 export default {
   data: function() {
@@ -243,6 +240,8 @@ export default {
               this.order_status_lb = "ข้อมูลกำลังถูกส่งไปยัง บ. ขนส่ง";
             } else if (this.status == "cancel") {
               this.order_status_lb = "ข้อมูลถูกยกเลิกแล้ว";
+            } else if (this.status == "success") {
+              this.order_status_lb = "ข้อมูลกำลังถูกส่งข้อมูลไปที่ server หลัก";
             } else {
               this.order_status_lb = "";
             }
@@ -320,6 +319,8 @@ export default {
         this.$dialogs.alert("กรุณาระบุ Tracking เพื่อทำรายการ", options);
       } else if (this.status == "cancel") {
         this.$dialogs.alert("รายการนี้ได้ถูกยกเลิกไปแล้ว",options);
+      } else if (this.status == "success") {
+        this.$dialogs.alert("รายการนี้กำลังถูกส่งข้อมูลไปยัง server หลัก",options);
       } else {
         if (this.selectValue == 1) {
           var data = {
@@ -354,10 +355,7 @@ export default {
             phone[0] + phone[1] != "08" &&
             phone[0] + phone[1] != "09"
           ) {
-            this.$dialogs.alert(
-              "กรุณากรอก เบอร์โทรศัทพ์ผู้รับ เท่านั้น",
-              options
-            );
+            this.$dialogs.alert("กรุณากรอก เบอร์โทรศัทพ์ผู้รับ เท่านั้น",options);
           } else if (phone.length < 10) {
             this.$dialogs.alert("กรุณากรอก เบอร์โทรศัพท์ ให้ถูกต้อง", options);
           } else {

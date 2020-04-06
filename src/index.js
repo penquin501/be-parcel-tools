@@ -79,7 +79,7 @@ app.post("/save/cancel/tracking", function(req, res) {
   if(previous_value[0].status===null || previous_value[0].status===undefined || previous_value[0].status===""){
     status="";
   } else {
-    status=previous_value[0].status.toUpperCase();
+    status=previous_value[0].status;
   }
 
   parcelServices.selectBillingInfo(billing_no).then(function(previous_total) {
@@ -91,7 +91,11 @@ app.post("/save/cancel/tracking", function(req, res) {
       orderPhoneNo: previous_value[0].phone,
       parcelMethod: previous_value[0].bi_parcel_type
     };
-    if (status == "SUCCESS") {
+    if(status=='cancel'){
+      res.json({ status: "ERROR", reason: "data_cancelled" });
+    } else if(status=='success'){
+      res.json({ status: "ERROR", reason: "data_sending_to_server" });
+    } else if (status == "SUCCESS") {
       request(
         {
           url: process.env.W945_CANCEL_TRACKING_API,
