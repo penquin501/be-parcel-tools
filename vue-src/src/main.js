@@ -3,7 +3,7 @@ import App from './App.vue'
 import VueZoomer from 'vue-zoomer'
 import vSelect from 'vue-select'
 import router from './router'
-import'bootstrap/dist/css/bootstrap.css'
+import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap/dist/js/bootstrap' 
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { faUserSecret } from '@fortawesome/free-solid-svg-icons'
@@ -12,6 +12,9 @@ import 'vue-select/dist/vue-select.css';
 import 'v-slim-dialog/dist/v-slim-dialog.css'
 import SlimDialog from 'v-slim-dialog'
 import VueSession from 'vue-session'
+import VueMoment from 'vue-moment'
+import moment from 'moment-timezone'
+
 Vue.use(VueSession)
 Vue.use(SlimDialog)
 library.add(faUserSecret)
@@ -19,11 +22,11 @@ library.add(faUserSecret)
 Vue.component('font-awesome-icon', FontAwesomeIcon)
 Vue.component('v-select', vSelect)
 
-const moment = require('moment')
+// const moment = require('moment')
 require('moment/locale/th')
 
-Vue.use(require('vue-moment'), {
-  moment
+Vue.use(VueMoment, {
+  moment,
 })
 
 Vue.use(VueZoomer)

@@ -417,15 +417,25 @@ module.exports = {
   dailyReport: () => {
     var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD");
     console.log("daily report =>",today);
-    var sql = "SELECT bInfo.branch_name,b.billing_no,br.sender_name,count(bi.tracking) as cTracking,b.status, b.id "+
-    "FROM billing b "+
-    "LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no "+
-    "LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking "+
-    "LEFT JOIN branch_info bInfo ON b.branch_id=bInfo.branch_id "+
-    "WHERE Date(b.billing_date) = ? AND b.status NOT IN ('cancel','SUCCESS') "+
-    "GROUP BY b.member_code,b.branch_id,bInfo.branch_name,b.billing_no,br.sender_name,b.status, b.id "+
-    "ORDER BY b.branch_id, b.id ASC";
+    var sql = `SELECT a.branch_name,a.billing_no,a.sender_name,a.cTracking,a.status,a.billing_date,b.cTrackingNotSuccess FROM
+        (SELECT bInfo.branch_name,b.billing_no,br.sender_name,count(bi.tracking) as cTracking,b.status,b.billing_date
+            FROM billing b 
+            LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no 
+            LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking 
+            LEFT JOIN branch_info bInfo ON b.branch_id=bInfo.branch_id 
+            WHERE Date(b.billing_date) = ? AND b.status NOT IN ('cancel','SUCCESS')
+            GROUP BY b.member_code,b.branch_id,bInfo.branch_name,b.billing_no,br.sender_name,b.status,b.id,b.billing_date 
+            ORDER BY b.branch_id, b.id ASC) a
+    LEFT JOIN (
+                SELECT bi.billing_no,count(bi.tracking) as cTrackingNotSuccess 
+                FROM billing_item bi
+                LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking 
+                WHERE br.booking_status is null AND (br.status !='cancel' OR br.status is null)
+                GROUP By bi.billing_no
+              ) b
+    ON a.billing_no=b.billing_no`;
     var data=[today];
+
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql,data, (err, results) => {
         if(err===null){

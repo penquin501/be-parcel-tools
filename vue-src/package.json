@@ -15,7 +15,7 @@
     "bootstrap": "^4.4.1",
     "core-js": "^3.4.3",
     "jquery": "^3.4.1",
-    "moment": "^2.24.0",
+    "moment-timezone": "^0.5.28",
     "popper.js": "^1.16.1",
     "query-string": "^6.10.1",
     "router": "^1.3.3",

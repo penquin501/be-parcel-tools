@@ -46,7 +46,13 @@
           <th style="text-align:center;">วัน/เวลา booking</th>
         </tr>
         <tr v-bind:key="item.id" v-for="item in filteredResources">
-          <td style="text-align: center;">{{ item.tracking }}</td>
+          {{ item.booking_status }}
+          <div v-if="item.booking_status != 100" style="text-align: center;">
+            <td style="text-align: center;"><a href="#" v-on:click="getTracking(item.tracking)">{{ item.tracking }}</a></td>
+          </div>
+          <div v-else>
+            <td style="text-align: center;">{{ item.tracking }}</td>
+          </div>
           <td style="text-align: center;">{{ item.alias_size }}</td>
           <td style="text-align: center;">{{ item.size_price }}</td>
           <td style="text-align: center;">{{ item.bi_parcel_type }}</td>
@@ -95,6 +101,12 @@ export default {
     this.getData();
   },
   methods: {
+    getTracking(tracking) {
+      window.open(
+        "https://app.my945capture.com/v2/api/parcel-capture/tasks/manual/pick/" +
+          tracking
+      );
+    },
     getData() {
       const options = { okLabel: "ตกลง" };
       axios

@@ -4,7 +4,7 @@
       <div class="row">
         <div class="col-ms-1 col-sm-1 col-xs-1"></div>
         <div class="col-ms-10 col-sm-10 col-xs-10" style="text-align:center;">
-          <h2>รายการบิลประจำวัน {{ date }}</h2>
+          <h2>รายการบิลประจำวัน {{ date | moment("LL") }}</h2>
         </div>
         <div class="col-ms-1 col-sm-1 col-xs-1"></div>
       </div>
@@ -45,10 +45,10 @@
           <td style="text-align: center;">
             <router-link
               :to="{ name: 'ViewTracking', params: { billing_no: filteredResourcesBilling[index].billing_no }}"
-            >{{ item.billing_no }}</router-link>
+            >{{ item.billing_no }}</router-link>&nbsp;&nbsp;<span style="font-size:10px; color: red;">{{ item.billing_date | moment("from", "now", true) }} </span>
           </td>
           <td style="text-align: center;">{{ item.sender_name }}</td>
-          <td style="text-align: center;">{{ item.cTracking }}</td>
+          <td style="text-align: center;">{{ (item.cTrackingNotSuccess == null) ? 0 : item.cTrackingNotSuccess }}/{{ item.cTracking }}</td>
           <td style="text-align: center;">{{ item.status }}</td>
         </tr>
       </table>
@@ -69,7 +69,7 @@ export default {
     return {
       dataBilling: [],
       billingSearch: "",
-      date: ""
+      date: new Date()
     };
   },
   mounted() {
@@ -77,7 +77,6 @@ export default {
       this.$router.push({ name: "Main" });
     }
     this.getBilingNo();
-    this.getDate();
   },
   methods: {
     getBilingNo() {
@@ -96,42 +95,6 @@ export default {
           console.log(error);
         });
     },
-    getDate() {
-      var monthNamesThai = [
-        "มกราคม",
-        "กุมภาพันธ์",
-        "มีนาคม",
-        "เมษายน",
-        "พฤษภาคม",
-        "มิถุนายน",
-        "กรกฎาคม",
-        "สิงหาคม",
-        "กันยายน",
-        "ตุลาคม",
-        "พฤศจิกายน",
-        "ธันวาคม"
-      ];
-      var dayNames = [
-        "วันอาทิตย์",
-        "วันจันทร์",
-        "วันอังคาร",
-        "วันพุธ",
-        "วันพฤหัสบดี",
-        "วันศุกร์",
-        "วันเสาร์"
-      ];
-      var d = new Date();
-      var y = parseInt(d.getFullYear()) + 543;
-
-      this.date =
-        dayNames[d.getDay()] +
-        "  " +
-        d.getDate() +
-        "  " +
-        monthNamesThai[d.getMonth()] +
-        "  " +
-        y;
-    }
   },
   computed: {
     filteredResourcesBilling() {
