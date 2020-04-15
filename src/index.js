@@ -75,11 +75,15 @@ app.post("/save/cancel/tracking", function(req, res) {
   let module_name = "cancel_tracking";
   let user = req.body.user;
 
-  let status="";
-  if(previous_value[0].status===null || previous_value[0].status===undefined || previous_value[0].status===""){
-    status="";
+  let status = "";
+  if (
+    previous_value[0].status === null ||
+    previous_value[0].status === undefined ||
+    previous_value[0].status === ""
+  ) {
+    status = "";
   } else {
-    status=previous_value[0].status;
+    status = previous_value[0].status;
   }
 
   parcelServices.selectBillingInfo(billing_no).then(function(previous_total) {
@@ -91,9 +95,9 @@ app.post("/save/cancel/tracking", function(req, res) {
       orderPhoneNo: previous_value[0].phone,
       parcelMethod: previous_value[0].bi_parcel_type
     };
-    if(status=='cancel'){
+    if (status == "cancel") {
       res.json({ status: "ERROR", reason: "data_cancelled" });
-    } else if(status=='success'){
+    } else if (status == "success") {
       res.json({ status: "ERROR", reason: "data_sending_to_server" });
     } else if (status == "SUCCESS") {
       request(
@@ -111,9 +115,13 @@ app.post("/save/cancel/tracking", function(req, res) {
             parcelServices.updateStatusReceiver(tracking).then(function(res_update_status) {
                 if (res_update_status !== false) {
                   parcelServices.selectParcelSize(billing_no).then(function(dataListPrice) {
-                      let current_total = 0;
-                      for (i = 0; i < dataListPrice.length; i++) {
-                        current_total += dataListPrice[i].size_price;
+                    let current_total = 0;  
+                      if(dataListPrice==0){
+                        current_total = 0; 
+                      } else {
+                        for (i = 0; i < dataListPrice.length; i++) {
+                          current_total += dataListPrice[i].size_price;
+                        }
                       }
                       parcelServices.updateBillingInfo(current_total, billing_no).then(function(data) {});
                       var previous_value = status + "/total=" + previous_total[0].total;
@@ -129,17 +137,22 @@ app.post("/save/cancel/tracking", function(req, res) {
           } else {
             res.json({ status: res2.body.status, reason: res2.body.reason });
           }
-        });
+        }
+      );
     } else {
       parcelServices.updateStatusReceiver(tracking).then(function(res_update_status) {
           if (res_update_status !== false) {
             parcelServices.selectParcelSize(billing_no).then(function(dataListPrice) {
-                let current_total = 0;
+              let current_total = 0;  
+              if(dataListPrice==0){
+                current_total = 0; 
+              } else {
                 for (i = 0; i < dataListPrice.length; i++) {
                   current_total += dataListPrice[i].size_price;
                 }
+              }
                 parcelServices.updateBillingInfo(current_total, billing_no).then(function(data) {});
-                var previous_value = status + "/total=" + previous_total[0].total;
+                var previous_value =status + "/total=" + previous_total[0].total;
                 var current_value = "cancel/total=" + current_total;
                 parcelServices.insertLog(billing_no,previous_value,current_value,module_name,user,tracking).then(function(data) {});
 
@@ -162,10 +175,21 @@ app.post("/save/cancel/billing", function(req, res) {
   parcelServices.selectBillingInfo(billing_no).then(function(previous_total) {
     parcelServices.updateStatusBilling(billing_no).then(function(data) {});
     let current_total = 0;
-    parcelServices.updateBillingInfo(current_total, billing_no).then(function(data) {});
+    parcelServices
+      .updateBillingInfo(current_total, billing_no)
+      .then(function(data) {});
     var previous_value = previous_status + "/" + previous_total[0].total;
     var current_value = "cancel/" + current_total;
-    parcelServices.insertLog(billing_no,previous_value,current_value,module_name,user,billing_no).then(function(data) {});
+    parcelServices
+      .insertLog(
+        billing_no,
+        previous_value,
+        current_value,
+        module_name,
+        user,
+        billing_no
+      )
+      .then(function(data) {});
     res.json({ status: "SUCCESS" });
   });
 });
@@ -181,8 +205,19 @@ app.post("/update/receiver/info", function(req, res) {
   let log_current_value = receiver_name + "/" + phone + "/" + address;
   let module_name = "change_receiver_info";
   let user = req.body.user;
-  parcelServices.updateReceiverInfo(tracking, receiver_name, phone, address).then(function(data) {});
-  parcelServices.insertLog(billing_no,previous_value,log_current_value,module_name,user,tracking).then(function(data) {});
+  parcelServices
+    .updateReceiverInfo(tracking, receiver_name, phone, address)
+    .then(function(data) {});
+  parcelServices
+    .insertLog(
+      billing_no,
+      previous_value,
+      log_current_value,
+      module_name,
+      user,
+      tracking
+    )
+    .then(function(data) {});
   res.json({ status: "SUCCESS" });
 });
 
@@ -232,7 +267,14 @@ app.post("/confirm/match/data/info", function(req, res) {
   let size_id = current_value.size_id;
   let size_price = current_value.size_price;
   let br_zipcode = current_value.br_zipcode;
-  let log_previous_value = previous_value.bi_parcel_type +"/" +previous_value.br_parcel_type +"/" +previous_value.bi_zipcode +"/" +previous_value.br_zipcode;
+  let log_previous_value =
+    previous_value.bi_parcel_type +
+    "/" +
+    previous_value.br_parcel_type +
+    "/" +
+    previous_value.bi_zipcode +
+    "/" +
+    previous_value.br_zipcode;
   let log_current_value = parcel_type + "/" + br_zipcode;
   let module_name = "ql_checker";
   let cs_name = req.body.user;
@@ -287,15 +329,58 @@ app.post("/confirm/match/data/info", function(req, res) {
       } else {
         operation_key = data[0].operator_id;
       }
-      parcelServices.selectPreviousTotal(billing_no).then(function(previous_total) {
-          parcelServices.updateCheckerInfo(billing_no,tracking,size_id,size_price,cod_value,receiver_name,phone,address,parcel_type,district_id,district_name,amphur_id,amphur_name,province_id,province_name,zipcode).then(function(current_total) {
+      parcelServices
+        .selectPreviousTotal(billing_no)
+        .then(function(previous_total) {
+          parcelServices
+            .updateCheckerInfo(
+              billing_no,
+              tracking,
+              size_id,
+              size_price,
+              cod_value,
+              receiver_name,
+              phone,
+              address,
+              parcel_type,
+              district_id,
+              district_name,
+              amphur_id,
+              amphur_name,
+              province_id,
+              province_name,
+              zipcode
+            )
+            .then(function(current_total) {
               if (current_total !== false) {
-                parcelServices.updateBilling(billing_no, current_total).then(function(data) {});
-                parcelServices.saveLogQlChecker(branch_id,user_id,billing_no,error_code,error_maker,cs_name,tracking,operation_key).then(function(data) {});
+                parcelServices
+                  .updateBilling(billing_no, current_total)
+                  .then(function(data) {});
+                parcelServices
+                  .saveLogQlChecker(
+                    branch_id,
+                    user_id,
+                    billing_no,
+                    error_code,
+                    error_maker,
+                    cs_name,
+                    tracking,
+                    operation_key
+                  )
+                  .then(function(data) {});
 
                 log_previous_value += "/total=" + previous_total[0].total;
                 log_current_value += "/total=" + current_total;
-                parcelServices.insertLog(billing_no,log_previous_value,log_current_value,module_name,cs_name,tracking).then(function(data) {});
+                parcelServices
+                  .insertLog(
+                    billing_no,
+                    log_previous_value,
+                    log_current_value,
+                    module_name,
+                    cs_name,
+                    tracking
+                  )
+                  .then(function(data) {});
 
                 res.json({ status: "SUCCESS" });
               } else {
@@ -375,12 +460,17 @@ var smtpTransport = mailer.createTransport(smtp);
 
 app.get("/dhl-excel", function(req, res) {
   var date_now = new Date();
-  var current_date = m(date_now).tz("Asia/Bangkok").format("YYYY-MM-DD", true);
-  var current_date_excel = m(date_now).tz("Asia/Bangkok").format("YYMMDDHHmmss", true);
+  var current_date = m(date_now)
+    .tz("Asia/Bangkok")
+    .format("YYYY-MM-DD", true);
+  var current_date_excel = m(date_now)
+    .tz("Asia/Bangkok")
+    .format("YYMMDDHHmmss", true);
   var random_number = Math.floor(Math.random() * (999 - 111)) + 111;
   var number_parcel = 0;
 
-  var filename ="My945_Parcel_TDZ_" + current_date_excel + "_" + random_number + ".xlsx";
+  var filename =
+    "My945_Parcel_TDZ_" + current_date_excel + "_" + random_number + ".xlsx";
   var wb = new xl.Workbook();
   var ws = wb.addWorksheet("945holding_" + current_date);
 
@@ -393,17 +483,39 @@ app.get("/dhl-excel", function(req, res) {
     }
   });
 
-  ws.cell(1, 1).string("Customer Confirmation Number").style(bgStyle);
-  ws.cell(1, 2).string("Recipient").style(bgStyle);
-  ws.cell(1, 3).string("AddressLine1").style(bgStyle);
-  ws.cell(1, 4).string("AddressLine2").style(bgStyle);
-  ws.cell(1, 5).string("District").style(bgStyle);
-  ws.cell(1, 6).string("State").style(bgStyle);
-  ws.cell(1, 7).string("Zip").style(bgStyle);
-  ws.cell(1, 8).string("Phone").style(bgStyle);
-  ws.cell(1, 9).string("COD Amount").style(bgStyle);
-  ws.cell(1, 10).string("Insurance Amount").style(bgStyle);
-  ws.cell(1, 11).string("Invoice(ref.)").style(bgStyle);
+  ws.cell(1, 1)
+    .string("Customer Confirmation Number")
+    .style(bgStyle);
+  ws.cell(1, 2)
+    .string("Recipient")
+    .style(bgStyle);
+  ws.cell(1, 3)
+    .string("AddressLine1")
+    .style(bgStyle);
+  ws.cell(1, 4)
+    .string("AddressLine2")
+    .style(bgStyle);
+  ws.cell(1, 5)
+    .string("District")
+    .style(bgStyle);
+  ws.cell(1, 6)
+    .string("State")
+    .style(bgStyle);
+  ws.cell(1, 7)
+    .string("Zip")
+    .style(bgStyle);
+  ws.cell(1, 8)
+    .string("Phone")
+    .style(bgStyle);
+  ws.cell(1, 9)
+    .string("COD Amount")
+    .style(bgStyle);
+  ws.cell(1, 10)
+    .string("Insurance Amount")
+    .style(bgStyle);
+  ws.cell(1, 11)
+    .string("Invoice(ref.)")
+    .style(bgStyle);
 
   parcelServices.getBookingLog().then(function(data) {
     if (data === null) {
@@ -441,17 +553,39 @@ app.get("/dhl-excel", function(req, res) {
             });
           }
         }
-        ws.cell(i + 2, 1).string(data[i].tracking).style(cellBgStyle);
-        ws.cell(i + 2, 2).string(data[i].receiver_name).style(cellBgStyle);
-        ws.cell(i + 2, 3).string(data[i].receiver_address).style(cellBgStyle);
-        ws.cell(i + 2, 4).string("").style(cellBgStyle);
-        ws.cell(i + 2, 5).string(data[i].DISTRICT_NAME).style(cellBgStyle);
-        ws.cell(i + 2, 6).string(data[i].PROVINCE_NAME).style(cellBgStyle);
-        ws.cell(i + 2, 7).string(data[i].zipcode).style(cellBgStyle);
-        ws.cell(i + 2, 8).string(data[i].phone).style(cellBgStyle);
-        ws.cell(i + 2, 9).number(data[i].cod_value).style(cellBgStyle);
-        ws.cell(i + 2, 10).string("").style(cellBgStyle);
-        ws.cell(i + 2, 11).string(data[i].billing_no).style(cellBgStyle);
+        ws.cell(i + 2, 1)
+          .string(data[i].tracking)
+          .style(cellBgStyle);
+        ws.cell(i + 2, 2)
+          .string(data[i].receiver_name)
+          .style(cellBgStyle);
+        ws.cell(i + 2, 3)
+          .string(data[i].receiver_address)
+          .style(cellBgStyle);
+        ws.cell(i + 2, 4)
+          .string("")
+          .style(cellBgStyle);
+        ws.cell(i + 2, 5)
+          .string(data[i].DISTRICT_NAME)
+          .style(cellBgStyle);
+        ws.cell(i + 2, 6)
+          .string(data[i].PROVINCE_NAME)
+          .style(cellBgStyle);
+        ws.cell(i + 2, 7)
+          .string(data[i].zipcode)
+          .style(cellBgStyle);
+        ws.cell(i + 2, 8)
+          .string(data[i].phone)
+          .style(cellBgStyle);
+        ws.cell(i + 2, 9)
+          .number(data[i].cod_value)
+          .style(cellBgStyle);
+        ws.cell(i + 2, 10)
+          .string("")
+          .style(cellBgStyle);
+        ws.cell(i + 2, 11)
+          .string(data[i].billing_no)
+          .style(cellBgStyle);
       }
       wb.write(filename);
     }

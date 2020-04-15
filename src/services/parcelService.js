@@ -214,22 +214,36 @@ module.exports = {
   selectParcelSize: billingNo => {
     return new Promise(function(resolve, reject) {
       let sql =
-        "SELECT b.size_price FROM billing_item b " +
-        "JOIN billing_receiver_info br ON b.tracking=br.tracking " +
-        "WHERE b.billing_no=? AND (br.status!='cancel' OR br.status is null)";
+        `SELECT b.size_price FROM billing_item b 
+        JOIN billing_receiver_info br ON b.tracking=br.tracking
+        WHERE b.billing_no=? AND (br.status!='cancel' OR br.status is null)`;
       let data = [billingNo];
       parcel_connection.query(sql, data, (error, results, fields) => {
-        resolve(results);
+        if(results.length<=0){
+          resolve(0);
+        } else {
+          resolve(results);
+        }
       });
     });
   },
   updateBillingInfo: (current_total, billing_no) => {
+    let sqlTotal = "UPDATE billing SET total=? WHERE billing_no=?";
+    let dataTotal = [current_total, billing_no];
+
+    let sqlStatus = "UPDATE billing SET status=? WHERE billing_no=?";
+    let dataStatus = ['cancel', billing_no];
     return new Promise(function(resolve, reject) {
-      let sql = "UPDATE billing SET total=? WHERE billing_no=?";
-      let data = [current_total, billing_no];
-      parcel_connection.query(sql, data, (error, results, fields) => {
-        resolve(results);
-      });
+      if(current_total==0) {
+        parcel_connection.query(sqlStatus, dataStatus, (error, results, fields) => {
+          resolve(results);
+        });
+      } else {
+        parcel_connection.query(sqlTotal, dataTotal, (error, results, fields) => {
+          resolve(results);
+        });
+      }
+      
     });
   },
   updateReceiverInfo: (tracking, receiver_name, phone, address) => {

@@ -222,12 +222,7 @@ export default {
             this.previous_value = this.billingInfo;
               // receiver_name + "/" + this.phone + "/" + this.receiver_address;
 
-            this.location =
-              this.billingInfo[0].district_name +
-              " " +
-              this.billingInfo[0].amphur_name +
-              " " +
-              this.billingInfo[0].province_name;
+            this.location = this.billingInfo[0].district_name + " " + this.billingInfo[0].amphur_name + " " + this.billingInfo[0].province_name;
             this.br_zipcode = this.billingInfo[0].br_zipcode;
             this.br_parcel_type = this.billingInfo[0].br_parcel_type;
 

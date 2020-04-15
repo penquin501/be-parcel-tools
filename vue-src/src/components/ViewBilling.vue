@@ -45,7 +45,7 @@
           <td style="text-align: center;">
             <router-link
               :to="{ name: 'ViewTracking', params: { billing_no: filteredResourcesBilling[index].billing_no }}"
-            >{{ item.billing_no }}</router-link>&nbsp;&nbsp;<span style="font-size:10px; color: red;">{{ item.billing_date | moment("from", "now", true) }} </span>
+            >{{ item.billing_no }}</router-link>&nbsp;&nbsp;<span style="font-size:10px; color: red;">{{ item.billing_date | moment("from", "now") }} </span>
           </td>
           <td style="text-align: center;">{{ item.sender_name }}</td>
           <td style="text-align: center;">{{ (item.cTrackingNotSuccess == null) ? 0 : item.cTrackingNotSuccess }}/{{ item.cTracking }}</td>
