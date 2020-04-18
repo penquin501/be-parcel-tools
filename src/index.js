@@ -90,7 +90,7 @@ app.post("/save/cancel/tracking", function(req, res) {
     var data_api = {
       billNo: previous_value[0].billing_no,
       trackingNo: previous_value[0].tracking,
-      orderDateTime: m(previous_value[0].billing_date).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss", true),
+      orderDateTime: m(previous_total[0].billing_date).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss", true),
       orderPrice: previous_value[0].size_price,
       orderPhoneNo: previous_value[0].phone,
       parcelMethod: previous_value[0].bi_parcel_type
