@@ -46,7 +46,6 @@
           <th style="text-align:center;">วัน/เวลา booking</th>
         </tr>
         <tr v-bind:key="item.id" v-for="item in filteredResources">
-          {{ item.booking_status }}
           <div v-if="item.booking_status != 100" style="text-align: center;">
             <td style="text-align: center;"><a href="#" v-on:click="getTracking(item.tracking)">{{ item.tracking }}</a></td>
           </div>

@@ -543,4 +543,22 @@ module.exports = {
       });
     });
   },
+  log_daily_tool:()=>{
+    var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD");
+    var sql = "SELECT billing_no, time_to_system, previous_value, current_value, module_name, user, ref FROM log_parcel_tool WHERE Date(time_to_system)=?";
+    var data=[today];
+    return new Promise(function(resolve, reject) {
+      parcel_connection.query(sql,data, (err, results) => {
+        if(err===null){
+          if(results.length<=0){
+            resolve(false);
+          } else {
+            resolve(results);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  }
 };
