@@ -128,12 +128,27 @@
     <div class="select-tool">
       <b style="font-size:18px;">Tools ที่จะใช้ :</b>
       <select class="select" v-model="selectValue" v-on:change="selectTools">
-        <!-- <select class="select" v-model="selectValue"> -->
         <option value="0" disabled selected>----- เลือก Tools -----</option>
         <option value="1">ยกเลิก Tracking</option>
         <!-- <option value="2">เปลี่ยนแปลงข้อมูลผู้รับ</option> -->
       </select>
     </div>
+    <div class="select-reason">
+      <b style="font-size:18px;">เหตุผล :</b>
+      <select class="select" style="margin-left: 45px; margin-right: 0px;" v-model="reasonValue">
+        <option value="" disabled selected>----- เลือกเหตุผล -----</option>
+        <option value="wrong_size">เลือก size พัสดุผิด</option>
+        <option value="wrong_type">เลือกประเภทการจัดส่งผิด</option>
+        <option value="wrong_codvalue">ยอด COD ผิด</option>
+        <option value="wrong_member">ทำรายการผิด member</option>
+        <option value="wrong_receiver_info">ข้อมูลผู้รับผิด</option>
+      </select>
+      <div class="search">
+        <b style="font-size:18px;">หมายเหตุ :</b>
+        <input type="text" name="remark" id="remark" v-model="remark" style="width:302px; margin-left:30px;">
+      </div>
+    </div>
+
     <div class="group-btn">
       <button class="cancel" v-on:click="clearBtn">ยกเลิก</button>
       <button v-on:click="confirmSelectTools">บันทึก</button>
@@ -174,6 +189,8 @@ export default {
       send_booking: "",
 
       selectValue: "0",
+      reasonValue: "",
+      remark:"",
       imgUrl:
         "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC",
       rotation: 0,
@@ -191,6 +208,7 @@ export default {
   },
   methods: {
     getData() {
+      this.emptyBox();
       const options = { okLabel: "ตกลง" };
       axios
         .get(
@@ -199,11 +217,10 @@ export default {
         .then(response => {
           if (response.data.status == "SUCCESS") {
             this.billingInfo = response.data.billingInfo;
-
-            this.billing_no = this.billingInfo[0].billing_no;
+            this.billing_no = (this.billingInfo[0].billing_no)?this.billingInfo[0].billing_no:"";
             this.tracking = this.billingInfo[0].tracking;
             this.bi_parcel_type = this.billingInfo[0].bi_parcel_type;
-            this.size_id = this.billingInfo[0].alias_size.toUpperCase();
+            this.size_id = (this.billingInfo[0].alias_size) ? this.billingInfo[0].alias_size.toUpperCase() : "";
             this.size_price = this.billingInfo[0].size_price;
             this.cod_value = this.billingInfo[0].cod_value;
             this.bi_zipcode = this.billingInfo[0].bi_zipcode;
@@ -212,16 +229,15 @@ export default {
             this.sender_address = this.billingInfo[0].sender_address;
 
             var receiver_name = this.billingInfo[0].receiver_name;
-            var res = receiver_name.split(" ");
-            this.receiver_first_name = res[0];
-            this.receiver_last_name = res[1];
+            var res = (receiver_name)? receiver_name.split(" ") : null;
+            this.receiver_first_name = (res!==null)?res[0]:"";
+            this.receiver_last_name = (res!==null)?res[1]:"";
 
             this.phone = this.billingInfo[0].phone;
             this.receiver_address = this.billingInfo[0].receiver_address;
 
             this.previous_value = this.billingInfo;
-              // receiver_name + "/" + this.phone + "/" + this.receiver_address;
-
+            
             this.location = this.billingInfo[0].district_name + " " + this.billingInfo[0].amphur_name + " " + this.billingInfo[0].province_name;
             this.br_zipcode = this.billingInfo[0].br_zipcode;
             this.br_parcel_type = this.billingInfo[0].br_parcel_type;
@@ -260,6 +276,8 @@ export default {
     },
     emptyBox() {
       this.selectValue="0";
+      this.reasonValue="";
+      this.remark="";
       this.billing_no = "";
       this.tracking = "";
       this.bi_parcel_type = "";
@@ -285,8 +303,8 @@ export default {
     selectTools() {
       const options = { okLabel: "ตกลง" };
       if (this.tracking == "") {
+        this.emptyBox();
         this.$dialogs.alert("กรุณาระบุ Tracking เพื่อทำรายการ", options);
-        this.selectValue = "";
       } else {
         if (this.selectValue == 1) {
           this.receiverFNameEdit = true;
@@ -311,20 +329,28 @@ export default {
       if (this.selectValue == "0") {
         this.$dialogs.alert("กรุณาเลือก Tools เพื่อทำรายการ", options);
       } else if (this.tracking == "") {
+        this.emptyBox();
         this.$dialogs.alert("กรุณาระบุ Tracking เพื่อทำรายการ", options);
+      } else if (this.billing_no == "") {
+        this.$dialogs.alert("ไม่สามารถยกเลิกได้ เนื่องจากทางร้านยังไม่ได้ทำรายการ", options);
+      } else if (this.reasonValue == "") {
+        this.$dialogs.alert("กรุณาระบุ เหตุผล", options);
+      } else if (this.remark.trim() == "") {
+        this.$dialogs.alert("กรุณากรอกหมายเหตุ ให้ถูกต้อง", options);
       } else if (this.status == "cancel") {
         this.$dialogs.alert("รายการนี้ได้ถูกยกเลิกไปแล้ว",options);
       } else if (this.status == "success") {
-        this.$dialogs.alert("รายการนี้กำลังถูกส่งข้อมูลไปยัง server หลัก",options);
+        this.$dialogs.alert("รายการนี้กำลังถูกส่งข้อมูลไปยัง server หลัก กรุณารอ 2-3 นาที",options);
       } else {
         if (this.selectValue == 1) {
           var data = {
             tracking: this.tracking,
             billing_no: this.billing_no,
             previous_value: this.previous_value,
+            reason: this.reasonValue,
+            remark: this.remark,
             user: this.$session.get("session_username")
           };
-
           axios
             .post("/save/cancel/tracking", data)
             .then(response => {
@@ -400,6 +426,7 @@ export default {
 <style lang="scss" >
 .search,
 .select-tool,
+.select-reason,
 .group-btn {
   text-align: center;
   button {

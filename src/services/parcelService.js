@@ -367,10 +367,10 @@ module.exports = {
       });
     });
   },
-  insertLog: (billing_no,previous_value,current_value,module_name,user,ref) => {
+  insertLog: (billing_no,previous_value,current_value,reason,module_name,user,ref,remark) => {
     let sql =
-      "INSERT INTO log_parcel_tool(billing_no, time_to_system, previous_value, current_value, module_name, user, ref) VALUES (?,?,?,?,?,?,?)";
-    let data = [billing_no,new Date(),previous_value,current_value,module_name,user,ref];
+      "INSERT INTO log_parcel_tool(billing_no, time_to_system, previous_value, current_value,reason, module_name, user, ref,remark) VALUES (?,?,?,?,?,?,?,?,?)";
+    let data = [billing_no,new Date(),previous_value,current_value,reason,module_name,user,ref,remark];
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql, data, (error, results, fields) => {
         resolve(results);
@@ -527,7 +527,7 @@ module.exports = {
   },
   log_parcel_tool:(ref)=>{
 
-    var sql = "SELECT billing_no, time_to_system, previous_value, current_value, module_name, user, ref FROM log_parcel_tool WHERE ref=?";
+    var sql = "SELECT billing_no, time_to_system, previous_value, current_value,reason, module_name, user, ref,remark FROM log_parcel_tool WHERE ref=?";
     var data=[ref];
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql,data, (err, results) => {
@@ -545,7 +545,7 @@ module.exports = {
   },
   log_daily_tool:()=>{
     var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD");
-    var sql = "SELECT billing_no, time_to_system, previous_value, current_value, module_name, user, ref FROM log_parcel_tool WHERE Date(time_to_system)=?";
+    var sql = "SELECT billing_no, time_to_system, previous_value, current_value,reason, module_name, user, ref,remark FROM log_parcel_tool WHERE Date(time_to_system)=?";
     var data=[today];
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql,data, (err, results) => {

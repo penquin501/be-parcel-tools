@@ -14,6 +14,7 @@ import SlimDialog from 'v-slim-dialog'
 import VueSession from 'vue-session'
 import VueMoment from 'vue-moment'
 import moment from 'moment-timezone'
+// const moment = require('moment')
 
 Vue.use(VueSession)
 Vue.use(SlimDialog)
@@ -22,7 +23,6 @@ library.add(faUserSecret)
 Vue.component('font-awesome-icon', FontAwesomeIcon)
 Vue.component('v-select', vSelect)
 
-// const moment = require('moment')
 require('moment/locale/th')
 
 Vue.use(VueMoment, {
