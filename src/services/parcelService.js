@@ -438,7 +438,7 @@ module.exports = {
     LEFT JOIN postinfo_amphur a ON br.amphur_id=a.AMPHUR_ID
     LEFT JOIN postinfo_province p ON br.province_id=p.PROVINCE_ID
     WHERE Date(b.billing_date)=?`;
-    var data = ['2020-04-19'];
+    var data = [current_date];
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sqlBilling, data, (error, results, fields) => {
         if (error === null) {
