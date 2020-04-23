@@ -328,7 +328,16 @@ app.post("/confirm/match/data/info", function(req, res) {
     });
   });
 });
-
+app.get("/report-branch", (req, res) => {
+  parcelServices.reportBranch().then(function(data) {
+    // console.log(data);
+    if (data == false) {
+      res.json([]);
+    } else {
+      res.json(data);
+    }
+  });
+});
 app.get("/daily-report", (req, res) => {
   parcelServices.dailyReport().then(function(data) {
     if (data == false) {
@@ -338,7 +347,16 @@ app.get("/daily-report", (req, res) => {
     }
   });
 });
-
+app.get("/summary-booking", (req, res) => {
+  parcelServices.summaryBooking().then(function(data) {
+    // console.log(data);
+    if (data == false) {
+      res.json([]);
+    } else {
+      res.json(data);
+    }
+  });
+});
 app.get("/list-tracking-bill", (req, res) => {
   let billing_no = req.query.billing_no;
 

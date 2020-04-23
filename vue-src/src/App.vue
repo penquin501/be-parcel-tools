@@ -35,13 +35,7 @@
             <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
               <li class="nav-item">
                 <router-link to="/list-skip-tracking">
-                  <a
-                    class="nav-link"
-                    v-on:click="toView"
-                    role="button"
-                    aria-haspopup="true"
-                    aria-expanded="false"
-                  >List Skip Tracking</a>
+                  <a class="nav-link" v-on:click="toView" role="button" aria-haspopup="true" aria-expanded="false">List Skip Tracking</a>
                 </router-link>
               </li>
             </ul>
@@ -49,54 +43,27 @@
           <div v-else>
             <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
               <li class="nav-item dropdown">
-                <a
-                  class="nav-link dropdown-toggle"
-                  href="#"
-                  id="navbarDropdown"
-                  role="button"
-                  data-toggle="dropdown"
-                  aria-haspopup="true"
-                  aria-expanded="false"
-                >เมนู</a>
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">เมนู</a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                  <router-link to="/tools">
-                    <a v-on:click="toView" class="dropdown-item">เครื่องมือทั่วไป</a>
-                  </router-link>
+                  <router-link to="/tools"><a v-on:click="toView" class="dropdown-item">เครื่องมือทั่วไป</a></router-link>
                   <!-- <router-link to="/cancelbillno">
                     <a v-on:click="toView" class="dropdown-item">ยกเลิกเลขที่บิล</a>
                   </router-link> -->
-                  <router-link to="/listtracking">
-                    <a v-on:click="toView" class="dropdown-item">QL Checker</a>
-                  </router-link>
+                  <router-link to="/listtracking"><a v-on:click="toView" class="dropdown-item">QL Checker</a></router-link>
                 </div>
               </li>
               <li class="nav-item dropdown">
-                <a
-                  class="nav-link dropdown-toggle"
-                  href="#"
-                  id="navbarDropdown"
-                  role="button"
-                  data-toggle="dropdown"
-                  aria-haspopup="true"
-                  aria-expanded="false"
-                >KEY-IN Helper</a>
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">KEY-IN Helper</a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                  <router-link to="/listphone">
-                    <a v-on:click="toView" class="dropdown-item">List Sender</a>
-                  </router-link>
+                  <router-link to="/listphone"><a v-on:click="toView" class="dropdown-item">List Sender</a></router-link>
                   <!-- <router-link to="/list-skip-tracking"><a v-on:click="toView"  class="dropdown-item" >List Skip Tracking</a></router-link> -->
                 </div>
               </li>
               <li class="nav-item">
-                <router-link to="/list-daily-billing">
-                  <a
-                    class="nav-link"
-                    v-on:click="toView"
-                    role="button"
-                    aria-haspopup="true"
-                    aria-expanded="false"
-                  >Report Billing</a>
-                </router-link>
+                <router-link to="/list-daily-billing"> <a class="nav-link" v-on:click="toView" role="button" aria-haspopup="true" aria-expanded="false">Report Billing</a></router-link>
+              </li>
+              <li class="nav-item">
+                <router-link to="/list-branch"> <a class="nav-link" v-on:click="toView" role="button" aria-haspopup="true" aria-expanded="false">Report Branch</a></router-link>
               </li>
             </ul>
           </div>

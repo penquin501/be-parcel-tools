@@ -70,6 +70,12 @@ const routes = [
         component: () => import("../components/ReportSkipKey.vue"),
         hidden: true
     },
+    {
+        path: "/list-branch",
+        name: 'ListBranch',
+        component: () => import("../components/SummaryBranch.vue"),
+        hidden: true
+    },
 ];
 
 export default new Router({

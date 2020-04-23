@@ -10,27 +10,24 @@
       </div>
 
       <div class="row">
-        <div class="col-ms-3 col-sm-3 col-xs-3"></div>
-        <div class="col-ms-3 col-sm-3 col-xs-3" style=" text-align: right;">
+        <div class="col-ms-1 col-sm-1 col-xs-1"></div>
+        <div class="col-ms-10 col-sm-10 col-xs-10" style="text-align:center;">
           <b style="font-size:18px;">ค้นหา :</b>
+          <span class="search"><input v-model="billingSearch" autocomplete="false" style="margin-top: 0px;" /></span>
         </div>
-        <div class="col-ms-3 col-sm-3 col-xs-3">
-          <div class="search">
-            <input v-model="billingSearch" autocomplete="false" style="margin-top: 0px;" />
-          </div>
-        </div>
-        <div class="col-ms-3 col-sm-3 col-xs-3"></div>
-        
+        <div class="col-ms-1 col-sm-1 col-xs-1"></div>
       </div>
         <div class="row">
-         <div class="col-ms-9 col-sm-9 col-xs-9"></div>
+          <div class="col-ms-9 col-sm-9 col-xs-9" style=" text-align: center; margin-top: 5px;">
+            <span>จำนวนที่ยังไม่ได้ book: {{ cNotBook }}</span>
+            <span style="margin-left: 100px;margin-right: 100px;">จำนวนที่ book แล้ว: {{ cBooked }}</span>
+            <span>จำนวนทั้งหมด: {{ total }}</span>
+          </div>
           <div class="col-ms-2 col-sm-2 col-xs-2" style="text-align:right;">
           <label style="margin-top: 5px;">Refresh</label>
         </div>
         <div class="col-ms-1 col-sm-1 col-xs-1" style="margin-bottom: 5px;">
-          
           <button class="button-re"  v-on:click="getBilingNo()"><i class="fa fa-refresh" aria-hidden="true"></i></button>
-
         </div>
       <table>
         <tr>
@@ -69,7 +66,10 @@ export default {
     return {
       dataBilling: [],
       billingSearch: "",
-      date: new Date()
+      date: new Date(),
+      cNotBook:0,
+      cBooked:0,
+      total:0
     };
   },
   mounted() {
@@ -77,6 +77,7 @@ export default {
       this.$router.push({ name: "Main" });
     }
     this.getBilingNo();
+    this.getSummary();
   },
   methods: {
     getBilingNo() {
@@ -89,6 +90,25 @@ export default {
             this.dataBilling=[];
           } else {
             this.dataBilling = response.data;
+          }
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+    },
+    getSummary() {
+      const options = { okLabel: "ตกลง" };
+      axios
+        .get("/summary-booking")
+        .then(response => {
+          // console.log(response);
+          if (response.data.length === 0) {
+            this.$dialogs.alert("ไม่พบข้อมูล", options);
+            this.dataBilling=[];
+          } else {
+            this.cNotBook = response.data.cNotBook;
+            this.cBooked = response.data.cBooked;
+            this.total = response.data.total;
           }
         })
         .catch(function(error) {

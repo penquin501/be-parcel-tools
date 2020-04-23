@@ -515,6 +515,66 @@ module.exports = {
       });
     });
   },
+  summaryBooking:()=>{
+    var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD");
+
+    var sqlNotBooking = `SELECT COUNT(bi.tracking) as cNotBook FROM billing b
+    LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
+    LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
+    WHERE DATE(b.billing_date)=? AND (br.booking_status != 100 OR br.booking_status is null) AND (br.status != 'cancel' OR br.status is null)`;
+    var dataNotBooking=[today];
+
+    var sqlBooked = `SELECT COUNT(bi.tracking) as cBooked FROM billing b
+    LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
+    LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
+    WHERE DATE(b.billing_date)=? AND br.booking_status = 100 AND (br.status != 'cancel' OR br.status is null)`;
+    var dataBooked=[today];
+
+    var sqlTotal = `SELECT COUNT(bi.tracking) as cTracking FROM billing b
+    LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
+    LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
+    WHERE DATE(b.billing_date)=? AND (br.status != 'cancel' OR br.status is null)`;
+    var dataTotal=[today];
+
+    return new Promise(function(resolve, reject) {
+      parcel_connection.query(sqlNotBooking,dataNotBooking,(err_not_book, res_not_book) => {
+          if (err_not_book == null) {
+            if (res_not_book.length <= 0) {
+              resolve(false);
+            } else {
+              parcel_connection.query(sqlBooked,dataBooked,(err_booked, res_booked) => {
+                  if (err_booked == null) {
+                    if (res_booked.length <= 0) {
+                      resolve(false);
+                    } else {
+                      parcel_connection.query(sqlTotal,dataTotal,(err, res_total) => {
+                        if(err==null){
+                          if(res_total.length<=0){
+                            resolve(false);
+                          } else {
+                            var data = {
+                              cNotBook: res_not_book[0].cNotBook,
+                              cBooked: res_booked[0].cBooked,
+                              total: res_total[0].cTracking
+                            };
+                            resolve(data);
+                          }
+                        } else {
+                          resolve(false);
+                        }
+                      });
+                    }
+                  } else {
+                    resolve(false);
+                  }
+                });
+            }
+          } else {
+            resolve(false);
+          }
+        });
+    });
+  },
   listErrorMaker:()=>{
     var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
@@ -605,7 +665,45 @@ module.exports = {
           resolve(false);
         }
       });
-     
     });
+  },
+  reportBranch:()=>{
+    var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD");
+    // var today='2020-03-04'
+    var sql = `SELECT a.branch_id,a.branch_name,a.cTracking,b.cNotBooking,c.cBooked
+    FROM
+    (
+        SELECT b.branch_id,bb.branch_name,count(bi.tracking) as cTracking FROM billing b
+      LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
+      LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
+      LEFT JOIN branch_info bb ON b.branch_id=bb.branch_id
+      WHERE Date(b.billing_date)=? AND (br.status != 'cancel' OR br.status is null)
+      GROUP BY b.branch_id,bb.branch_name
+    ) a
+    LEFT JOIN 
+    (
+      SELECT b.branch_id,count(bi.tracking) as cNotBooking FROM billing b
+      LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
+      LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
+      WHERE Date(b.billing_date)=? AND 
+        (br.booking_status != 100 OR br.booking_status is null) AND (br.status != 'cancel' OR br.status is null)
+        GROUP BY b.branch_id
+    ) b ON a.branch_id=b.branch_id
+    LEFT JOIN 
+    (
+      SELECT b.branch_id,count(bi.tracking) as cBooked FROM billing b
+      LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
+      LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
+      WHERE Date(b.billing_date)=? AND br.booking_status = 100 AND (br.status != 'cancel' OR br.status is null)
+        GROUP BY b.branch_id
+    ) c ON a.branch_id=c.branch_id
+    ORDER BY a.branch_id`
+    var data=[today,today,today];
+
+    return new Promise(function(resolve, reject) {
+      parcel_connection.query(sql,data, (err, results) => {
+        resolve(results);
+      });
+    })
   }
 };
