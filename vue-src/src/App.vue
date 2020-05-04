@@ -46,9 +46,7 @@
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">เมนู</a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                   <router-link to="/tools"><a v-on:click="toView" class="dropdown-item">เครื่องมือทั่วไป</a></router-link>
-                  <!-- <router-link to="/cancelbillno">
-                    <a v-on:click="toView" class="dropdown-item">ยกเลิกเลขที่บิล</a>
-                  </router-link> -->
+                  <!-- <router-link to="/cancelbillno"><a v-on:click="toView" class="dropdown-item">ยกเลิกเลขที่บิล</a></router-link> -->
                   <router-link to="/listtracking"><a v-on:click="toView" class="dropdown-item">QL Checker</a></router-link>
                 </div>
               </li>

@@ -53,26 +53,44 @@ module.exports = {
     });
   },
   getBillingInfo: billing => {
-    let sql = "SELECT billing_no,status FROM billing WHERE billing_no=?";
+    let sql = `SELECT b.member_code,b.billing_date,b.billing_no,b.branch_id,bInfo.branch_name,b.status 
+    FROM billing b
+    LEFT JOIN branch_info bInfo ON b.branch_id=bInfo.branch_id
+    WHERE billing_no=?`;
     let data = [billing];
 
-    let sqlItem =
-      "SELECT count(tracking) as cTracking FROM billing_item WHERE billing_no=?";
+    let sqlCountItem = `SELECT count(tracking) as cTracking, sum(size_price) as sTracking FROM billing_item WHERE billing_no=?`;
+    let dataCountItem = [billing];
+
+    let sqlItem = `SELECT bi.tracking,s.alias_size,bi.size_price,bi.parcel_type,bi.cod_value,br.sender_name,br.sender_phone,br.sender_address,
+    br.receiver_name,br.phone,br.receiver_address,br.district_name,br.amphur_name,br.province_name,br.zipcode,br.status 
+    FROM billing_item bi
+    LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
+    LEFT JOIN size_info s ON bi.size_id=s.size_id
+    WHERE bi.billing_no=?`;
     let dataItem = [billing];
 
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql, data, (err, results) => {
         if (err === null) {
-          if (results.length == 0) {
+          if (results.length <= 0) {
             resolve(false);
           } else {
             parcel_connection.query(sqlItem, dataItem, (err, resultsItem) => {
-              var dataResult = {
-                billingNo: results[0].billing_no,
-                billingStatus: results[0].status,
-                countTracking: resultsItem[0].cTracking
-              };
-              resolve(dataResult);
+
+              if(resultsItem.length<=0){
+                resolve(false);
+              } else {
+                parcel_connection.query(sqlCountItem, dataCountItem, (err, resultsCountItem) => {
+                  var dataResult = {
+                    billingNo: results[0],
+                    billingItem: resultsItem,
+                    countTracking: resultsCountItem[0]
+                  };
+                  resolve(dataResult);
+                })
+              }
+              
             });
           }
         } else {
@@ -195,8 +213,7 @@ module.exports = {
   },
   updateStatusReceiver: tracking => {
     return new Promise(function(resolve, reject) {
-      let sql =
-        "UPDATE billing_receiver_info SET status='cancel' WHERE tracking=?";
+      let sql = "UPDATE billing_receiver_info SET status='cancel' WHERE tracking=?";
       let data = [tracking];
       parcel_connection.query(sql, data, (error, results, fields) => {
         if(error===null){
@@ -455,6 +472,33 @@ module.exports = {
       });
     });
   },
+  getDailyDataUnbook: () => {
+    var current_date = m(new Date()).tz("Asia/Bangkok").format("YYYY-MM-DD", true);
+    var sqlBilling = `SELECT bi.tracking,bi.billing_no,bi.cod_value,br.receiver_name,br.phone,br.receiver_address,d.DISTRICT_NAME,a.AMPHUR_NAME,p.PROVINCE_NAME,br.zipcode
+    FROM billing b
+    LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
+    LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
+    LEFT JOIN postinfo_district d ON br.district_id=d.DISTRICT_ID AND br.amphur_id=d.AMPHUR_ID AND br.province_id=d.PROVINCE_ID
+    LEFT JOIN postinfo_amphur a ON br.amphur_id=a.AMPHUR_ID
+    LEFT JOIN postinfo_province p ON br.province_id=p.PROVINCE_ID
+    WHERE Date(b.billing_date)=? AND (br.booking_status != 100 OR br.booking_status is null)`;
+    var data = [current_date];
+    return new Promise(function(resolve, reject) {
+      parcel_connection.query(sqlBilling, data, (error, results, fields) => {
+        if (error === null) {
+          if(results.length<=0){
+            resolve(null);
+          } else {
+            resolve(results);
+          }
+          
+        } else {
+          console.log("getBookingLog error=>", error);
+          resolve(null);
+        }
+      });
+    });
+  },
   dailyReport: () => {
     var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD");
     console.log("daily report =>",today);
@@ -630,10 +674,10 @@ module.exports = {
       });
     });
   },
-  log_daily_tool:()=>{
-    var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD");
+  log_daily_tool:(date_check)=>{
+    var date_check = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD");
     var sql = "SELECT billing_no, time_to_system, previous_value, current_value,reason, module_name, user, ref,remark FROM log_parcel_tool WHERE Date(time_to_system)=?";
-    var data=[today];
+    var data=[date_check];
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql,data, (err, results) => {
         if(err===null){

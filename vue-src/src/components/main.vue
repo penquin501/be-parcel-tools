@@ -81,11 +81,7 @@
 
         <div>
           <b>ชื่อผู้รับ:</b>
-          <input
-            :disabled="receiverFNameEdit"
-            ref="receiverFNameEdit"
-            v-model="receiver_first_name"
-          />
+          <input :disabled="receiverFNameEdit" ref="receiverFNameEdit" v-model="receiver_first_name"/>
         </div>
         <div>
           <b>นามสกุลผู้รับ:</b>
@@ -93,21 +89,12 @@
         </div>
 
         <div>
-          <b>เบอร์โทรศัทพ์ผู้รับ:</b>
-          <input
-            maxlength="10"
-            :disabled="receiverPhoneEdit"
-            ref="receiverPhoneEdit"
-            v-model="phone"
-          />
+          <b>เบอร์โทรศัพท์ผู้รับ:</b>
+          <input maxlength="10" :disabled="receiverPhoneEdit" ref="receiverPhoneEdit" v-model="phone"/>
         </div>
         <div>
           <b>ที่อยู่ผู้รับ:</b>
-          <input
-            :disabled="receiverAddressEdit"
-            ref="receiverAddressEdit"
-            v-model="receiver_address"
-          />
+          <input :disabled="receiverAddressEdit" ref="receiverAddressEdit" v-model="receiver_address"/>
         </div>
         <div>
           <b>พิกัด:</b>
@@ -124,30 +111,41 @@
         </div>
       </div>
     </div>
-
-    <div class="select-tool">
-      <b style="font-size:18px;">Tools ที่จะใช้ :</b>
-      <select class="select" v-model="selectValue" v-on:change="selectTools">
-        <option value="0" disabled selected>----- เลือก Tools -----</option>
-        <option value="1">ยกเลิก Tracking</option>
-        <!-- <option value="2">เปลี่ยนแปลงข้อมูลผู้รับ</option> -->
-      </select>
-    </div>
-    <div class="select-reason">
-      <b style="font-size:18px;">เหตุผล :</b>
-      <select class="select" style="margin-left: 45px; margin-right: 0px;" v-model="reasonValue">
-        <option value="" disabled selected>----- เลือกเหตุผล -----</option>
-        <option value="wrong_size">เลือก size พัสดุผิด</option>
-        <option value="wrong_type">เลือกประเภทการจัดส่งผิด</option>
-        <option value="wrong_codvalue">ยอด COD ผิด</option>
-        <option value="wrong_member">ทำรายการผิด member</option>
-        <option value="wrong_receiver_info">ข้อมูลผู้รับผิด</option>
-      </select>
-      <div class="search">
-        <b style="font-size:18px;">หมายเหตุ :</b>
-        <input type="text" name="remark" id="remark" v-model="remark" style="width:302px; margin-left:30px;">
-      </div>
-    </div>
+    <table style="width: 100%;">
+      <tbody>
+        <tr>
+          <td style="width: 30%;" rowspan="3"></td>
+          <td style="width: 15%;">Tools ที่ใช้:</td>
+          <td style="width: 25%;">
+            <select style="margin-left: 0px; margin-right: 0px;" class="select" v-model="selectValue" v-on:change="selectTools">
+              <option value="0" disabled="disabled" selected="selected">----- เลือก Tools -----</option>
+              <option value="1">ยกเลิก Tracking</option>
+              <!-- <option value="2">เปลี่ยนแปลงข้อมูลผู้รับ</option> -->
+            </select>
+          </td>
+          <td style="width: 25%;" rowspan="3"></td>
+        </tr>
+        <tr>
+          <td style="width: 15%;">เหตุผล:</td>
+          <td style="width: 25%;">
+            <select style="margin-left: 0px; margin-right: 0px;" class="select" v-model="reasonValue">
+              <option value disabled="disabled" selected="selected">----- เลือกเหตุผล -----</option>
+              <option value="wrong_size">เลือก size พัสดุผิด</option>
+              <option value="wrong_type">เลือกประเภทการจัดส่งผิด</option>
+              <option value="wrong_codvalue">ยอด COD ผิด</option>
+              <option value="wrong_member">ทำรายการผิด member</option>
+              <option value="wrong_receiver_info">ข้อมูลผู้รับผิด</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td style="width: 15%;">รายละเอียดเพิ่มเติม:</td>
+          <td style="width: 25%;">
+            <textarea style="width: 306px;" v-model="remark"></textarea>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
     <div class="group-btn">
       <button class="cancel" v-on:click="clearBtn">ยกเลิก</button>
@@ -190,7 +188,7 @@ export default {
 
       selectValue: "0",
       reasonValue: "",
-      remark:"",
+      remark: "",
       imgUrl:
         "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC",
       rotation: 0,
@@ -217,10 +215,14 @@ export default {
         .then(response => {
           if (response.data.status == "SUCCESS") {
             this.billingInfo = response.data.billingInfo;
-            this.billing_no = (this.billingInfo[0].billing_no)?this.billingInfo[0].billing_no:"";
+            this.billing_no = this.billingInfo[0].billing_no
+              ? this.billingInfo[0].billing_no
+              : "";
             this.tracking = this.billingInfo[0].tracking;
             this.bi_parcel_type = this.billingInfo[0].bi_parcel_type;
-            this.size_id = (this.billingInfo[0].alias_size) ? this.billingInfo[0].alias_size.toUpperCase() : "";
+            this.size_id = this.billingInfo[0].alias_size
+              ? this.billingInfo[0].alias_size.toUpperCase()
+              : "";
             this.size_price = this.billingInfo[0].size_price;
             this.cod_value = this.billingInfo[0].cod_value;
             this.bi_zipcode = this.billingInfo[0].bi_zipcode;
@@ -229,16 +231,21 @@ export default {
             this.sender_address = this.billingInfo[0].sender_address;
 
             var receiver_name = this.billingInfo[0].receiver_name;
-            var res = (receiver_name)? receiver_name.split(" ") : null;
-            this.receiver_first_name = (res!==null)?res[0]:"";
-            this.receiver_last_name = (res!==null)?res[1]:"";
+            var res = receiver_name ? receiver_name.split(" ") : null;
+            this.receiver_first_name = res !== null ? res[0] : "";
+            this.receiver_last_name = res !== null ? res[1] : "";
 
             this.phone = this.billingInfo[0].phone;
             this.receiver_address = this.billingInfo[0].receiver_address;
 
             this.previous_value = this.billingInfo;
-            
-            this.location = this.billingInfo[0].district_name + " " + this.billingInfo[0].amphur_name + " " + this.billingInfo[0].province_name;
+
+            this.location =
+              this.billingInfo[0].district_name +
+              " " +
+              this.billingInfo[0].amphur_name +
+              " " +
+              this.billingInfo[0].province_name;
             this.br_zipcode = this.billingInfo[0].br_zipcode;
             this.br_parcel_type = this.billingInfo[0].br_parcel_type;
 
@@ -275,9 +282,9 @@ export default {
         });
     },
     emptyBox() {
-      this.selectValue="0";
-      this.reasonValue="";
-      this.remark="";
+      this.selectValue = "0";
+      this.reasonValue = "";
+      this.remark = "";
       this.billing_no = "";
       this.tracking = "";
       this.bi_parcel_type = "";
@@ -298,7 +305,8 @@ export default {
       this.br_parcel_type = "";
       this.status = "";
       this.order_status_lb = "";
-      this.imgUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC";
+      this.imgUrl =
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC";
     },
     selectTools() {
       const options = { okLabel: "ตกลง" };
@@ -332,15 +340,20 @@ export default {
         this.emptyBox();
         this.$dialogs.alert("กรุณาระบุ Tracking เพื่อทำรายการ", options);
       } else if (this.billing_no == "") {
-        this.$dialogs.alert("ไม่สามารถยกเลิกได้ เนื่องจากทางร้านยังไม่ได้ทำรายการ", options);
+        this.$dialogs.alert("ไม่สามารถยกเลิกได้ เนื่องจากทางร้านยังไม่ได้ทำรายการ",options);
       } else if (this.reasonValue == "") {
         this.$dialogs.alert("กรุณาระบุ เหตุผล", options);
       } else if (this.remark.trim() == "") {
-        this.$dialogs.alert("กรุณากรอกหมายเหตุ ให้ถูกต้อง", options);
+        this.$dialogs.alert("กรุณากรอกรายละเอียดเพิ่มเติม ให้ถูกต้อง", options);
+      } else if (this.remark.length < 25) {
+        this.$dialogs.alert("กรุณากรอกรายละเอียดเพิ่มเติม ให้ชัดเจน", options);
       } else if (this.status == "cancel") {
-        this.$dialogs.alert("รายการนี้ได้ถูกยกเลิกไปแล้ว",options);
+        this.$dialogs.alert("รายการนี้ได้ถูกยกเลิกไปแล้ว", options);
       } else if (this.status == "success") {
-        this.$dialogs.alert("รายการนี้กำลังถูกส่งข้อมูลไปยัง server หลัก กรุณารอ 2-3 นาที",options);
+        this.$dialogs.alert(
+          "รายการนี้กำลังถูกส่งข้อมูลไปยัง server หลัก กรุณารอ 2-3 นาที",
+          options
+        );
       } else {
         if (this.selectValue == 1) {
           var data = {
@@ -358,7 +371,11 @@ export default {
                 this.$dialogs.alert("ยกเลิกเรียบร้อยแล้ว", options);
                 this.$router.push("/");
               } else {
-                this.$dialogs.alert("ไม่สามารถ ยกเลิกรายการนี้ได้เนื่องจาก "+response.data.reason, options);
+                this.$dialogs.alert(
+                  "ไม่สามารถ ยกเลิกรายการนี้ได้เนื่องจาก " +
+                    response.data.reason,
+                  options
+                );
                 this.$router.push("/");
               }
             })
@@ -376,7 +393,10 @@ export default {
             phone[0] + phone[1] != "08" &&
             phone[0] + phone[1] != "09"
           ) {
-            this.$dialogs.alert("กรุณากรอก เบอร์โทรศัทพ์ผู้รับ เท่านั้น",options);
+            this.$dialogs.alert(
+              "กรุณากรอก เบอร์โทรศัทพ์ผู้รับ เท่านั้น",
+              options
+            );
           } else if (phone.length < 10) {
             this.$dialogs.alert("กรุณากรอก เบอร์โทรศัพท์ ให้ถูกต้อง", options);
           } else {
@@ -454,6 +474,16 @@ export default {
     outline: none;
     width: 200px;
     text-align: center;
+  }
+  textarea {
+    background: none;
+    border: none;
+    border-bottom: 1px solid #000;
+    width: 100%;
+    outline: none;
+    height: 70px;
+    margin: 0 0 10px 0;
+    padding: 5px 10px;
   }
   button {
     padding: 5px 20px;
@@ -544,7 +574,7 @@ export default {
   border: none;
   border-bottom: 2px solid #000;
   background: none;
-  margin: 0 15px;
+  // margin: 0 15px;
   outline: none;
   font-size: 16px;
   font-weight: bold;
