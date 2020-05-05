@@ -122,6 +122,7 @@ export default {
       previous_value: {},
       billingInfo: {},
       selectItem:[],
+      // result:[],
 
       sender_name: "",
       reasonValue: "",
@@ -219,24 +220,36 @@ export default {
         var dataConfirm = {
           billing_no: this.billing_no,
           billing_status: this.billingStatus,
-          // previous_value: this.previous_value,
           select_item: this.selectItem,
           reason: this.reasonValue,
           remark: this.remark,
           user: this.$session.get("session_username")
         };
-        console.log(JSON.stringify(dataConfirm));
-        // axios
-        //   .post("/save/cancel/billing", dataConfirm)
-        //   .then(response => {
-        //     if (response.data.status == "SUCCESS") {
-        //       this.$dialogs.alert("ยกเลิกเรียบร้อยแล้ว", options);
-        //       this.$router.push("/");
-        //     }
-        //   })
-        //   .catch(function(error) {
-        //     console.log(error);
-        //   });
+
+        axios.post("/save/cancel/billing", dataConfirm).then(response => {
+            if (response.data.status == "SUCCESS") {
+              let result=response.data.result;
+              let c_pass=true;
+              let str_result="";
+              for(let i=0;i<result.length;i++){
+                if(result[i].status!=="success" || result[i].status!=="SUCCESS"){
+                  c_pass=false;
+                  str_result+=result[i].tracking+" "+result[i].reason+", "
+                }
+              }
+              if(c_pass){
+                this.$dialogs.alert("รายการทั้งหมดถูกยกเลิกแล้ว"+result, options);
+                this.$router.push("/");
+              } else {
+                this.$dialogs.alert("ไม่สามารถยกเลิกรายการทั้งหมดได้ เนื่องจาก..."+str_result, options);
+                this.$router.push("/");
+              }
+              
+            }
+          })
+          .catch(function(error) {
+            console.log(error);
+          });
       }
     }
   }
