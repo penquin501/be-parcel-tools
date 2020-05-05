@@ -183,9 +183,6 @@ app.post("/save/cancel/billing", function(req, res) {
   let remark = req.body.remark;
   let module_name = "cancel_billing";
   let user = req.body.user;
-
-  let listTrackingToCancel=[];
-  let listTrackingNoCancel=[];
   
   if(select_item.length<=0) {
     res.json({ status: "ERROR", reason: "no_select_data" });
@@ -196,86 +193,118 @@ app.post("/save/cancel/billing", function(req, res) {
   } else if(billing_status == 'pass') {
     res.json({ status: "ERROR", reason: "data_sending_to_server" });
   } else {
-    parcelServices.selectBillingInfo(billing_no).then(function(previous_total) {
-      if(billing_status == 'SUCCESS'){
 
-        async function item() {
-          var listTracking = [];
-          await select_item.forEach(async (val,index) => {
-            listTracking.push(send_api(val,billing_no,previous_total[0].billing_date));
-          })
-          var resultArr = await Promise.all(listTracking);
-          return resultArr;
-        }
-        item().then(function(result) {
-          console.log(result);
-          res.send('SUCCESS');
+      async function item() {
+        var listTracking = [];
+        await select_item.forEach(async (val,index) => {
+          listTracking.push(send_api(val,billing_no,reason,remark,user));
         })
-        
-        
-      } else {
-        for(i=0;i<select_item.length;i++){
-          if(select_item[i].status !== 'cancel' && select_item[i].status !== 'success'){
-            listTrackingToCancel.push(select_item[i].tracking);
-          } else {
-            listTrackingNoCancel.push(select_item[i].tracking);
-          }
-        }
-
-        for(i=0;i<listTrackingToCancel.length;i++){
-          parcelServices.updateStatusReceiver(listTrackingToCancel[i]).then(function(res_update_status) {});
-        }
-        parcelServices.selectParcelSize(billing_no).then(function(dataListPrice) {
-              let current_total = 0;  
-              if(dataListPrice==0){
-                current_total = 0; 
-              } else {
-                for (i = 0; i < dataListPrice.length; i++) {
-                  current_total += dataListPrice[i].size_price;
-                }
-              }
-              parcelServices.updateBillingInfo(current_total, billing_no).then(function(data) {});
-                var previous_value =billing_status + "/total=" + previous_total[0].total;
-                var current_value = "cancel/total=" + current_total;
-                parcelServices.insertLog(billing_no,previous_value,current_value,reason,module_name,user,billing_no,remark).then(function(data) {});
-
-                res.json({ status: "SUCCESS" });
-        })
+        var resultArr = await Promise.all(listTracking);
+        return resultArr;
       }
-    });
+      item().then(function(result) {
+
+        res.json({status:"SUCCESS",result:result});
+      })
+
   }
 });
-function send_api(data,billing_no,billing_date){
-  // console.log(data,billing_date);
+function send_api(data,billing_no,reason,remark,user){
+
   return new Promise(function(resolve, reject) {
-    var data_api = {
-      billNo: billing_no,
-      trackingNo: data.tracking,
-      orderDateTime: m(billing_date).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss", true),
-      orderPrice: data.size_price,
-      orderPhoneNo: data.phone,
-      parcelMethod: data.parcel_type
-    };
-    request(
-      {
-        url: process.env.W945_CANCEL_TRACKING_API,
-        method: "POST",
-        body: data_api,
-        json: true,
-        headers: {
-          apikey: process.env.W945_APIKEY
-        }
-      },
-      (err, res2, body) => {
+    let tracking = data.tracking;
+    let pre_status=data.status;
+    let module_name = "cancel_billing";
 
-          var response={
-            tracking:data.tracking,
-            result:res2.body.status,
-            reason: (res2.body.reason)? res2.body.reason:"" 
+    let status = "";
+    if (
+      pre_status === null ||
+      pre_status === undefined ||
+      pre_status === ""
+    ) {
+      status = "";
+    } else {
+      status = pre_status;
+    }
+  
+    parcelServices.selectBillingInfo(billing_no).then(function(previous_total) {
+      var data_api = {
+        billNo: billing_no,
+        trackingNo: data.tracking,
+        orderDateTime: m(previous_total[0].billing_date).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss", true),
+        orderPrice: data.size_price,
+        orderPhoneNo: data.phone,
+        parcelMethod: data.parcel_type
+      };
+      if (status == "cancel") {
+        res.json({ status: "ERROR", reason: "data_cancelled" });
+      } else if (status == "success") {
+        res.json({ status: "ERROR", reason: "data_sending_to_server" });
+      } else if (status == "SUCCESS") {
+        request(
+          {
+            url: process.env.W945_CANCEL_TRACKING_API,
+            method: "POST",
+            body: data_api,
+            json: true,
+            headers: {
+              apikey: process.env.W945_APIKEY
+            }
+          },
+          (err, res2, body) => {
+            if (res2.body.status === "success") {
+              parcelServices.updateStatusReceiver(tracking).then(function(res_update_status) {
+                  if (res_update_status !== false) {
+                    parcelServices.selectParcelSize(billing_no).then(function(dataListPrice) {
+                      let current_total = 0;  
+                        if(dataListPrice==0){
+                          current_total = 0; 
+                        } else {
+                          for (i = 0; i < dataListPrice.length; i++) {
+                            current_total += dataListPrice[i].size_price;
+                          }
+                        }
+                        parcelServices.updateBillingInfo(current_total, billing_no).then(function(data) {});
+                        var previous_value = status + "/total=" + previous_total[0].total;
+                        var current_value = "cancel/total=" + current_total;
+                        parcelServices.insertLog(billing_no,previous_value,current_value,reason,module_name,user,tracking,remark).then(function(data) {});
 
+                        resolve({tracking:data.tracking,status:"SUCCESS",reason: ""});
+                      });
+                  } else {
+                    resolve({tracking:data.tracking, status: "ERROR", reason: "No_data" });
+                  }
+                });
+            } else {
+              resolve({tracking:data.tracking, status: res2.body.status, reason: res2.body.reason });
+            }
           }
-        resolve(response);
-      })
+        );
+      } else {
+        parcelServices.updateStatusReceiver(tracking).then(function(res_update_status) {
+            if (res_update_status !== false) {
+              parcelServices.selectParcelSize(billing_no).then(function(dataListPrice) {
+                let current_total = 0;  
+                if(dataListPrice==0){
+                  current_total = 0; 
+                } else {
+                  for (i = 0; i < dataListPrice.length; i++) {
+                    current_total += dataListPrice[i].size_price;
+                  }
+                }
+                  parcelServices.updateBillingInfo(current_total, billing_no).then(function(data) {});
+                  var previous_value =status + "/total=" + previous_total[0].total;
+                  var current_value = "cancel/total=" + current_total;
+                  parcelServices.insertLog(billing_no,previous_value,current_value,reason,module_name,user,tracking,remark).then(function(data) {});
+
+                  resolve({tracking:data.tracking,status:"SUCCESS",reason: ""});
+                });
+            } else {
+              resolve({tracking:data.tracking, status: "ERROR", reason: "No_data" });
+            }
+          });
+      }
+    });
   })
 }
 app.post("/update/receiver/info", function(req, res) {
@@ -433,7 +462,6 @@ app.post("/confirm/match/data/info", function(req, res) {
 });
 app.get("/report-branch", (req, res) => {
   parcelServices.reportBranch().then(function(data) {
-    // console.log(data);
     if (data == false) {
       res.json([]);
     } else {
@@ -452,7 +480,6 @@ app.get("/daily-report", (req, res) => {
 });
 app.get("/summary-booking", (req, res) => {
   parcelServices.summaryBooking().then(function(data) {
-    // console.log(data);
     if (data == false) {
       res.json([]);
     } else {
@@ -758,6 +785,7 @@ app.get("/get-excel-file", function(req, res) {
 });
 
 app.get("/get-excel-file-unbook", function(req, res) {
+  var date_search=req.body.date_search;
   var date_now = new Date();
   var current_date = m(date_now).tz("Asia/Bangkok").format("YYYY-MM-DD", true);
   var current_date_excel = m(date_now).tz("Asia/Bangkok").format("YYMMDDHHmmss", true);
@@ -789,7 +817,7 @@ app.get("/get-excel-file-unbook", function(req, res) {
   ws.cell(1, 10).string("Insurance Amount").style(bgStyle);
   ws.cell(1, 11).string("Invoice(ref.)").style(bgStyle);
 
-  parcelServices.getDailyDataUnbook().then(function(data) {
+  parcelServices.getDailyDataUnbook(date_search).then(function(data) {
     if (data === null) {
       res.end("no data");
     } else {

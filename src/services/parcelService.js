@@ -472,8 +472,8 @@ module.exports = {
       });
     });
   },
-  getDailyDataUnbook: () => {
-    var current_date = m(new Date()).tz("Asia/Bangkok").format("YYYY-MM-DD", true);
+  getDailyDataUnbook: (date_search) => {
+    var current_date = m(date_search).tz("Asia/Bangkok").format("YYYY-MM-DD", true);
     var sqlBilling = `SELECT bi.tracking,bi.billing_no,bi.cod_value,br.receiver_name,br.phone,br.receiver_address,d.DISTRICT_NAME,a.AMPHUR_NAME,p.PROVINCE_NAME,br.zipcode
     FROM billing b
     LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
@@ -562,19 +562,19 @@ module.exports = {
   summaryBooking:()=>{
     var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD");
 
-    var sqlNotBooking = `SELECT COUNT(bi.tracking) as cNotBook FROM billing b
+    var sqlNotBooking = `SELECT bi.tracking FROM billing b
     LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
     LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
     WHERE DATE(b.billing_date)=? AND (br.booking_status != 100 OR br.booking_status is null) AND (br.status != 'cancel' OR br.status is null)`;
     var dataNotBooking=[today];
 
-    var sqlBooked = `SELECT COUNT(bi.tracking) as cBooked FROM billing b
+    var sqlBooked = `SELECT bi.tracking FROM billing b
     LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
     LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
     WHERE DATE(b.billing_date)=? AND br.booking_status = 100 AND (br.status != 'cancel' OR br.status is null)`;
     var dataBooked=[today];
 
-    var sqlTotal = `SELECT COUNT(bi.tracking) as cTracking FROM billing b
+    var sqlTotal = `SELECT bi.tracking FROM billing b
     LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
     LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
     WHERE DATE(b.billing_date)=? AND (br.status != 'cancel' OR br.status is null)`;
@@ -597,9 +597,9 @@ module.exports = {
                             resolve(false);
                           } else {
                             var data = {
-                              cNotBook: res_not_book[0].cNotBook,
-                              cBooked: res_booked[0].cBooked,
-                              total: res_total[0].cTracking
+                              cNotBook: res_not_book.length,
+                              cBooked: res_booked.length,
+                              total: res_total.length
                             };
                             resolve(data);
                           }
