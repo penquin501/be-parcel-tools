@@ -681,7 +681,8 @@ app.get("/dhl-excel", function(req, res) {
 });
 
 app.get("/get-excel-file", function(req, res) {
-  var date_check=req.body.date_check;
+  var date_check=req.query.date_check;
+
   var date_now = new Date();
   var current_date = m(date_now).tz("Asia/Bangkok").format("YYYY-MM-DD", true);
   var current_date_excel = m(date_now).tz("Asia/Bangkok").format("YYMMDDHHmmss", true);
@@ -786,7 +787,7 @@ app.get("/get-excel-file", function(req, res) {
 });
 
 app.get("/get-excel-file-unbook", function(req, res) {
-  var date_check=req.body.date_check;
+  var date_check=req.query.date_check;
   var date_now = new Date();
   var current_date = m(date_now).tz("Asia/Bangkok").format("YYYY-MM-DD", true);
   var current_date_excel = m(date_now).tz("Asia/Bangkok").format("YYMMDDHHmmss", true);

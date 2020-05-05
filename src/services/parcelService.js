@@ -446,7 +446,8 @@ module.exports = {
     });
   },
   getDailyData: (date_check) => {
-    var current_date = m(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD", true);
+    var current_date = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD");
+    console.log("getDailyData",current_date);
     var sqlBilling = `SELECT bi.tracking,bi.billing_no,bi.cod_value,br.receiver_name,br.phone,br.receiver_address,d.DISTRICT_NAME,a.AMPHUR_NAME,p.PROVINCE_NAME,br.zipcode
     FROM billing b
     LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
@@ -458,6 +459,7 @@ module.exports = {
     var data = [current_date];
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sqlBilling, data, (error, results, fields) => {
+        console.log(error);
         if (error === null) {
           if(results.length<=0){
             resolve(null);
@@ -473,7 +475,8 @@ module.exports = {
     });
   },
   getDailyDataUnbook: (date_check) => {
-    var current_date = m(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD", true);
+    // var current_date = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD", true);
+    var current_date = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD");
     var sqlBilling = `SELECT bi.tracking,bi.billing_no,bi.cod_value,br.receiver_name,br.phone,br.receiver_address,d.DISTRICT_NAME,a.AMPHUR_NAME,p.PROVINCE_NAME,br.zipcode
     FROM billing b
     LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
@@ -521,7 +524,7 @@ module.exports = {
                 GROUP By bi.billing_no
               ) b
     ON a.billing_no=b.billing_no`;
-    var data=[today,weekAgo];
+    var data=[weekAgo,today];
 
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql,data, (err, results) => {
@@ -570,19 +573,19 @@ module.exports = {
     LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
     LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
     WHERE (b.billing_date > ? AND b.billing_date <= ?) AND (br.booking_status != 100 OR br.booking_status is null) AND (br.status != 'cancel' OR br.status is null)`;
-    var dataNotBooking=[today,weekAgo];
+    var dataNotBooking=[weekAgo,today];
 
     var sqlBooked = `SELECT bi.tracking FROM billing b
     LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
     LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
     WHERE (b.billing_date > ? AND b.billing_date <= ?) AND br.booking_status = 100 AND (br.status != 'cancel' OR br.status is null)`;
-    var dataBooked=[today,weekAgo];
+    var dataBooked=[weekAgo,today];
 
     var sqlTotal = `SELECT bi.tracking FROM billing b
     LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
     LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
     WHERE (b.billing_date > ? AND b.billing_date <= ?) AND (br.status != 'cancel' OR br.status is null)`;
-    var dataTotal=[today,weekAgo];
+    var dataTotal=[weekAgo,today];
 
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sqlNotBooking,dataNotBooking,(err_not_book, res_not_book) => {
@@ -748,7 +751,7 @@ module.exports = {
         GROUP BY b.branch_id
     ) c ON a.branch_id=c.branch_id
     ORDER BY a.branch_id`
-    var data=[today,weekAgo,today,weekAgo,today,weekAgo];
+    var data=[weekAgo,today,weekAgo,today,weekAgo,today];
 
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql,data, (err, results) => {
