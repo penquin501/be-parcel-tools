@@ -650,7 +650,7 @@ app.get("/dhl-excel", function(req, res) {
 
     var mail = {
       from: "booking@945holding.com", //from email (option)
-      to: "penquin501@gmail.com", //to email (require) cs@945holding.com
+      to: "penquin501@gmail.com, jade.yo@sunteen.co.th", //to email (require) cs@945holding.com
       subject: "TDZ-My945Parcel-" + current_date + " ", //subject
       html:
         ` &nbsp;Good day DHL team,<br><br>\r\n\r\n&nbsp;&nbsp;&nbsp;This attachment file is My945Parcel(945Holding) booking file for dhl express at ` +
@@ -681,6 +681,7 @@ app.get("/dhl-excel", function(req, res) {
 });
 
 app.get("/get-excel-file", function(req, res) {
+  var date_check=req.body.date_check;
   var date_now = new Date();
   var current_date = m(date_now).tz("Asia/Bangkok").format("YYYY-MM-DD", true);
   var current_date_excel = m(date_now).tz("Asia/Bangkok").format("YYMMDDHHmmss", true);
@@ -712,7 +713,7 @@ app.get("/get-excel-file", function(req, res) {
   ws.cell(1, 10).string("Insurance Amount").style(bgStyle);
   ws.cell(1, 11).string("Invoice(ref.)").style(bgStyle);
 
-  parcelServices.getDailyData().then(function(data) {
+  parcelServices.getDailyData(date_check).then(function(data) {
     if (data === null) {
       res.end("no data");
     } else {
@@ -754,7 +755,7 @@ app.get("/get-excel-file", function(req, res) {
 
     var mail = {
       from: "booking@945holding.com", //from email (option)
-      to: "penquin501@gmail.com", //to email (require) cs@945holding.com
+      to: "penquin501@gmail.com, jade.yo@sunteen.co.th", //to email (require) cs@945holding.com
       subject: "TDZ-My945Parcel-" + current_date + " ", //subject
       html:
         ` &nbsp;Good day DHL team,<br><br>\r\n\r\n&nbsp;&nbsp;&nbsp;This attachment file is My945Parcel(945Holding) booking file for dhl express at ` +
@@ -785,7 +786,7 @@ app.get("/get-excel-file", function(req, res) {
 });
 
 app.get("/get-excel-file-unbook", function(req, res) {
-  var date_search=req.body.date_search;
+  var date_check=req.body.date_check;
   var date_now = new Date();
   var current_date = m(date_now).tz("Asia/Bangkok").format("YYYY-MM-DD", true);
   var current_date_excel = m(date_now).tz("Asia/Bangkok").format("YYMMDDHHmmss", true);
@@ -817,7 +818,7 @@ app.get("/get-excel-file-unbook", function(req, res) {
   ws.cell(1, 10).string("Insurance Amount").style(bgStyle);
   ws.cell(1, 11).string("Invoice(ref.)").style(bgStyle);
 
-  parcelServices.getDailyDataUnbook(date_search).then(function(data) {
+  parcelServices.getDailyDataUnbook(date_check).then(function(data) {
     if (data === null) {
       res.end("no data");
     } else {
@@ -859,7 +860,7 @@ app.get("/get-excel-file-unbook", function(req, res) {
 
     var mail = {
       from: "booking@945holding.com", //from email (option)
-      to: "penquin501@gmail.com", //to email (require) cs@945holding.com
+      to: "penquin501@gmail.com, jade.yo@sunteen.co.th", //to email (require) cs@945holding.com
       subject: "TDZ-My945Parcel-" + current_date + " ", //subject
       html:
         ` &nbsp;Good day DHL team,<br><br>\r\n\r\n&nbsp;&nbsp;&nbsp;This attachment file is My945Parcel(945Holding) booking file for dhl express at ` +
