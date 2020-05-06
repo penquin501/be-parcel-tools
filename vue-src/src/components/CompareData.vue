@@ -1,7 +1,7 @@
 <template>
   <div style="margin-top: 60px;">
     <!-- <section v-if="menu == 1" class="table">  -->
-    <div class="content">
+    <div class="mycontent">
       <div class="left">
         <div class="item2">
           <div>
@@ -536,7 +536,7 @@ export default {
     }
   }
 }
-.content {
+.mycontent {
   .left {
     border: 1px solid #000;
   }

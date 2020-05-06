@@ -76,6 +76,18 @@ const routes = [
         component: () => import("../components/SummaryBranch.vue"),
         hidden: true
     },
+    {
+        path: "/size-info",
+        name: 'SizeInfo',
+        component: () => import("../components/SizeInfo.vue"),
+        hidden: true
+    },
+    {
+        path: "/branch-info",
+        name: 'BranchInfo',
+        component: () => import("../components/BranchInfo.vue"),
+        hidden: true
+    },
 ];
 
 export default new Router({

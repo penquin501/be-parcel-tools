@@ -505,7 +505,7 @@ module.exports = {
   dailyReport: () => {
     // var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD");
     var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
-    var weekAgo = moment().add(-1, "week").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+    var weekAgo = moment().add(-3, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
     var sql = `SELECT a.branch_name,a.billing_no,a.sender_name,a.cTracking,a.status,a.billing_date,b.cTrackingNotSuccess FROM
         (SELECT bInfo.branch_name,b.billing_no,br.sender_name,count(bi.tracking) as cTracking,b.status,b.billing_date
@@ -567,7 +567,7 @@ module.exports = {
   summaryBooking:()=>{
     // var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD");
     var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
-    var weekAgo = moment().add(-1, "week").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+    var weekAgo = moment().add(-3, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
     var sqlNotBooking = `SELECT bi.tracking FROM billing b
     LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
@@ -721,7 +721,7 @@ module.exports = {
   reportBranch:()=>{
     // var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD");
     var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
-    var weekAgo = moment().add(-1, "week").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+    var weekAgo = moment().add(-3, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
     var sql = `SELECT a.branch_id,a.branch_name,a.cTracking,b.cNotBooking,c.cBooked
     FROM

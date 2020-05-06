@@ -6,7 +6,7 @@
 
       <button v-on:click="getData" type="button">Search</button>
     </div>
-    <div class="content">
+    <div class="mycontent">
       <div class="left">
         <div class="item2">
           <v-zoomer class="v-zoomer">
@@ -500,7 +500,7 @@ export default {
     }
   }
 }
-.content {
+.mycontent {
   .left {
     border: 1px solid #000;
   }

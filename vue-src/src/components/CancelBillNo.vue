@@ -1,6 +1,5 @@
 <template>
-  <div class="container" style="
-    margin-top: 60px;">
+  <div class="container" style="margin-top: 60px;">
     <div class="search">
       <b style="font-size:18px;">กรุณาใส่เลขที่บิล :</b>
       <input maxlength="30" v-model="billingInput" autocomplete="false" />
@@ -302,47 +301,47 @@ export default {
     }
   }
 }
-.content {
-  .left {
-    border: 1px solid #000;
-  }
-  .center,
-  .right {
-    border: 1px solid #000;
-    padding: 10px 30px;
-  }
-  padding: 10px 30px;
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-gap: 10px;
+// .content {
+//   .left {
+//     border: 1px solid #000;
+//   }
+//   .center,
+//   .right {
+//     border: 1px solid #000;
+//     padding: 10px 30px;
+//   }
+//   padding: 10px 30px;
+//   display: grid;
+//   grid-template-columns: 1fr 1fr 1fr;
+//   grid-gap: 10px;
 
-  input {
-    background: none;
-    border: none;
-    border-bottom: 1px solid #000;
-    width: 100%;
-    margin: 0 0 10px 0;
-    padding: 5px 10px;
-    outline: none;
-  }
-  input:disabled {
-    color: #9e9e9e;
-  }
-  input:enabled {
-    background: #dfdfdf;
-    font-size: 14px;
-  }
-  textarea {
-    background: none;
-    border: none;
-    border-bottom: 1px solid #000;
-    width: 100%;
-    outline: none;
-    height: 70px;
-    margin: 0 0 10px 0;
-    padding: 5px 10px;
-  }
-}
+//   input {
+//     background: none;
+//     border: none;
+//     border-bottom: 1px solid #000;
+//     width: 100%;
+//     margin: 0 0 10px 0;
+//     padding: 5px 10px;
+//     outline: none;
+//   }
+//   input:disabled {
+//     color: #9e9e9e;
+//   }
+//   input:enabled {
+//     background: #dfdfdf;
+//     font-size: 14px;
+//   }
+//   textarea {
+//     background: none;
+//     border: none;
+//     border-bottom: 1px solid #000;
+//     width: 100%;
+//     outline: none;
+//     height: 70px;
+//     margin: 0 0 10px 0;
+//     padding: 5px 10px;
+//   }
+// }
 
 .right div:nth-child(4) {
   margin-top: 20px;
