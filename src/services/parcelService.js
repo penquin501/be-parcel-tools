@@ -452,17 +452,17 @@ module.exports = {
     });
   },
   dailyReport: () => {
-    var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+    var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD");
     var weekAgo = moment().add(-3, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
-    console.log("dailyReport", weekAgo, today);
+
     var sql = `SELECT b.branch_id,bInfo.branch_name,b.billing_no,br.sender_name,count(bi.tracking) as cTracking,b.status,b.billing_date 
             FROM billing b 
             LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no 
             LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking 
             LEFT JOIN branch_info bInfo ON b.branch_id=bInfo.branch_id 
-            WHERE (b.billing_date > ? AND b.billing_date <= ?) AND b.status NOT IN ('cancel','SUCCESS')
+            WHERE DATE(b.billing_date) = ? AND b.status NOT IN ('cancel','SUCCESS')
             GROUP BY b.member_code,b.branch_id,bInfo.branch_name,b.billing_no,br.sender_name,b.status,b.id,b.billing_date`;
-    var data = [weekAgo, today];
+    var data = [today];
 
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql, data, (err, results) => {
@@ -521,26 +521,26 @@ module.exports = {
     });
   },
   summaryBooking: (data) => {
-    var today = moment('2020-03-03 00:00:00').tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
-    var weekAgo = moment(today).add(-3, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
-    console.log("summaryBooking",weekAgo,today);
+    var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD");
+    var weekAgo = moment().add(-3, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+
     var sqlNotBooking = `SELECT bi.tracking FROM billing b
     LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
     LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
-    WHERE (b.billing_date > ? AND b.billing_date <= ?) AND (br.booking_status != 100 OR br.booking_status is null) AND (br.status != 'cancel' OR br.status is null)`;
-    var dataNotBooking=[weekAgo, today];
+    WHERE DATE(b.billing_date) = ? AND (br.booking_status != 100 OR br.booking_status is null) AND (br.status != 'cancel' OR br.status is null)`;
+    var dataNotBooking=[today];
 
     var sqlBooked = `SELECT bi.tracking FROM billing b
     LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
     LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
-    WHERE (b.billing_date > ? AND b.billing_date <= ?) AND br.booking_status = 100 AND (br.status != 'cancel' OR br.status is null)`;
-    var dataBooked=[weekAgo, today];
+    WHERE DATE(b.billing_date) = ? AND br.booking_status = 100 AND (br.status != 'cancel' OR br.status is null)`;
+    var dataBooked=[today];
 
     var sqlTotal = `SELECT bi.tracking FROM billing b
     LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
     LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
-    WHERE (b.billing_date > ? AND b.billing_date <= ?) AND (br.status != 'cancel' OR br.status is null)`;
-    var dataTotal=[weekAgo, today];
+    WHERE DATE(b.billing_date) = ? AND (br.status != 'cancel' OR br.status is null)`;
+    var dataTotal=[today];
 
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sqlNotBooking,dataNotBooking,(err_not_book, res_not_book) => {
@@ -645,17 +645,17 @@ module.exports = {
   },
   reportBranch: () => {
     // var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD");
-    var today = moment('2020-03-03 00:00:00').tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
-    var weekAgo = moment(today).add(-3, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
-    console.log("reportBranch",weekAgo,today);
+    var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD");
+    var weekAgo = moment().add(-3, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+
     var sql = `SELECT b.branch_id,bInfo.branch_name,count(bi.tracking) as cTracking
     FROM billing b 
     LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no 
     LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking 
     LEFT JOIN branch_info bInfo ON b.branch_id=bInfo.branch_id 
-    WHERE (b.billing_date > ? AND b.billing_date <= ?) AND (br.status != 'cancel' OR br.status is null)
+    WHERE DATE(b.billing_date) = ? AND (br.status != 'cancel' OR br.status is null)
     GROUP BY b.branch_id,bInfo.branch_name`;
-    var data = [weekAgo, today];
+    var data = [today];
 
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql, data, (err, results) => {
@@ -665,20 +665,20 @@ module.exports = {
     });
   },
   sumReportBranch: (value) => {
-    // console.log(value);
-    var today = moment('2020-03-03 00:00:00').tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
-    var weekAgo = moment(today).add(-3, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+
+    var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD");
+    var weekAgo = moment().add(-3, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
     var sql = `SELECT count(bi.tracking) as c_not_book FROM billing b
     LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
     LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
-    WHERE b.branch_id=? AND (b.billing_date > ? AND b.billing_date <= ?) AND 
+    WHERE b.branch_id=? AND DATE(b.billing_date) = ? AND 
     (br.status != 'cancel' OR br.status is null) AND (br.booking_status != 100 OR br.booking_status is null)`;
-    var data = [value.branch_id,weekAgo, today];
+    var data = [value.branch_id,today];
 
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql, data, (err, results) => {
-        // console.log(results);
+
         var data={
           branch_id:value.branch_id,
           branch_name:value.branch_name,
