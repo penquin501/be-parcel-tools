@@ -4,7 +4,7 @@
         <div class="row">
         <div class="col-ms-1 col-sm-1 col-xs-1"></div>
         <div class="col-ms-10 col-sm-10 col-xs-10" style="text-align:center;">
-          <h2>รายการแต่ละสาขา {{ date | moment("LL") }}</h2>
+          <h2 style="margin-top: 10px;">รายการแต่ละสาขา {{ date | moment("LL") }}</h2>
         </div>
         <div class="col-ms-1 col-sm-1 col-xs-1"></div>
       </div>
@@ -20,15 +20,15 @@
         <tr>
           <th style="text-align:center;">ชื่อสาขา</th>
           <th style="text-align:center;">จำนวนที่ยังไม่ได้ Book</th>
-          <th style="text-align:center;">จำนวนที่ Book แล้ว</th>
+          <!-- <th style="text-align:center;">จำนวนที่ Book แล้ว</th> -->
           <th style="text-align:center;">จำนวนทั้งหมด</th>
         </tr>
         <tr v-for="(item) in data" v-bind:key="item.id">
             <td style="text-align: center;">{{ item.branch_name }}</td>
-            <td style="text-align: center;">{{ (item.cNotBooking == null) ? 0 : item.cNotBooking }}</td>
-            <td style="text-align: center;">{{ (item.cBooked == null) ? 0 : item.cBooked }}</td>
-            <td v-if="item.cBooked==item.cTracking" style="text-align: center; background-color: rgb(0, 136, 148)">{{ item.cTracking }}</td>
-            <td v-if="item.cBooked!=item.cTracking" style="text-align: center;">{{ item.cTracking }}</td>
+            <td style="text-align: center;">{{ (item.c_not_book == null) ? 0 : item.c_not_book }}</td>
+            <!-- <td style="text-align: center;">{{ (item.cBooked == null) ? 0 : item.cBooked }}</td> -->
+            <td v-if="item.c_not_book==0" style="text-align: center; background-color: rgb(0, 136, 148)">{{ item.c_total }}</td>
+            <td v-if="item.c_not_book!==0" style="text-align: center;">{{ item.c_total }}</td>
         </tr>
       </table>
     </div>

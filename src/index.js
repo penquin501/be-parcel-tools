@@ -13,6 +13,8 @@ app.use(express.json());
 app.use(express.static("public"));
 
 const parcelServices = require("./services/parcelService.js");
+const branch = require('./routers/branch');
+app.use('/branch', branch)
 
 if (process.env.NODE_ENV === "production") {
   console.log("In production mode");
@@ -369,14 +371,7 @@ app.post("/confirm/match/data/info", function(req, res) {
   let size_id = current_value.size_id;
   let size_price = current_value.size_price;
   let br_zipcode = current_value.br_zipcode;
-  let log_previous_value =
-    previous_value.bi_parcel_type +
-    "/" +
-    previous_value.br_parcel_type +
-    "/" +
-    previous_value.bi_zipcode +
-    "/" +
-    previous_value.br_zipcode;
+  let log_previous_value = previous_value.bi_parcel_type +"/" +previous_value.br_parcel_type +"/" +previous_value.bi_zipcode +"/" +previous_value.br_zipcode;
   let log_current_value = parcel_type + "/" + br_zipcode;
   let module_name = "ql_checker";
   let cs_name = req.body.user;
@@ -441,7 +436,7 @@ app.post("/confirm/match/data/info", function(req, res) {
       } else {
         operation_key = data[0].operator_id;
       }
-      parcelServices.selectPreviousTotal(billing_no).then(function(previous_total) {
+      parcelServices.selectBillingInfo(billing_no).then(function(previous_total) {
           parcelServices.updateCheckerInfo(billing_no,tracking,size_id,size_price,cod_value,receiver_name,phone,address,parcel_type,district_id,district_name,amphur_id,amphur_name,province_id,province_name,zipcode).then(function(current_total) {
               if (current_total !== false) {
                 parcelServices.updateBilling(billing_no, current_total).then(function(data) {});
@@ -465,7 +460,19 @@ app.get("/report-branch", (req, res) => {
     if (data == false) {
       res.json([]);
     } else {
-      res.json(data);
+      async function item() {
+        var listTracking = [];
+        await data.forEach(async (val,index) => {
+          listTracking.push(parcelServices.sumReportBranch(val));
+        })
+        var resultArr = await Promise.all(listTracking);
+        return resultArr;
+      }
+      item().then(function(result) {
+
+
+        res.json(result);
+      })
     }
   });
 });
@@ -474,7 +481,17 @@ app.get("/daily-report", (req, res) => {
     if (data == false) {
       res.json([]);
     } else {
-      res.json(data);
+      async function item() {
+        var listTracking = [];
+        await data.forEach(async (val,index) => {
+          listTracking.push(parcelServices.dailyNotBookReport(val));
+        })
+        var resultArr = await Promise.all(listTracking);
+        return resultArr;
+      }
+      item().then(function(result) {
+        res.json(result);
+      })
     }
   });
 });
@@ -542,16 +559,6 @@ app.get("/log-daily-tool", (req, res) => {
   });
 });
 
-app.post("/add-branch-info", (req, res) => {
-  let branch_id = req.body.branch_id;
-  let prefix_branch = req.body.prefix_branch;
-  let branch_name = req.body.branch_name;
-  let status='active';
-  parcelServices.add_branch_info(branch_id,prefix_branch,branch_name,status).then(function(data) {
-    res.json({status:'success'});
-  });
-});
-
 var smtp = {
   pool: true,
   host: "smtp.gmail.com", //set to your host name or ip
@@ -564,121 +571,6 @@ var smtp = {
 };
 
 var smtpTransport = mailer.createTransport(smtp);
-
-app.get("/dhl-excel", function(req, res) {
-  var date_now = new Date();
-  var current_date = m(date_now).tz("Asia/Bangkok").format("YYYY-MM-DD", true);
-  var current_date_excel = m(date_now).tz("Asia/Bangkok").format("YYMMDDHHmmss", true);
-  var random_number = Math.floor(Math.random() * (999 - 111)) + 111;
-  var number_parcel = 0;
-
-  var filename ="My945_Parcel_TDZ_" + current_date_excel + "_" + random_number + ".xlsx";
-  var wb = new xl.Workbook();
-  var ws = wb.addWorksheet("945holding_" + current_date);
-
-  const bgStyle = wb.createStyle({
-    fill: {
-      type: "pattern",
-      patternType: "solid",
-      bgColor: "#0D701C",
-      fgColor: "#0D701C"
-    }
-  });
-
-  ws.cell(1, 1).string("Customer Confirmation Number").style(bgStyle);
-  ws.cell(1, 2).string("Recipient").style(bgStyle);
-  ws.cell(1, 3).string("AddressLine1").style(bgStyle);
-  ws.cell(1, 4).string("AddressLine2").style(bgStyle);
-  ws.cell(1, 5).string("District").style(bgStyle);
-  ws.cell(1, 6).string("State").style(bgStyle);
-  ws.cell(1, 7).string("Zip").style(bgStyle);
-  ws.cell(1, 8).string("Phone").style(bgStyle);
-  ws.cell(1, 9).string("COD Amount").style(bgStyle);
-  ws.cell(1, 10).string("Insurance Amount").style(bgStyle);
-  ws.cell(1, 11).string("Invoice(ref.)").style(bgStyle);
-
-  parcelServices.getBookingLog().then(function(data) {
-    if (data === null) {
-      res.end("no data");
-    } else {
-      number_parcel = data.length;
-      for (i = 0; i < data.length; i++) {
-        if (data[i].status == "fail") {
-          var cellBgStyle = wb.createStyle({
-            fill: {
-              type: "pattern",
-              patternType: "solid",
-              bgColor: "#cc0000",
-              fgColor: "#cc0000"
-            }
-          });
-        } else {
-          if ((i - 1) % 2 == 0) {
-            var cellBgStyle = wb.createStyle({
-              fill: {
-                type: "pattern",
-                patternType: "solid",
-                bgColor: "#deede3",
-                fgColor: "#deede3"
-              }
-            });
-          } else {
-            var cellBgStyle = wb.createStyle({
-              fill: {
-                type: "pattern",
-                patternType: "solid",
-                bgColor: "#c2e0ed",
-                fgColor: "#c2e0ed"
-              }
-            });
-          }
-        }
-        ws.cell(i + 2, 1).string(data[i].tracking).style(cellBgStyle);
-        ws.cell(i + 2, 2).string(data[i].receiver_name).style(cellBgStyle);
-        ws.cell(i + 2, 3).string(data[i].receiver_address).style(cellBgStyle);
-        ws.cell(i + 2, 4).string("").style(cellBgStyle);
-        ws.cell(i + 2, 5).string(data[i].DISTRICT_NAME).style(cellBgStyle);
-        ws.cell(i + 2, 6).string(data[i].PROVINCE_NAME).style(cellBgStyle);
-        ws.cell(i + 2, 7).string(data[i].zipcode).style(cellBgStyle);
-        ws.cell(i + 2, 8).string(data[i].phone).style(cellBgStyle);
-        ws.cell(i + 2, 9).number(data[i].cod_value).style(cellBgStyle);
-        ws.cell(i + 2, 10).string("").style(cellBgStyle);
-        ws.cell(i + 2, 11).string(data[i].billing_no).style(cellBgStyle);
-      }
-      wb.write(filename);
-    }
-
-    var mail = {
-      from: "booking@945holding.com", //from email (option)
-      to: "penquin501@gmail.com, jade.yo@sunteen.co.th", //to email (require) cs@945holding.com
-      subject: "TDZ-My945Parcel-" + current_date + " ", //subject
-      html:
-        ` &nbsp;Good day DHL team,<br><br>\r\n\r\n&nbsp;&nbsp;&nbsp;This attachment file is My945Parcel(945Holding) booking file for dhl express at ` +
-        current_date +
-        `<br>\r\n The total number of shipments : ` +
-        number_parcel +
-        ` pcs. <br>\r\n And so, this mail was generate by automatically system.<br>\r\n&nbsp;&nbsp;&nbsp;If you have any concerned or some question, Please contact to My945Parcel Call Center 0914271551<br><br>\r\n\r\n&nbsp;Best Regards,<br>\r\n&nbsp;945Holding`, //email body
-      attachments: [
-        {
-          filename: filename,
-          path: __dirname + "/" + filename
-        }
-      ]
-    };
-
-    smtpTransport.sendMail(mail, function(error, response) {
-      smtpTransport.close();
-      if (error) {
-        //error handler
-        console.log("send email error", error);
-      } else {
-        //success handler
-        console.log("send email success");
-        res.end("send email success");
-      }
-    });
-  });
-});
 
 app.get("/get-excel-file", function(req, res) {
   var date_check=req.query.date_check;
@@ -777,6 +669,7 @@ app.get("/get-excel-file", function(req, res) {
       if (error) {
         //error handler
         console.log("send email error", error);
+        res.end("send email error");
       } else {
         //success handler
         console.log("send email success");
@@ -882,6 +775,7 @@ app.get("/get-excel-file-unbook", function(req, res) {
       if (error) {
         //error handler
         console.log("send email error", error);
+        res.end("send email error");
       } else {
         //success handler
         console.log("send email success");

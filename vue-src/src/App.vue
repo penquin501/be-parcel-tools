@@ -60,8 +60,8 @@
               <!-- <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Setting</a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                  <router-link to="/size-info"><a v-on:click="toView" class="dropdown-item">Size Info</a></router-link>
                   <router-link to="/branch-info"><a v-on:click="toView"  class="dropdown-item" >Branch Info</a></router-link>
+                  <router-link to="/size-info"><a v-on:click="toView" class="dropdown-item">Size Info</a></router-link>
                 </div>
               </li> -->
               <li class="nav-item">

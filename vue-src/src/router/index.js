@@ -88,6 +88,12 @@ const routes = [
         component: () => import("../components/BranchInfo.vue"),
         hidden: true
     },
+    {
+        path: "/add-branch",
+        name: 'AddBranch',
+        component: () => import("../components/AddBranchInfo.vue"),
+        hidden: true
+    },
 ];
 
 export default new Router({
