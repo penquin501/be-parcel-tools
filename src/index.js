@@ -445,7 +445,6 @@ app.post("/confirm/match/data/info", function(req, res) {
                 log_previous_value += "/total=" + previous_total[0].total;
                 log_current_value += "/total=" + current_total;
                 parcelServices.insertLog(billing_no,log_previous_value,log_current_value,error_code,module_name,cs_name,tracking,remark).then(function(data) {});
-
                 res.json({ status: "SUCCESS" });
               } else {
                 res.json({ status: "ERROR" });
@@ -456,51 +455,142 @@ app.post("/confirm/match/data/info", function(req, res) {
   });
 });
 app.get("/report-branch", (req, res) => {
-  parcelServices.reportBranch().then(function(data) {
+  let date_check = req.query.date_check;
+  parcelServices.dailyReport(date_check).then(function(data) {
     if (data == false) {
       res.json([]);
     } else {
-      async function item() {
-        var listTracking = [];
-        await data.forEach(async (val,index) => {
-          listTracking.push(parcelServices.sumReportBranch(val));
+      d = []
+      branch_info = {}
+      
+      data.forEach(value => {
+
+        if(!(value.branch_id in branch_info)){
+          branch_info[String(value.branch_id)]=[];
+        }
+        branch_info[String(value.branch_id)].push({
+          branch_name: value.branch_name,
+          billing_no: value.billing_no,
+          sender_name: value.sender_name,
+          status: value.status,
+          billing_date: value.billing_date,
+          booking_status: value.booking_status
+        });
+
+      });
+
+      result=[];
+      for (const [key, items] of Object.entries(branch_info)) {
+
+        var cBooked=0;
+        var cNotBook=0;
+        items.forEach(item => {
+            if(item.booking_status==100){
+              cBooked++;
+            } else {
+              cNotBook++;
+            }
         })
-        var resultArr = await Promise.all(listTracking);
-        return resultArr;
+        var dataBranch={
+          branch_name:items[0].branch_name,
+          cBooked: cBooked,
+          c_not_book: cNotBook,
+          total: items.length
+        }
+        result.push(dataBranch);
       }
-      item().then(function(result) {
-
-
-        res.json(result);
-      })
+      res.json(result);
     }
   });
 });
+
 app.get("/daily-report", (req, res) => {
-  parcelServices.dailyReport().then(function(data) {
+  let date_check = req.query.date_check;
+  parcelServices.dailyReport(date_check).then(function(data) {
     if (data == false) {
       res.json([]);
     } else {
-      async function item() {
-        var listTracking = [];
-        await data.forEach(async (val,index) => {
-          listTracking.push(parcelServices.dailyNotBookReport(val));
+      d = []
+      branch_info = {}
+      var sumBooked=0;
+      var sumNotBooked=0;
+      data.forEach(value => {
+
+        if(!(value.billing_no in branch_info)){
+          branch_info[String(value.billing_no)]=[];
+        }
+        branch_info[String(value.billing_no)].push({
+          branch_id:value.branch_id,
+          branch_name: value.branch_name,
+          billing_no: value.billing_no,
+          sender_name: value.sender_name,
+          status: value.status,
+          billing_date: value.billing_date,
+          booking_status: value.booking_status
+        });
+        if(value.booking_status == 100){
+          sumBooked++;
+        } else {
+          sumNotBooked++;
+        }
+      });
+
+      result=[];
+      for (const [key, items] of Object.entries(branch_info)) {
+
+        var cBooked=0;
+        var cNotBook=0;
+        items.forEach(item => {
+            if(item.booking_status==100){
+              cBooked++;
+            } else {
+              cNotBook++;
+            }
         })
-        var resultArr = await Promise.all(listTracking);
-        return resultArr;
+        var dataBranch={
+          branch_id:items[0].branch_id,
+          branch_name:items[0].branch_name,
+          billing_date: items[0].billing_date,
+          billing_no: key,
+          sender_name: items[0].sender_name,
+          status: items[0].status,
+          booked: cBooked,
+          cNotBook: cNotBook,
+          total: items.length
+        }
+        result.push(dataBranch);
       }
-      item().then(function(result) {
-        res.json(result);
-      })
+
+      var summary={
+        total:data.length,
+        sumBooked:sumBooked,
+        sumNotBooked:sumNotBooked
+      }
+      res.json({result:result,summary:summary});
     }
   });
 });
 app.get("/summary-booking", (req, res) => {
-  parcelServices.summaryBooking().then(function(data) {
+  let date_check = req.query.date_check;
+  parcelServices.summaryBooking(date_check).then(function(data) {
     if (data == false) {
       res.json([]);
     } else {
-      res.json(data);
+      var cBooked=0;
+      var cNotBook=0;
+      data.forEach((val)=>{
+        if(val.booking_status == 100){
+          cBooked++;
+        } else {
+          cNotBook++;
+        }
+      })
+      var output={
+        total:data.length,
+        cBooked:cBooked,
+        cNotBook:cNotBook
+      }
+      res.json(output);
     }
   });
 });

@@ -10,13 +10,20 @@
       </div>
 
       <div class="row">
-        <div class="col-ms-1 col-sm-1 col-xs-1"></div>
-        <div class="col-ms-10 col-sm-10 col-xs-10" style="text-align:center;">
+        <div class="col-ms-4 col-sm-4 col-xs-4" style=" text-align: center; margin-top: 5px; padding-left: 0px;padding-right: 0px;">
+            <div>
+              <input type="date" id="datePick" v-model="datePick" name="datePick">
+              <span><button class="button-re"  v-on:click="getBilingNo()"><i class="fa fa-search" aria-hidden="true"></i></button> </span>
+            </div>
+            
+          </div>
+          <div class="col-ms-6 col-sm-6 col-xs-6" style=" text-align: center; margin-top: 15px;padding-left: 0px;padding-right: 0px;">
           <b style="font-size:18px;">ค้นหา :</b>
           <span class="search"><input v-model="billingSearch" autocomplete="false" style="margin-top: 0px;" /></span>
         </div>
-        <div class="col-ms-1 col-sm-1 col-xs-1"></div>
+        <div class="col-ms-2 col-sm-2 col-xs-2"></div>
       </div>
+      <div style="margin-top: 30px;"></div>
         <div class="row">
           <div class="col-ms-9 col-sm-9 col-xs-9" style=" text-align: center; margin-top: 5px;">
             <span>จำนวนที่ยังไม่ได้ book: {{ cNotBook }}</span>
@@ -45,7 +52,7 @@
             >{{ item.billing_no }}</router-link>&nbsp;&nbsp;<span style="font-size:10px; color: red;">{{ item.billing_date | moment("from", "now") }} </span>
           </td>
           <td style="text-align: center;">{{ item.sender_name }}</td>
-          <td style="text-align: center;">{{ (item.cTrackingNotSuccess == null) ? 0 : item.cTrackingNotSuccess }}/{{ item.cTracking }}</td>
+          <td style="text-align: center;">{{ (item.cNotBook == null) ? 0 : item.cNotBook }}/{{ item.total }}</td>
           <td style="text-align: center;">{{ item.status }}</td>
         </tr>
       </table>
@@ -61,6 +68,7 @@
 </template>
 <script>
 const axios = require("axios");
+import moment from 'moment';
 export default {
   data: function() {
     return {
@@ -68,6 +76,7 @@ export default {
       dataSum:[],
       billingSearch: "",
       date: new Date(),
+      datePick: moment().tz("Asia/Bangkok").format("YYYY-MM-DD"),
       cNotBook:0,
       cBooked:0,
       total:0,
@@ -79,17 +88,21 @@ export default {
       this.$router.push({ name: "Main" });
     }
     this.getBilingNo();
-    this.getSummary();
   },
   methods: {
     getBilingNo() {
       const options = { okLabel: "ตกลง" };
-      axios.get("/daily-report").then(response => {
+      axios.get("/daily-report?date_check="+this.datePick)
+      .then(response => {
           if (response.data.length === 0) {
             this.$dialogs.alert("ไม่พบข้อมูล", options);
             this.dataBilling=[];
           } else {
-            this.dataBilling = response.data;
+            this.dataBilling = response.data.result;
+            this.summaryBilling=response.data.summary;
+            this.cNotBook = this.summaryBilling.sumNotBooked;
+            this.cBooked = this.summaryBilling.sumBooked;
+            this.total = this.summaryBilling.total;
           }
         })
         .catch(function(error) {

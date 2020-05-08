@@ -1,10 +1,10 @@
 <template>
-  <div style="margin-top: 60px;">
+  <div class="container" style="margin-top: 60px;">
     <div style="overflow-x:auto;">
       <div class="row">
         <div class="col-ms-3 col-sm-3 col-xs-3"></div>
         <div class="col-ms-3 col-sm-3 col-xs-3" style=" text-align: right;">
-          <b style="font-size:18px;">ค้นหา :</b>
+          <b style="font-size:18px; margin-top: 10px;">ค้นหา :</b>
         </div>
         <div class="col-ms-3 col-sm-3 col-xs-3">
           <div class="search">
@@ -27,23 +27,17 @@
 
       <table>
         <tr>
-          <th style="text-align:center;">เลขที่พัสดุ</th>
-          <th style="text-align:center;">ขนาด</th>
-          <th style="text-align:center;">ราคาพัสดุ</th>
-          <th style="text-align:center;">ประเภท(QL)</th>
-          <th style="text-align:center;">รหัสไปรษณีย์(QL)</th>
-          <th style="text-align:center;">มูลค่า COD</th>
-          <th style="text-align:center;">ประเภท(KI)</th>
-          <th style="text-align:center;">ชื่อผู้รับ</th>
-          <th style="text-align:center;">เบอร์ผู้รับ</th>
+          <th style="text-align:center; width: 5%;">เลขที่พัสดุ</th>
+          <th style="text-align:center; width: 5%;">ขนาด/ราคา</th>
+          <th style="text-align:center; width: 5%;">ประเภท(QL/KI)</th>
+          <th style="text-align:center; width: 5%;">รหัสไปรษณีย์(QL/KI)</th>
+          <th style="text-align:center; width: 5%;">มูลค่า COD</th>
+          <th style="text-align:center; width: 5%;">ชื่อผู้รับ</th>
+          <th style="text-align:center; width: 5%;">เบอร์ผู้รับ</th>
           <th style="text-align:center;">ที่อยู่ผู้รับ</th>
-          <th style="text-align:center;">ตำบล</th>
-          <th style="text-align:center;">อำเภอ</th>
-          <th style="text-align:center;">จังหวัด</th>
-          <th style="text-align:center;">รหัสไปรษณีย์(KI)</th>
-          <th style="text-align:center;">สถานะ</th>
-          <th style="text-align:center;">วัน/เวลา ส่งข้อมูล</th>
-          <th style="text-align:center;">วัน/เวลา booking</th>
+          <th style="text-align:center; width: 5%;">สถานะ</th>
+          <th style="text-align:center; width: 5%;">วัน/เวลา ส่งข้อมูล</th>
+          <th style="text-align:center; width: 5%;">วัน/เวลา booking</th>
         </tr>
         <tr v-bind:key="item.id" v-for="item in filteredResources">
           <div v-if="item.booking_status != 100" style="text-align: center;">
@@ -52,19 +46,13 @@
           <div v-else>
             <td style="text-align: center;">{{ item.tracking }}</td>
           </div>
-          <td style="text-align: center;">{{ item.alias_size }}</td>
-          <td style="text-align: center;">{{ item.size_price }}</td>
-          <td style="text-align: center;">{{ item.bi_parcel_type }}</td>
-          <td style="text-align: center;">{{ item.bi_zipcode }}</td>
+          <td style="text-align: center;">{{ item.alias_size }}/{{ item.size_price }}</td>
+          <td style="text-align: center;">{{ item.bi_parcel_type }}/{{ item.br_parcel_type }}</td>
+          <td style="text-align: center;">{{ item.bi_zipcode }}/{{ item.br_zipcode }}</td>
           <td style="text-align: center;">{{ item.cod_value }}</td>
-          <td style="text-align: center;">{{ item.br_parcel_type }}</td>
           <td style="text-align: center;">{{ item.receiver_name }}</td>
           <td style="text-align: center;">{{ item.phone }}</td>
-          <td style="text-align: center;">{{ item.receiver_address }}</td>
-          <td style="text-align: center;">{{ item.district_name }}</td>
-          <td style="text-align: center;">{{ item.amphur_name }}</td>
-          <td style="text-align: center;">{{ item.province_name }}</td>
-          <td style="text-align: center;">{{ item.br_zipcode }}</td>
+          <td style="text-align: center;">{{ item.receiver_address }} {{ item.district_name }} {{ item.amphur_name }} {{ item.province_name }}</td>
           <td style="text-align: center;">{{ item.status }}</td>
           <td style="text-align: center;">{{ item.sending_date | moment("YYYY-MM-DD HH:mm:ss") }}</td>
           <td style="text-align: center;">{{ item.booking_date | moment("YYYY-MM-DD HH:mm:ss") }}</td>

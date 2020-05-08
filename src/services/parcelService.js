@@ -451,17 +451,15 @@ module.exports = {
       });
     });
   },
-  dailyReport: () => {
-    var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD");
-    var weekAgo = moment().add(-3, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+  dailyReport: (date_check) => {
+    var today = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD");
 
-    var sql = `SELECT b.branch_id,bInfo.branch_name,b.billing_no,br.sender_name,count(bi.tracking) as cTracking,b.status,b.billing_date 
-            FROM billing b 
-            LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no 
-            LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking 
-            LEFT JOIN branch_info bInfo ON b.branch_id=bInfo.branch_id 
-            WHERE DATE(b.billing_date) = ? AND b.status NOT IN ('cancel','SUCCESS')
-            GROUP BY b.member_code,b.branch_id,bInfo.branch_name,b.billing_no,br.sender_name,b.status,b.id,b.billing_date`;
+    var sql = `SELECT b.branch_id,bInfo.branch_name,b.billing_no,br.sender_name,b.status,b.billing_date,br.booking_status
+    FROM billing b 
+    LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no 
+    LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking 
+    LEFT JOIN branch_info bInfo ON b.branch_id=bInfo.branch_id 
+    WHERE DATE(b.billing_date) = ? AND (br.status != 'cancel' OR br.status is null) AND (b.status!='cancel' OR b.status is null)`;
     var data = [today];
 
     return new Promise(function(resolve, reject) {
@@ -472,29 +470,6 @@ module.exports = {
           resolve(false);
         }
       });
-    });
-  },
-  dailyNotBookReport: data => {
-    var sqlCountNotBook = `SELECT bi.billing_no,count(bi.tracking) as cTrackingNotSuccess 
-    FROM billing_item bi
-    LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking 
-    WHERE bi.billing_no =? AND br.booking_status is null AND (br.status !='cancel' OR br.status is null)`;
-    var dataCountNotBook = [data.billing_no];
-    return new Promise(function(resolve, reject) {
-      parcel_connection.query(sqlCountNotBook,dataCountNotBook,(err, results) => {
-          var data_result = {
-            branch_id:data.branch_id,
-            branch_name: data.branch_name,
-            billing_no: data.billing_no,
-            sender_name: data.sender_name,
-            cTracking: data.cTracking,
-            status: data.status,
-            billing_date: data.billing_date,
-            cTrackingNotSuccess: results[0].cTrackingNotSuccess
-          };
-          resolve(data_result);
-        }
-      );
     });
   },
   dailyListTracking: billing_no => {
@@ -520,49 +495,19 @@ module.exports = {
       });
     });
   },
-  summaryBooking: (data) => {
-    var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD");
-    var weekAgo = moment().add(-3, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+  summaryBooking: (date_check) => {
+    var today = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD");
 
-    var sqlNotBooking = `SELECT bi.tracking FROM billing b
-    LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
-    LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
-    WHERE DATE(b.billing_date) = ? AND (br.booking_status != 100 OR br.booking_status is null) AND (br.status != 'cancel' OR br.status is null)`;
-    var dataNotBooking=[today];
-
-    var sqlBooked = `SELECT bi.tracking FROM billing b
-    LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
-    LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
-    WHERE DATE(b.billing_date) = ? AND br.booking_status = 100 AND (br.status != 'cancel' OR br.status is null)`;
-    var dataBooked=[today];
-
-    var sqlTotal = `SELECT bi.tracking FROM billing b
+    var sqlListTracking = `SELECT bi.tracking,br.booking_status FROM billing b
     LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
     LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
     WHERE DATE(b.billing_date) = ? AND (br.status != 'cancel' OR br.status is null)`;
-    var dataTotal=[today];
+    var dataListTracking=[today];
 
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sqlNotBooking,dataNotBooking,(err_not_book, res_not_book) => {
-          if (err_not_book == null) {
-              parcel_connection.query(sqlBooked,dataBooked,(err_booked, res_booked) => {
-                  if (err_booked == null) {
-                      parcel_connection.query(sqlTotal,dataTotal,(err, res_total) => {
-                        if(err==null){
-                            var data = {
-                              cNotBook: res_not_book.length,
-                              cBooked: res_booked.length,
-                              total: res_total.length
-                            };
-                            resolve(data);
-                        } else {
-                          resolve(false);
-                        }
-                      });
-                  } else {
-                    resolve(false);
-                  }
-                });
+      parcel_connection.query(sqlListTracking,dataListTracking,(err, results) => {
+          if (err == null) {
+            resolve(results);
           } else {
             resolve(false);
           }
@@ -589,7 +534,7 @@ module.exports = {
     });
   },
   bookingReport: tracking => {
-    var sql = `SELECT tracking, status, send_record_at, prepare_json, response_record_at, res_json FROM booking_tracking_batch WHERE tracking=? ORDER BY id DESC LIMIT 1`;
+    var sql = `SELECT tracking, status, send_record_at, prepare_json, response_record_at, res_json FROM booking_tracking_batch WHERE tracking=? ORDER BY id DESC LIMIT 10`;
     var data = [tracking];
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql, data, (err, results) => {
@@ -643,49 +588,13 @@ module.exports = {
       });
     });
   },
-  reportBranch: () => {
-    // var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD");
-    var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD");
-    var weekAgo = moment().add(-3, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
-
-    var sql = `SELECT b.branch_id,bInfo.branch_name,count(bi.tracking) as cTracking
-    FROM billing b 
-    LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no 
-    LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking 
-    LEFT JOIN branch_info bInfo ON b.branch_id=bInfo.branch_id 
-    WHERE DATE(b.billing_date) = ? AND (br.status != 'cancel' OR br.status is null)
-    GROUP BY b.branch_id,bInfo.branch_name`;
-    var data = [today];
+  updateStatusManual: (tracking) => {
+    var sql = `UPDATE billing_receiver_info SET status='booked',booking_status=100 WHERE tracking=?;`;
+    var data = [tracking];
 
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql, data, (err, results) => {
-        // console.log(results);
         resolve(results);
-      });
-    });
-  },
-  sumReportBranch: (value) => {
-
-    var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD");
-    var weekAgo = moment().add(-3, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
-
-    var sql = `SELECT count(bi.tracking) as c_not_book FROM billing b
-    LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
-    LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
-    WHERE b.branch_id=? AND DATE(b.billing_date) = ? AND 
-    (br.status != 'cancel' OR br.status is null) AND (br.booking_status != 100 OR br.booking_status is null)`;
-    var data = [value.branch_id,today];
-
-    return new Promise(function(resolve, reject) {
-      parcel_connection.query(sql, data, (err, results) => {
-
-        var data={
-          branch_id:value.branch_id,
-          branch_name:value.branch_name,
-          c_total:value.cTracking,
-          c_not_book:results[0].c_not_book
-        }
-        resolve(data);
       });
     });
   }
