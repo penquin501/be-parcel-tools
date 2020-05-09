@@ -451,7 +451,7 @@ module.exports = {
       });
     });
   },
-  dailyReport: (date_check) => {
+  reportBranch: (date_check) => {
     var today = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD");
 
     var sql = `SELECT b.branch_id,bInfo.branch_name,b.billing_no,br.sender_name,b.status,b.billing_date,br.booking_status
@@ -460,6 +460,27 @@ module.exports = {
     LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking 
     LEFT JOIN branch_info bInfo ON b.branch_id=bInfo.branch_id 
     WHERE DATE(b.billing_date) = ? AND (br.status != 'cancel' OR br.status is null) AND (b.status!='cancel' OR b.status is null)`;
+    var data = [today];
+
+    return new Promise(function(resolve, reject) {
+      parcel_connection.query(sql, data, (err, results) => {
+        if (err === null) {
+          resolve(results);
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
+  dailyReport: (date_check) => {
+    var today = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD");
+
+    var sql = `SELECT b.branch_id,bInfo.branch_name,b.billing_no,br.sender_name,b.status,b.billing_date,br.booking_status
+    FROM billing b 
+    LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no 
+    LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking 
+    LEFT JOIN branch_info bInfo ON b.branch_id=bInfo.branch_id 
+    WHERE DATE(b.billing_date) = ? AND (br.status != 'cancel' OR br.status is null) AND b.status NOT IN ('cancel','SUCCESS')`;
     var data = [today];
 
     return new Promise(function(resolve, reject) {

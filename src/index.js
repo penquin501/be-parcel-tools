@@ -456,7 +456,7 @@ app.post("/confirm/match/data/info", function(req, res) {
 });
 app.get("/report-branch", (req, res) => {
   let date_check = req.query.date_check;
-  parcelServices.dailyReport(date_check).then(function(data) {
+  parcelServices.reportBranch(date_check).then(function(data) {
     if (data == false) {
       res.json([]);
     } else {
