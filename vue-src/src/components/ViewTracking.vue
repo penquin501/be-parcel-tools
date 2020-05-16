@@ -90,7 +90,7 @@ export default {
   methods: {
     getTracking(tracking) {
       window.open(
-        "https://app.my945capture.com/v2/api/parcel-capture/tasks/manual/pick/" +
+        "https://key.my945capture.com/v2/api/parcel-capture/tasks/manual/pick/" +
           tracking
       );
     },

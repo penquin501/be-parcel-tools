@@ -89,7 +89,7 @@ export default {
   methods: {
     getTracking(tracking) {
       window.open(
-        "https://app.my945capture.com/v2/api/parcel-capture/tasks/manual/pick/" +
+        "https://key.my945capture.com/v2/api/parcel-capture/tasks/manual/pick/" +
         // "http://127.0.0.1:8081/v2/api/parcel-capture/tasks/manual/pick/" +
           tracking
       );
@@ -98,7 +98,7 @@ export default {
       const options = { okLabel: "ตกลง" };
       axios
         .get(
-          "https://app.my945capture.com/v2/api/parcel-capture/tasks/tracking/by-phone/" +
+          "https://key.my945capture.com/v2/api/parcel-capture/tasks/tracking/by-phone/" +
           // "http://127.0.0.1:8081/v2/api/parcel-capture/tasks/tracking/by-phone/" +
             this.phoneNumberKey
         )
@@ -116,7 +116,7 @@ export default {
     skipTracking(uid) {
       const options = { okLabel: "ตกลง" };
       axios
-        .get("https://app.my945capture.com/v2/api/parcel-capture/tasks/skip-by-tracking/"+uid)
+        .get("https://key.my945capture.com/v2/api/parcel-capture/tasks/skip-by-tracking/"+uid)
         // .get("http://127.0.0.1:8081/v2/api/parcel-capture/tasks/skip-by-tracking/"+uid)
         .then(response => {
           if(response.data.status=='ok' && response.data.result.nModified===1){

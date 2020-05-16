@@ -81,14 +81,16 @@ export default {
     getTracking(uid) {
       window.open(
         // "https://app.my945capture.com/v2/api/parcel-capture/tasks/manual/pick/" +
-        "https://crowdkey-uat.945holding.dev/parcel-capture/fill/" + uid
+        // "https://key.my945capture.com/v2/api/parcel-capture/tasks/manual/pick/" +tracking
+        "https://key.my945capture.com/parcel-capture/fill/" + uid
       );
     },
     getListSkipTracking() {
       const options = { okLabel: "ตกลง" };
       axios
         .get(
-          "https://app.my945capture.com/v2/api/parcel-capture/tasks/list-priority-reason"
+          // "https://app.my945capture.com/v2/api/parcel-capture/tasks/list-priority-reason"
+          "https://key.my945capture.com/v2/api/parcel-capture/tasks/list-priority-reason"
         )
         .then(response => {
           if (response.data.status == "ok") {

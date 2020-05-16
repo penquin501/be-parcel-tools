@@ -86,7 +86,7 @@ export default {
     getlistPhoneNumber() {
       const options = { okLabel: "ตกลง" };
         axios
-          .get("https://app.my945capture.com/v2/api/parcel-capture/tasks/list/phone/number")
+          .get("https://key.my945capture.com/v2/api/parcel-capture/tasks/list/phone/number")
           // .get("http://127.0.0.1:8081/v2/api/parcel-capture/tasks/list/phone/number")
           .then(response => {
             if (response.data.status=='ok') {
