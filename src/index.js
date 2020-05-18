@@ -309,6 +309,26 @@ function send_api(data,billing_no,reason,remark,user){
     });
   })
 }
+
+app.post("/update/sender-info", function(req, res) {
+  let billing_no = req.body.billing_no;
+  let member_code = req.body.member_code;
+  let sender_name = req.body.sender_name;
+  let sender_phone = req.body.sender_phone;
+  let sender_address = req.body.sender_address;
+  let reason = req.body.reason;
+  let remark = req.body.remark;
+  let module_name = "cancel_billing";
+  let user = req.body.user;
+  
+  parcelServices.selectTrackingToCheck(branch_id).then(function(data) {
+    res.json({
+      status: "SUCCESS",
+      tracking: data
+    });
+  });
+});
+
 app.post("/update/receiver/info", function(req, res) {
   let tracking = req.body.tracking;
   let billing_no = req.body.billing_no;

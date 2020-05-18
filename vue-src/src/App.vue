@@ -47,6 +47,7 @@
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                   <router-link to="/tools"><a v-on:click="toView" class="dropdown-item">เครื่องมือทั่วไป</a></router-link>
                   <router-link to="/cancelbillno"><a v-on:click="toView" class="dropdown-item">ยกเลิกเลขที่บิล</a></router-link>
+                  <!-- <router-link to="/change-member"><a v-on:click="toView" class="dropdown-item">เปลี่ยนแปลง member</a></router-link> -->
                   <router-link to="/listtracking"><a v-on:click="toView" class="dropdown-item">QL Checker</a></router-link>
                 </div>
               </li>

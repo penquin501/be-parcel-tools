@@ -94,6 +94,12 @@ const routes = [
         component: () => import("../components/AddBranchInfo.vue"),
         hidden: true
     },
+    {
+        path: "/change-member",
+        name: 'ChangeMember',
+        component: () => import("../components/ChangeMember.vue"),
+        hidden: true
+    },
 ];
 
 export default new Router({

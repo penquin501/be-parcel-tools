@@ -215,14 +215,10 @@ export default {
         .then(response => {
           if (response.data.status == "SUCCESS") {
             this.billingInfo = response.data.billingInfo;
-            this.billing_no = this.billingInfo[0].billing_no
-              ? this.billingInfo[0].billing_no
-              : "";
+            this.billing_no = this.billingInfo[0].billing_no ? this.billingInfo[0].billing_no: "";
             this.tracking = this.billingInfo[0].tracking;
             this.bi_parcel_type = this.billingInfo[0].bi_parcel_type;
-            this.size_id = this.billingInfo[0].alias_size
-              ? this.billingInfo[0].alias_size.toUpperCase()
-              : "";
+            this.size_id = this.billingInfo[0].alias_size ? this.billingInfo[0].alias_size.toUpperCase() : "";
             this.size_price = this.billingInfo[0].size_price;
             this.cod_value = this.billingInfo[0].cod_value;
             this.bi_zipcode = this.billingInfo[0].bi_zipcode;
@@ -240,12 +236,7 @@ export default {
 
             this.previous_value = this.billingInfo;
 
-            this.location =
-              this.billingInfo[0].district_name +
-              " " +
-              this.billingInfo[0].amphur_name +
-              " " +
-              this.billingInfo[0].province_name;
+            this.location =this.billingInfo[0].district_name +" " + this.billingInfo[0].amphur_name + " " + this.billingInfo[0].province_name;
             this.br_zipcode = this.billingInfo[0].br_zipcode;
             this.br_parcel_type = this.billingInfo[0].br_parcel_type;
 

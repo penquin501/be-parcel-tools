@@ -91,6 +91,7 @@ export default {
   },
   methods: {
     getBilingNo() {
+      this.getSummary();
       const options = { okLabel: "ตกลง" };
       axios.get("/daily-report?date_check="+this.datePick)
       .then(response => {
@@ -99,10 +100,10 @@ export default {
             this.dataBilling=[];
           } else {
             this.dataBilling = response.data.result;
-            this.summaryBilling=response.data.summary;
-            this.cNotBook = this.summaryBilling.sumNotBooked;
-            this.cBooked = this.summaryBilling.sumBooked;
-            this.total = this.summaryBilling.total;
+            // this.summaryBilling=response.data.summary;
+            // this.cNotBook = this.summaryBilling.sumNotBooked;
+            // this.cBooked = this.summaryBilling.sumBooked;
+            // this.total = this.summaryBilling.total;
           }
         })
         .catch(function(error) {
@@ -111,10 +112,14 @@ export default {
     },
     getSummary() {
       const options = { okLabel: "ตกลง" };
-      axios.get("/summary-booking").then(response => {
+      axios.get("/summary-booking?date_check="+this.datePick)
+      .then(response => {
           if (response.data.length == 0) {
             this.$dialogs.alert("ไม่พบข้อมูล", options);
-            this.dataSum=[];
+            // this.dataSum=[];
+             this.cNotBook = 0;
+            this.cBooked = 0;
+            this.total = 0;
           } else {
             this.cNotBook = response.data.cNotBook;
             this.cBooked = response.data.cBooked;

@@ -399,14 +399,11 @@ module.exports = {
   getDailyData: date_check => {
     var current_date = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD");
     console.log("getDailyData", current_date);
-    var sqlBilling = `SELECT bi.tracking,bi.billing_no,bi.cod_value,br.receiver_name,br.phone,br.receiver_address,d.DISTRICT_NAME,a.AMPHUR_NAME,p.PROVINCE_NAME,br.zipcode
+    var sqlBilling = `SELECT bi.tracking,bi.billing_no,bi.cod_value,br.receiver_name,br.phone,br.receiver_address,br.district_name,br.amphur_name,br.province_name,br.zipcode
     FROM billing b
     LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
     LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
-    LEFT JOIN postinfo_district d ON br.district_id=d.DISTRICT_ID AND br.amphur_id=d.AMPHUR_ID AND br.province_id=d.PROVINCE_ID
-    LEFT JOIN postinfo_amphur a ON br.amphur_id=a.AMPHUR_ID
-    LEFT JOIN postinfo_province p ON br.province_id=p.PROVINCE_ID
-    WHERE Date(b.billing_date)=?`;
+    WHERE Date(b.billing_date)=? AND (br.booking_status != 100 OR br.booking_status is null)`;
     var data = [current_date];
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sqlBilling, data, (error, results, fields) => {
@@ -427,13 +424,10 @@ module.exports = {
   getDailyDataUnbook: date_check => {
     // var current_date = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD", true);
     var current_date = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD");
-    var sqlBilling = `SELECT bi.tracking,bi.billing_no,bi.cod_value,br.receiver_name,br.phone,br.receiver_address,d.DISTRICT_NAME,a.AMPHUR_NAME,p.PROVINCE_NAME,br.zipcode
+    var sqlBilling = `SELECT bi.tracking,bi.billing_no,bi.cod_value,br.receiver_name,br.phone,br.receiver_address,br.district_name,br.amphur_name,br.province_name,br.zipcode
     FROM billing b
     LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
     LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
-    LEFT JOIN postinfo_district d ON br.district_id=d.DISTRICT_ID AND br.amphur_id=d.AMPHUR_ID AND br.province_id=d.PROVINCE_ID
-    LEFT JOIN postinfo_amphur a ON br.amphur_id=a.AMPHUR_ID
-    LEFT JOIN postinfo_province p ON br.province_id=p.PROVINCE_ID
     WHERE Date(b.billing_date)=? AND (br.booking_status != 100 OR br.booking_status is null)`;
     var data = [current_date];
     return new Promise(function(resolve, reject) {
