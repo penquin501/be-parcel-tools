@@ -350,9 +350,32 @@ app.get("/tools/list/tracking", function(req, res) {
     if (data.length == 0 || data == false) {
       res.json({ status: "ERR_NO_TRACKING" });
     } else {
+      branch_info = {}
+      
+      data.forEach(value => {
+
+        if(!(value.branch_id in branch_info)){
+          branch_info[String(value.branch_id)]=[];
+        }
+        branch_info[String(value.branch_id)].push({
+          branch_name: value.branch_name,
+          tracking:value.tracking
+        });
+
+      });
+
+      result=[];
+      for (const [key, items] of Object.entries(branch_info)) {
+        var dataBranch={
+          branch_id:key,
+          branch_name:items[0].branch_name,
+          total: items.length
+        }
+        result.push(dataBranch);
+      }
       res.json({
         status: "SUCCESS",
-        listTracking: data
+        listTracking: result
       });
     }
   });

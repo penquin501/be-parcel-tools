@@ -100,14 +100,14 @@ module.exports = {
   },
   getListTrackingNotMatch: () => {
     let sql =
-      `SELECT bInfo.branch_name,b.branch_id,count(bi.tracking) as cTracking FROM billing b 
-      JOIN billing_item bi ON b.billing_no=bi.billing_no 
-      LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking 
-      LEFT JOIN branch_info bInfo ON b.branch_id=bInfo.branch_id 
-      WHERE (bi.zipcode<>br.zipcode OR bi.parcel_type<>br.parcel_type OR 
-        (bi.parcel_type='COD' AND bi.cod_value=0) OR 
-      (bi.parcel_type='NORMAL' AND bi.cod_value > 0)) AND (br.status not in ('cancel','SUCCESS','success') OR br.status is null) 
-      GROUP by b.branch_id,bInfo.branch_name`;
+      `SELECT bInfo.branch_name,b.branch_id,bi.tracking 
+            FROM parcel.billing b 
+            JOIN parcel.billing_item bi ON b.billing_no=bi.billing_no 
+            JOIN parcel.billing_receiver_info br ON bi.tracking=br.tracking 
+            JOIN parcel.branch_info bInfo ON b.branch_id=bInfo.branch_id 
+            WHERE (bi.zipcode<>br.zipcode OR bi.parcel_type<>br.parcel_type OR 
+              (bi.parcel_type='COD' AND bi.cod_value=0) OR 
+            (bi.parcel_type='NORMAL' AND bi.cod_value > 0)) AND (br.status not in ('cancel','SUCCESS','success') OR br.status is null)`;
 
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql, (error, results, fields) => {
