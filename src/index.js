@@ -745,8 +745,8 @@ app.get("/get-excel-file", function(req, res) {
         ws.cell(i + 2, 2).string(data[i].receiver_name).style(cellBgStyle);
         ws.cell(i + 2, 3).string(data[i].receiver_address).style(cellBgStyle);
         ws.cell(i + 2, 4).string("").style(cellBgStyle);
-        ws.cell(i + 2, 5).string(data[i].DISTRICT_NAME).style(cellBgStyle);
-        ws.cell(i + 2, 6).string(data[i].PROVINCE_NAME).style(cellBgStyle);
+        ws.cell(i + 2, 5).string(data[i].district_name).style(cellBgStyle);
+        ws.cell(i + 2, 6).string(data[i].province_name).style(cellBgStyle);
         ws.cell(i + 2, 7).string(data[i].zipcode).style(cellBgStyle);
         ws.cell(i + 2, 8).string(data[i].phone).style(cellBgStyle);
         ws.cell(i + 2, 9).number(data[i].cod_value).style(cellBgStyle);
@@ -851,8 +851,8 @@ app.get("/get-excel-file-unbook", function(req, res) {
         ws.cell(i + 2, 2).string(data[i].receiver_name).style(cellBgStyle);
         ws.cell(i + 2, 3).string(data[i].receiver_address).style(cellBgStyle);
         ws.cell(i + 2, 4).string("").style(cellBgStyle);
-        ws.cell(i + 2, 5).string(data[i].DISTRICT_NAME).style(cellBgStyle);
-        ws.cell(i + 2, 6).string(data[i].PROVINCE_NAME).style(cellBgStyle);
+        ws.cell(i + 2, 5).string(data[i].district_name).style(cellBgStyle);
+        ws.cell(i + 2, 6).string(data[i].province_name).style(cellBgStyle);
         ws.cell(i + 2, 7).string(data[i].zipcode).style(cellBgStyle);
         ws.cell(i + 2, 8).string(data[i].phone).style(cellBgStyle);
         ws.cell(i + 2, 9).number(data[i].cod_value).style(cellBgStyle);

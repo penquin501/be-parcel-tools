@@ -397,14 +397,16 @@ module.exports = {
     });
   },
   getDailyData: date_check => {
-    var current_date = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD");
-    console.log("getDailyData", current_date);
+    var current_date = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+    var nextDay = moment(current_date).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+
+    console.log("getDailyData", current_date,nextDay);
     var sqlBilling = `SELECT bi.tracking,bi.billing_no,bi.cod_value,br.receiver_name,br.phone,br.receiver_address,br.district_name,br.amphur_name,br.province_name,br.zipcode
     FROM billing b
-    LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
-    LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
-    WHERE Date(b.billing_date)=? AND (br.booking_status != 100 OR br.booking_status is null)`;
-    var data = [current_date];
+    JOIN billing_item bi ON b.billing_no=bi.billing_no
+    JOIN billing_receiver_info br ON bi.tracking=br.tracking
+    WHERE (b.billing_date>=? AND b.billing_date<?)`;
+    var data = [current_date,nextDay];
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sqlBilling, data, (error, results, fields) => {
         console.log(error);
@@ -422,14 +424,15 @@ module.exports = {
     });
   },
   getDailyDataUnbook: date_check => {
-    // var current_date = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD", true);
-    var current_date = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD");
+    var current_date = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+    var nextDay = moment(current_date).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+
     var sqlBilling = `SELECT bi.tracking,bi.billing_no,bi.cod_value,br.receiver_name,br.phone,br.receiver_address,br.district_name,br.amphur_name,br.province_name,br.zipcode
     FROM billing b
-    LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
-    LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
-    WHERE Date(b.billing_date)=? AND (br.booking_status != 100 OR br.booking_status is null)`;
-    var data = [current_date];
+    JOIN billing_item bi ON b.billing_no=bi.billing_no
+    JOIN billing_receiver_info br ON bi.tracking=br.tracking
+    WHERE (b.billing_date>=? AND b.billing_date<?) AND (br.booking_status != 100 OR br.booking_status is null)`;
+    var data = [current_date,nextDay];
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sqlBilling, data, (error, results, fields) => {
         if (error === null) {
@@ -446,15 +449,16 @@ module.exports = {
     });
   },
   reportBranch: (date_check) => {
-    var today = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD");
+    var current_date = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+    var nextDay = moment(current_date).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
     var sql = `SELECT b.branch_id,bInfo.branch_name,b.billing_no,br.sender_name,b.status,b.billing_date,br.booking_status
     FROM billing b 
-    LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no 
-    LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking 
-    LEFT JOIN branch_info bInfo ON b.branch_id=bInfo.branch_id 
-    WHERE DATE(b.billing_date) = ? AND (br.status != 'cancel' OR br.status is null) AND (b.status!='cancel' OR b.status is null)`;
-    var data = [today];
+    JOIN billing_item bi ON b.billing_no=bi.billing_no 
+    JOIN billing_receiver_info br ON bi.tracking=br.tracking 
+    JOIN branch_info bInfo ON b.branch_id=bInfo.branch_id 
+    WHERE (b.billing_date>=? AND b.billing_date<?) AND (br.status != 'cancel' OR br.status is null) AND (b.status!='cancel' OR b.status is null)`;
+    var data = [current_date,nextDay];
 
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql, data, (err, results) => {
@@ -467,15 +471,16 @@ module.exports = {
     });
   },
   dailyReport: (date_check) => {
-    var today = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD");
+    var current_date = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+    var nextDay = moment(current_date).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
     var sql = `SELECT b.branch_id,bInfo.branch_name,b.billing_no,br.sender_name,b.status,b.billing_date,br.booking_status
     FROM billing b 
-    LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no 
-    LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking 
-    LEFT JOIN branch_info bInfo ON b.branch_id=bInfo.branch_id 
-    WHERE DATE(b.billing_date) = ? AND (br.status != 'cancel' OR br.status is null) AND b.status NOT IN ('cancel','SUCCESS')`;
-    var data = [today];
+    JOIN billing_item bi ON b.billing_no=bi.billing_no 
+    JOIN billing_receiver_info br ON bi.tracking=br.tracking 
+    JOIN branch_info bInfo ON b.branch_id=bInfo.branch_id 
+    WHERE (b.billing_date>=? AND b.billing_date<?) AND (br.status != 'cancel' OR br.status is null) AND b.status NOT IN ('cancel','SUCCESS')`;
+    var data = [current_date,nextDay];
 
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql, data, (err, results) => {
@@ -492,8 +497,8 @@ module.exports = {
     br.parcel_type as br_parcel_type,br.sender_name,br.sender_phone,br.sender_address,br.receiver_name,br.phone,br.receiver_address,
     br.district_name,br.amphur_name,br.province_name,br.zipcode as br_zipcode,br.status,br.sending_date,br.booking_status,br.booking_date,bi.source 
     FROM billing_item bi 
-    LEFT JOIN billing_receiver_info br ON bi.tracking = br.tracking 
-    LEFT JOIN size_info s ON bi.size_id = s.size_id
+    JOIN billing_receiver_info br ON bi.tracking = br.tracking 
+    JOIN size_info s ON bi.size_id = s.size_id
     WHERE bi.billing_no=?`;
     var data = [billing_no];
     return new Promise(function(resolve, reject) {
@@ -511,13 +516,14 @@ module.exports = {
     });
   },
   summaryBooking: (date_check) => {
-    var today = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD");
+    var current_date = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+    var nextDay = moment(current_date).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
     var sqlListTracking = `SELECT bi.tracking,br.booking_status FROM billing b
     LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
     LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
-    WHERE DATE(b.billing_date) = ? AND (br.status != 'cancel' OR br.status is null)`;
-    var dataListTracking=[today];
+    WHERE (b.billing_date>=? AND b.billing_date<?) AND (br.status != 'cancel' OR br.status is null)`;
+    var dataListTracking=[current_date,nextDay];
 
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sqlListTracking,dataListTracking,(err, results) => {
@@ -531,9 +537,10 @@ module.exports = {
   },
   listErrorMaker: () => {
     var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+    var nextDay = moment(current_date).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
-    var sql = "SELECT branch_id, user_id, billing_no, error_code, error_maker, cs_name, tracking, operation_key, record_date FROM log_ql_checker WHERE Date(record_date) >= ?";
-    var data = [today];
+    var sql = "SELECT branch_id, user_id, billing_no, error_code, error_maker, cs_name, tracking, operation_key, record_date FROM log_ql_checker WHERE (record_date >= ? AND record_date < ?)";
+    var data = [today,nextDay];
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql, data, (err, results) => {
         if (err === null) {
@@ -586,8 +593,10 @@ module.exports = {
   log_daily_tool: date_check => {
 
     var date_check = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD");
-    var sql ="SELECT billing_no, time_to_system, previous_value, current_value,reason, module_name, user, ref,remark FROM log_parcel_tool WHERE Date(time_to_system)=?";
-    var data = [date_check];
+    var nextDay = moment(current_date).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+
+    var sql ="SELECT billing_no, time_to_system, previous_value, current_value,reason, module_name, user, ref,remark FROM log_parcel_tool WHERE (time_to_system>=? AND time_to_system<?)";
+    var data = [date_check,nextDay];
 
     return new Promise(function(resolve, reject) {
       parcel_connection.query(sql, data, (err, results) => {
@@ -604,7 +613,7 @@ module.exports = {
     });
   },
   updateStatusManual: (tracking) => {
-    var sql = `UPDATE billing_receiver_info SET status='booked',booking_status=100 WHERE tracking=?;`;
+    var sql = `UPDATE billing_receiver_info SET status='booked',booking_status=100 WHERE tracking=?`;
     var data = [tracking];
 
     return new Promise(function(resolve, reject) {
