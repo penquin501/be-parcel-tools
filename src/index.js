@@ -691,6 +691,38 @@ app.get("/log-daily-tool", (req, res) => {
     }
   });
 });
+/* extra tools */
+app.get("/check-data-item", function(req, res) {
+  let tracking = req.query.tracking;
+  parcelServices.selectDataItem(tracking).then(function(data) {
+    if(!data){
+      res.json({
+        status: "error_not_found"
+      });
+    } else {
+      res.json({
+        status: "SUCCESS",
+        data: data
+      });
+    }
+  });
+});
+
+app.get("/check-data-receiver", function(req, res) {
+  let tracking = req.query.tracking;
+  parcelServices.selectDataReceiver(tracking).then(function(data) {
+    if(!data){
+      res.json({
+        status: "error_not_found"
+      });
+    } else {
+      res.json({
+        status: "SUCCESS",
+        data: data
+      });
+    }
+  });
+});
 
 var smtp = {
   pool: true,

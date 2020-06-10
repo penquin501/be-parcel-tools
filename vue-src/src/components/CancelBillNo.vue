@@ -26,9 +26,9 @@
               </tr>
               <tr>
                 <td style="width: 15%;">จำนวนรายการ:</td>
-                <td style="width: 25%;">{{ countTracking.cTracking }}</td>
+                <td style="width: 25%;">{{ countTracking }}</td>
                 <td style="width: 10%;">ยอดรวมบิล:</td>
-                <td style="width: 25%;">{{ countTracking.sTracking }}</td>
+                <td style="width: 25%;">{{ sTracking }}</td>
               </tr>
               <tr>
                 <td style="width: 15%;">สถานะ:</td>
@@ -48,9 +48,9 @@
               <th style="text-align:center; width: 10%;">ราคาพัสดุ</th>
               <th style="text-align:center; width: 10%">ประเภทพัสดุ</th>
               <th style="text-align:center; width: 10%;">ยอด COD</th>
-              <th style="text-align:center; width: 25%;">ชื่อผู้รับ</th>
-              <th style="text-align:center; width: 10%">เบอร์ผู้รับ</th>
-              <th style="text-align:center; width: 10%">สถานะ</th>
+              <th style="text-align:center; width: 30%;">ชื่อผู้รับ</th>
+              <th style="text-align:center; width: 5%">เบอร์ผู้รับ</th>
+              <th style="text-align:center; width: 5%">สถานะ</th>
               <th style="text-align:center; width: 5%">เลือก</th>
             </tr>
             <tr v-for="(item) in billingItem" v-bind:key="item.id">
@@ -116,7 +116,8 @@ export default {
     return {
       billingInput: "",
       billingNo: {},
-      countTracking: {},
+      countTracking: 0,
+      sTracking:0,
       billingItem: [],
       previous_value: {},
       billingInfo: {},
@@ -152,7 +153,8 @@ export default {
               this.billingInfo = pre_data.billingNo;
               this.billingItem = pre_data.billingItem;
               this.countTracking = pre_data.countTracking;
-
+              this.sTracking=pre_data.countTracking;
+              
               this.sender_name = this.billingItem[0].sender_name;
 
               this.billing_no=this.billingInfo.billing_no;
@@ -185,7 +187,8 @@ export default {
     resetData(){
       this.billingInput="";
       this.billingNo={};
-      this.countTracking= {};
+      this.countTracking= 0;
+      this.sTracking= 0;
       this.billingItem=[];
       this.previous_value= {};
       this.billingInfo= {};

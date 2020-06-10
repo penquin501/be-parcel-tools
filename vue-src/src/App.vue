@@ -133,12 +133,8 @@ export default {
       axios
         .post("https://945cs.work/login_api", queryString.stringify(dataLogin))
         .then(response => {
-          console.log(response.data);
           if (response.data.status) {
-            localStorage.setItem(
-              "dataLoginParcelTool",
-              JSON.stringify(dataLogin)
-            );
+            localStorage.setItem("dataLoginParcelTool",JSON.stringify(dataLogin));
             this.$session.set("session_username", response.data.name);
             this.state = "blank";
             this.role = response.data.role;
