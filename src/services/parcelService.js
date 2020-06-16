@@ -1,4 +1,4 @@
-const parcel_connection = require("../env/parceldb.js");
+// const parcel_connection = require("../env/parceldb.js");
 const bodyParser = require("body-parser");
 const request = require("request");
 const moment = require("moment");
@@ -6,7 +6,7 @@ const m = require("moment-timezone");
 moment.locale("th");
 
 module.exports = {
-  getBillingItemTracking: tracking => {
+  getBillingItemTracking: (db,tracking) => {
     let sql =
       "SELECT bi.billing_no,bi.tracking,bi.size_id,s.alias_size,bi.size_price,bi.parcel_type as bi_parcel_type, bi.cod_value,bi.zipcode as bi_zipcode," +
       "br.parcel_type as br_parcel_type,br.sender_name,br.sender_phone,br.sender_address,br.receiver_name,br.phone,br.receiver_address," +
@@ -19,7 +19,7 @@ module.exports = {
       "WHERE bi.tracking=?";
     let data = [tracking];
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sql, data, (error, results, fields) => {
+      db.query(sql, data, (error, results, fields) => {
         if (error == null) {
           if (results.length == 0) {
             resolve(false);
@@ -33,12 +33,12 @@ module.exports = {
       });
     });
   },
-  getTrackingImgUrl: tracking => {
+  getTrackingImgUrl: (db,tracking) => {
     let sql = "SELECT image_url FROM parcel_capture_data WHERE barcode=?";
     let data = [tracking];
 
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sql, data, (error, results, fields) => {
+      db.query(sql, data, (error, results, fields) => {
         if (error === null) {
           if (results.length == 0) {
             resolve(false);
@@ -52,7 +52,7 @@ module.exports = {
       });
     });
   },
-  getBillingInfo: billing => {
+  getBillingInfo: (db,billing) => {
     let sql = `SELECT b.member_code,b.billing_date,b.billing_no,b.branch_id,bInfo.branch_name,b.status 
     FROM billing b
     LEFT JOIN branch_info bInfo ON b.branch_id=bInfo.branch_id
@@ -71,16 +71,16 @@ module.exports = {
     let dataItem = [billing];
 
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sql, data, (err, results) => {
+      db.query(sql, data, (err, results) => {
         if (err === null) {
           if (results.length <= 0) {
             resolve(false);
           } else {
-            parcel_connection.query(sqlItem, dataItem, (err, resultsItem) => {
+            db.query(sqlItem, dataItem, (err, resultsItem) => {
               if (resultsItem.length <= 0) {
                 resolve(false);
               } else {
-                // parcel_connection.query(sqlCountItem,dataCountItem,(err, resultsCountItem) => {
+                // db.query(sqlCountItem,dataCountItem,(err, resultsCountItem) => {
                 var sTracking = 0;
                 resultsItem.forEach(item => {
                   sTracking += item.size_price;
@@ -103,7 +103,7 @@ module.exports = {
       });
     });
   },
-  getListTrackingNotMatch: () => {
+  getListTrackingNotMatch: (db) => {
     let sql = `SELECT bInfo.branch_name,b.branch_id,bi.tracking 
             FROM billing b 
             JOIN billing_item bi ON b.billing_no=bi.billing_no 
@@ -114,7 +114,7 @@ module.exports = {
             (bi.parcel_type='NORMAL' AND bi.cod_value > 0)) AND (br.status not in ('cancel','SUCCESS','success') OR br.status is null)`;
 
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sql, (error, results, fields) => {
+      db.query(sql, (error, results, fields) => {
         if (error === null) {
           if (results.length == 0) {
             resolve(false);
@@ -128,7 +128,7 @@ module.exports = {
       });
     });
   },
-  selectTrackingToCheck: branch_id => {
+  selectTrackingToCheck: (db,branch_id) => {
     let sql = `SELECT bi.tracking FROM billing b 
       Left JOIN billing_item bi ON b.billing_no=bi.billing_no 
       LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking 
@@ -138,7 +138,7 @@ module.exports = {
     let data = [branch_id];
 
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sql, data, (error, results, fields) => {
+      db.query(sql, data, (error, results, fields) => {
         if (error === null) {
           if (results.length == 0) {
             resolve(false);
@@ -152,12 +152,12 @@ module.exports = {
       });
     });
   },
-  selectBillingInfo: billing_no => {
+  selectBillingInfo: (db,billing_no) => {
     let sql = "SELECT billing_date,total FROM billing WHERE billing_no=?";
     let data = [billing_no];
 
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sql, data, (error, results, fields) => {
+      db.query(sql, data, (error, results, fields) => {
         if (error === null) {
           resolve(results);
         }
@@ -165,11 +165,11 @@ module.exports = {
     });
   },
 
-  parcelSizeList: zone => {
+  parcelSizeList: (db,zone) => {
     let sql =
       "SELECT alias_size FROM size_info GROUP BY alias_size ORDER BY min(parcel_price) ASC";
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sql, (error, results, fields) => {
+      db.query(sql, (error, results, fields) => {
         if (error === null) {
           if (results.length == 0) {
             resolve(false);
@@ -183,7 +183,7 @@ module.exports = {
       });
     });
   },
-  updateStatusBilling: billing_no => {
+  updateStatusBilling: (db,billing_no) => {
     let updateBilling = "UPDATE billing SET status='cancel' WHERE billing_no=?";
 
     let selectBillingItem =
@@ -195,33 +195,22 @@ module.exports = {
     let dataBilling = [billing_no];
 
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(
-        updateBilling,
-        dataBilling,
-        (error, results, fields) => {}
-      );
-      parcel_connection.query(
-        selectBillingItem,
-        dataBilling,
-        (error, resListTracking, fields) => {
+      db.query(updateBilling,dataBilling,(error, results, fields) => {});
+      db.query(selectBillingItem,dataBilling,(error, resListTracking, fields) => {
           for (i = 0; i < resListTracking.length; i++) {
             let dataTracking = [resListTracking[i].tracking];
-            parcel_connection.query(
-              updateStatusReceiver,
-              dataTracking,
-              (error, results2, fields) => {}
-            );
+            db.query(updateStatusReceiver,dataTracking,(error, results2, fields) => {});
           }
         }
       );
     });
   },
-  updateStatusReceiver: tracking => {
+  updateStatusReceiver: (db,tracking) => {
     return new Promise(function(resolve, reject) {
       let sql =
         "UPDATE billing_receiver_info SET status='cancel' WHERE tracking=?";
       let data = [tracking];
-      parcel_connection.query(sql, data, (error, results, fields) => {
+      db.query(sql, data, (error, results, fields) => {
         if (error === null) {
           if (results.affectedRows > 0) {
             resolve(tracking);
@@ -234,13 +223,13 @@ module.exports = {
       });
     });
   },
-  selectParcelSize: billingNo => {
+  selectParcelSize: (db,billingNo) => {
     return new Promise(function(resolve, reject) {
       let sql = `SELECT b.size_price FROM billing_item b 
         JOIN billing_receiver_info br ON b.tracking=br.tracking
         WHERE b.billing_no=? AND (br.status!='cancel' OR br.status is null)`;
       let data = [billingNo];
-      parcel_connection.query(sql, data, (error, results, fields) => {
+      db.query(sql, data, (error, results, fields) => {
         if (results.length <= 0) {
           resolve(0);
         } else {
@@ -249,7 +238,7 @@ module.exports = {
       });
     });
   },
-  updateBillingInfo: (current_total, billing_no) => {
+  updateBillingInfo: (db,current_total, billing_no) => {
     let sqlTotal = "UPDATE billing SET total=? WHERE billing_no=?";
     let dataTotal = [current_total, billing_no];
 
@@ -257,35 +246,27 @@ module.exports = {
     let dataStatus = ["cancel", billing_no];
     return new Promise(function(resolve, reject) {
       if (current_total == 0) {
-        parcel_connection.query(
-          sqlStatus,
-          dataStatus,
-          (error, results, fields) => {
+        db.query(sqlStatus,dataStatus,(error, results, fields) => {
             resolve(results);
-          }
-        );
+          });
       } else {
-        parcel_connection.query(
-          sqlTotal,
-          dataTotal,
-          (error, results, fields) => {
+        db.query(sqlTotal,dataTotal,(error, results, fields) => {
             resolve(results);
-          }
-        );
+          });
       }
     });
   },
-  updateReceiverInfo: (tracking, receiver_name, phone, address) => {
+  updateReceiverInfo: (db,tracking, receiver_name, phone, address) => {
     let sql =
       "UPDATE billing_receiver_info SET receiver_name=?,phone=?,receiver_address=? WHERE tracking=?";
     let data = [receiver_name, phone, address, tracking];
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sql, data, (error, results, fields) => {
+      db.query(sql, data, (error, results, fields) => {
         resolve(results);
       });
     });
   },
-  addressInfo: district_code => {
+  addressInfo: (db,district_code) => {
     let sql = `SELECT d.DISTRICT_ID,d.DISTRICT_NAME,a.AMPHUR_ID,a.AMPHUR_NAME,p.PROVINCE_ID,p.PROVINCE_NAME,z.zipcode 
       FROM postinfo_district d 
       JOIN postinfo_zipcodes z ON d.DISTRICT_CODE=z.district_code 
@@ -294,7 +275,7 @@ module.exports = {
       WHERE d.DISTRICT_CODE=?`;
     let data = [district_code];
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sql, data, (error, results, fields) => {
+      db.query(sql, data, (error, results, fields) => {
         if (error === null) {
           resolve(results);
         } else {
@@ -304,34 +285,10 @@ module.exports = {
       });
     });
   },
-  updateCheckerInfo: (
-    billing_no,
-    tracking,
-    size_id,
-    size_price,
-    cod_value,
-    receiver_name,
-    phone,
-    address,
-    parcel_type,
-    district_id,
-    district_name,
-    amphur_id,
-    amphur_name,
-    province_id,
-    province_name,
-    zipcode
-  ) => {
+  updateCheckerInfo: (db,billing_no,tracking,size_id,size_price,cod_value,receiver_name,phone,address,parcel_type,district_id,district_name,amphur_id,amphur_name,province_id,province_name,zipcode) => {
     let sqlBillingItem =
       "UPDATE billing_item SET zipcode=?,size_id=?,size_price=?,parcel_type=?,cod_value=? WHERE tracking=?";
-    let dataBillingItem = [
-      zipcode,
-      size_id,
-      size_price,
-      parcel_type,
-      cod_value,
-      tracking
-    ];
+    let dataBillingItem = [zipcode,size_id,size_price,parcel_type,cod_value,tracking];
 
     let sqlReceiver =
       "UPDATE billing_receiver_info SET parcel_type=?,receiver_name=?,phone=?,receiver_address=?,district_id=?,district_name=?,amphur_id=?,amphur_name=?,province_id=?,province_name=?,zipcode=? WHERE tracking=?";
@@ -342,13 +299,13 @@ module.exports = {
 
     let total = 0;
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sqlBillingItem,dataBillingItem,(error1, resultsItem, fields) => {
+      db.query(sqlBillingItem,dataBillingItem,(error1, resultsItem, fields) => {
           if (error1 === null) {
             if (resultsItem.affectedRows > 0) {
-              parcel_connection.query(sqlReceiver,dataReceiver,(error2, resultsReceiver, fields) => {
+              db.query(sqlReceiver,dataReceiver,(error2, resultsReceiver, fields) => {
                   if (error2 === null) {
                     if (resultsReceiver.affectedRows > 0) {
-                      parcel_connection.query(sqlSizeItem,dataSizeItem,(error, resultsSizeItem, fields) => {
+                      db.query(sqlSizeItem,dataSizeItem,(error, resultsSizeItem, fields) => {
                           for (i = 0; i < resultsSizeItem.length; i++) {
                             total += resultsSizeItem[i].size_price;
                           }
@@ -377,20 +334,20 @@ module.exports = {
       );
     });
   },
-  updateBilling: (billing_no, current_total) => {
+  updateBilling: (db,billing_no, current_total) => {
     let sql = "UPDATE billing SET total=? WHERE billing_no=?";
     let data = [current_total, billing_no];
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sql, data, (error, results, fields) => {
+      db.query(sql, data, (error, results, fields) => {
         resolve(results);
       });
     });
   },
-  saveLogQlChecker: (branch_id,user_id,billing_no,error_code,error_maker,cs_name,tracking,operation_key) => {
+  saveLogQlChecker: (db,branch_id,user_id,billing_no,error_code,error_maker,cs_name,tracking,operation_key) => {
     let sql = `INSERT INTO log_ql_checker(branch_id, user_id, billing_no, error_code, error_maker, cs_name, tracking, operation_key, record_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     let data = [branch_id,user_id,billing_no,error_code,error_maker,cs_name,tracking,operation_key,new Date()];
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sql, data, (error, results, fields) => {
+      db.query(sql, data, (error, results, fields) => {
         if (error === null) {
           resolve(results);
         } else {
@@ -400,40 +357,40 @@ module.exports = {
       });
     });
   },
-  findOperator: tracking => {
+  findOperator: (db,tracking) => {
     let sql = "SELECT operator_id FROM parcel_keyin_data_temp WHERE barcode=?";
     let data = [tracking];
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sql, data, (error, results, fields) => {
+      db.query(sql, data, (error, results, fields) => {
         if (error === null) {
           resolve(results);
         }
       });
     });
   },
-  insertLog: (billing_no,previous_value,current_value,reason,module_name,user,ref,remark) => {
+  insertLog: (db,billing_no,previous_value,current_value,reason,module_name,user,ref,remark) => {
     let sql =
       "INSERT INTO log_parcel_tool(billing_no, time_to_system, previous_value, current_value,reason, module_name, user, ref,remark) VALUES (?,?,?,?,?,?,?,?,?)";
     let data = [billing_no,new Date(),previous_value,current_value,reason,module_name,user,ref,remark];
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sql, data, (error, results, fields) => {
+      db.query(sql, data, (error, results, fields) => {
         resolve(results);
       });
     });
   },
-  saveTracking: tracking => {
+  saveTracking: (db,tracking) => {
     let sqlCheck = "SELECT tracking FROM test_dhl_response WHERE tracking=?";
     let dataCheck = [tracking];
 
     let sql = "INSERT INTO test_dhl_response(tracking) VALUES (?)";
     let data = [tracking];
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sqlCheck, dataCheck, (error, results, fields) => {
+      db.query(sqlCheck, dataCheck, (error, results, fields) => {
         if (error === null) {
           if (results.length > 0) {
             resolve(false);
           } else {
-            parcel_connection.query(sql, data, (error, results, fields) => {
+            db.query(sql, data, (error, results, fields) => {
               resolve(true);
             });
           }
@@ -444,7 +401,7 @@ module.exports = {
       });
     });
   },
-  getDailyData: date_check => {
+  getDailyData: (db,date_check) => {
     var current_date = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
     var nextDay = moment(current_date).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
@@ -456,7 +413,7 @@ module.exports = {
     WHERE (b.billing_date>=? AND b.billing_date<?)`;
     var data = [current_date, nextDay];
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sqlBilling, data, (error, results, fields) => {
+      db.query(sqlBilling, data, (error, results, fields) => {
         console.log(error);
         if (error === null) {
           if (results.length <= 0) {
@@ -471,7 +428,7 @@ module.exports = {
       });
     });
   },
-  getDailyDataUnbook: date_check => {
+  getDailyDataUnbook: (db,date_check) => {
     var current_date = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
     var nextDay = moment(current_date).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
@@ -482,7 +439,7 @@ module.exports = {
     WHERE (b.billing_date>=? AND b.billing_date<?) AND (br.booking_status != 100 OR br.booking_status is null)`;
     var data = [current_date, nextDay];
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sqlBilling, data, (error, results, fields) => {
+      db.query(sqlBilling, data, (error, results, fields) => {
         if (error === null) {
           if (results.length <= 0) {
             resolve(null);
@@ -496,7 +453,7 @@ module.exports = {
       });
     });
   },
-  reportBranch: date_check => {
+  reportBranch: (db,date_check) => {
     var current_date = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
     var nextDay = moment(current_date).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
@@ -509,7 +466,7 @@ module.exports = {
     var data = [current_date, nextDay];
 
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sql, data, (err, results) => {
+      db.query(sql, data, (err, results) => {
         if (err === null) {
           resolve(results);
         } else {
@@ -518,7 +475,7 @@ module.exports = {
       });
     });
   },
-  dailyReport: date_check => {
+  dailyReport: (db,date_check) => {
     var current_date = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
     var nextDay = moment(current_date).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
@@ -531,7 +488,7 @@ module.exports = {
     var data = [current_date, nextDay];
 
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sql, data, (err, results) => {
+      db.query(sql, data, (err, results) => {
         if (err === null) {
           resolve(results);
         } else {
@@ -540,7 +497,7 @@ module.exports = {
       });
     });
   },
-  dailyListTracking: billing_no => {
+  dailyListTracking: (db,billing_no) => {
     var sql = `SELECT bi.tracking,s.alias_size,bi.size_price,bi.parcel_type as bi_parcel_type,bi.zipcode as bi_zipcode,bi.cod_value,
     br.parcel_type as br_parcel_type,br.sender_name,br.sender_phone,br.sender_address,br.receiver_name,br.phone,br.receiver_address,
     br.district_name,br.amphur_name,br.province_name,br.zipcode as br_zipcode,br.status,br.sending_date,br.booking_status,br.booking_date,bi.source 
@@ -550,7 +507,7 @@ module.exports = {
     WHERE bi.billing_no=?`;
     var data = [billing_no];
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sql, data, (err, results) => {
+      db.query(sql, data, (err, results) => {
         if (err === null) {
           if (results.length <= 0) {
             resolve(false);
@@ -563,7 +520,7 @@ module.exports = {
       });
     });
   },
-  summaryBooking: date_check => {
+  summaryBooking: (db,date_check) => {
     var current_date = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
     var nextDay = moment(current_date).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
@@ -574,7 +531,7 @@ module.exports = {
     var dataListTracking = [current_date, nextDay];
 
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sqlListTracking,dataListTracking,(err, results) => {
+      db.query(sqlListTracking,dataListTracking,(err, results) => {
           if (err == null) {
             resolve(results);
           } else {
@@ -583,7 +540,7 @@ module.exports = {
         });
     });
   },
-  listErrorMaker: () => {
+  listErrorMaker: (db) => {
     var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
     var nextDay = moment(current_date).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
@@ -591,7 +548,7 @@ module.exports = {
     var data = [today, nextDay];
 
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sql, data, (err, results) => {
+      db.query(sql, data, (err, results) => {
         if (err === null) {
           if (results.length <= 0) {
             resolve(false);
@@ -604,11 +561,11 @@ module.exports = {
       });
     });
   },
-  bookingReport: tracking => {
+  bookingReport: (db,tracking) => {
     var sql = `SELECT tracking, status, send_record_at, prepare_json, response_record_at, res_json FROM booking_tracking_batch WHERE tracking=? ORDER BY id DESC LIMIT 10`;
     var data = [tracking];
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sql, data, (err, results) => {
+      db.query(sql, data, (err, results) => {
         if (err === null) {
           if (results.length <= 0) {
             resolve(false);
@@ -621,11 +578,11 @@ module.exports = {
       });
     });
   },
-  log_parcel_tool: ref => {
+  log_parcel_tool: (db,ref) => {
     var sql = "SELECT billing_no, time_to_system, previous_value, current_value,reason, module_name, user, ref,remark FROM log_parcel_tool WHERE ref=?";
     var data = [ref];
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sql, data, (err, results) => {
+      db.query(sql, data, (err, results) => {
         if (err === null) {
           if (results.length <= 0) {
             resolve(false);
@@ -638,7 +595,7 @@ module.exports = {
       });
     });
   },
-  log_daily_tool: date_check => {
+  log_daily_tool: (db,date_check) => {
     var date_check = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD");
     var nextDay = moment(current_date).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
@@ -646,7 +603,7 @@ module.exports = {
     var data = [date_check, nextDay];
 
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sql, data, (err, results) => {
+      db.query(sql, data, (err, results) => {
         if (err === null) {
           if (results.length <= 0) {
             resolve(false);
@@ -659,22 +616,22 @@ module.exports = {
       });
     });
   },
-  updateStatusManual: tracking => {
+  updateStatusManual: (db,tracking) => {
     var sql = `UPDATE billing_receiver_info SET status='booked',booking_status=100 WHERE tracking=?`;
     var data = [tracking];
 
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sql, data, (err, results) => {
+      db.query(sql, data, (err, results) => {
         resolve(results);
       });
     });
   },
-  selectDataItem: tracking => {
+  selectDataItem: (db,tracking) => {
     var sqlItem = `SELECT * FROM billing_item WHERE tracking=?`;
     var dataItem = [tracking];
 
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sqlItem, dataItem, (err_item, results_item) => {
+      db.query(sqlItem, dataItem, (err_item, results_item) => {
         if (err_item == null) {
           resolve(results_item);
         } else {
@@ -683,12 +640,12 @@ module.exports = {
       });
     });
   },
-  selectDataReceiver: tracking => {
+  selectDataReceiver: (db,tracking) => {
     var sqlReceiver = `SELECT * FROM billing_receiver_info WHERE tracking=?`;
     var dataReceiver = [tracking];
 
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sqlReceiver,dataReceiver,(err_receiver, results_receiver) => {
+      db.query(sqlReceiver,dataReceiver,(err_receiver, results_receiver) => {
           if (err_receiver == null) {
             resolve(results_receiver);
           } else {

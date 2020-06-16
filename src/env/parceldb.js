@@ -11,4 +11,7 @@ var connection = mysql.createPool({
 console.log("DB INIT");
 // connection.connect();
 
-module.exports = connection;
+// module.exports = connection;
+module.exports = async function() {
+    return connection;
+}

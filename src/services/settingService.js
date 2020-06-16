@@ -22,9 +22,9 @@ module.exports = {
     var data=[branch_id,prefix_branch,branch_name,status];
 
     return new Promise(function(resolve, reject) {
-      parcel_connection.query(sqlBranchInfo,dataBranchInfo, (err, resultsBranch) => {
+      connection.query(sqlBranchInfo,dataBranchInfo, (err, resultsBranch) => {
         if(resultsBranch<=0){
-          parcel_connection.query(sql,data, (err, results) => {
+          connection.query(sql,data, (err, results) => {
               resolve(results);
           });
         } else {
