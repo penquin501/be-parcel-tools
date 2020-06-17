@@ -22,16 +22,14 @@ let AMQP_CONNECTION_CONFIG = {
   // Exchange/Queue config
 const MY_AMQP_PREFIX = "parcel";
 
-const SHARE_EXCHANGE_EVENT = "share.exchange.event";//parcel.notify.bill-create
-const MY_EXCHANGE_EVENT = MY_AMQP_PREFIX + ".exchange.event";
+const MY_EXCHANGE_PREPARE_BOOKING = MY_AMQP_PREFIX + ".exchange.prepare-booking";
 
 module.exports = async function() {
   return amqplib.connect(AMQP_CONNECTION_CONFIG,{ rejectUnauthorized: false })
   .then(conn => conn.createChannel())
   .then(async (channel) => {
     await channel.prefetch(1);
-    // await channel.assertExchange(SHARE_EXCHANGE_EVENT, "fanout", {durable: true});
-    // await channel.assertExchange(MY_EXCHANGE_EVENT, "fanout", {durable: true});
+    await channel.assertExchange(MY_EXCHANGE_PREPARE_BOOKING, "fanout", {durable: true});
     return channel;
   });
 }

@@ -496,6 +496,12 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
                   log_previous_value += "/total=" + previous_total[0].total;
                   log_current_value += "/total=" + current_total;
                   parcelServices.insertLog(db,billing_no,log_previous_value,log_current_value,error_code,module_name,cs_name,tracking,remark).then(function(data) {});
+                  /* ส่งเข้าคิว เพื่อไป booking ข้อมูล */
+                  let data={
+                    tracking:tracking,
+                    source:"QLChecker"
+                  }
+                  amqpChannel.publish("parcel.exchange.prepare-booking","",Buffer.from(JSON.stringify(data)),{});
                   res.json({ status: "SUCCESS" });
                 } else {
                   res.json({ status: "ERROR" });
@@ -505,6 +511,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
       });
     });
   });
+
   app.get("/report-branch", (req, res) => {
     let date_check = req.query.date_check;
     parcelServices.reportBranch(db,date_check).then(function(data) {
