@@ -42,7 +42,7 @@
         <div class="search" style="text-align:center; width: 100%;">
           <label style="font-size:16px;">กรุณาใส่รหัสผู้ส่ง(Member Code) :</label>
           <input maxlength="30" v-model="memberCode" autocomplete="false" />
-          <button v-on:click="getData" type="button">
+          <button v-on:click="getMemberInfo" type="button">
             <i class="fa fa-search" aria-hidden="true"></i>
           </button>
         </div>
@@ -50,18 +50,18 @@
           <table style="width: 100%;">
             <tbody>
               <tr>
-                <td style="width: 15%;">เลขที่บิล:</td>
-                <td style="width: 25%;">{{ billingInfo.billing_no }}</td>
-                <td style="width: 10%;">วันที่:</td>
-                <td style="width: 25%;">{{ billingInfo.billing_date | moment("LL HH:mm") }}</td>
+                <td style="width: 15%;">Member Code:</td>
+                <td style="width: 25%;">{{ this.memberInfo.memberId }}</td>
+                <td style="width: 10%;">ชื่อ-นามสกุล:</td>
+                <td style="width: 25%;">{{ this.memberInfo.firstname }} {{ this.memberInfo.lastname }}</td>
               </tr>
               <tr>
-                <td style="width: 15%;">สาขา:</td>
-                <td style="width: 25%;">{{ billingInfo.branch_name }}</td>
-                <td style="width: 10%;">ชื่อผู้ส่ง:</td>
-                <td style="width: 25%;">{{ sender_name }}</td>
+                <td style="width: 15%;">เบอร์โทรศัพท์:</td>
+                <td style="width: 25%;">{{ this.memberInfo.phoneregis }}</td>
+                <td style="width: 10%;">ที่อยู่ผู้ส่ง:</td>
+                <td style="width: 25%;">{{ this.memberInfo.refAddress }}</td>
               </tr>
-              <tr>
+              <!-- <tr>
                 <td style="width: 15%;">จำนวนรายการ:</td>
                 <td style="width: 25%;">{{ countTracking }}</td>
                 <td style="width: 10%;">ยอดรวมบิล:</td>
@@ -72,43 +72,14 @@
                 <td style="width: 25%;">{{ status_lb }}</td>
                 <td style="width: 10%;"></td>
                 <td style="width: 25%;"></td>
-              </tr>
+              </tr> -->
             </tbody>
           </table>
         </div>
       </div>
-      <table style="width: 100%;">
-        <tbody>
-          <tr>
-            <td style="width: 30%;" rowspan="2"></td>
-            <td style="width: 15%;">เหตุผล:</td>
-            <td style="width: 25%;">
-              <select
-                style="margin-left: 0px; margin-right: 0px;"
-                class="select"
-                v-model="reasonValue"
-              >
-                <option value disabled="disabled" selected="selected">----- เลือกเหตุผล -----</option>
-                <option value="wrong_size">เลือก size พัสดุผิด</option>
-                <option value="wrong_type">เลือกประเภทการจัดส่งผิด</option>
-                <option value="wrong_codvalue">ยอด COD ผิด</option>
-                <option value="wrong_member">ทำรายการผิด member</option>
-                <option value="wrong_receiver_info">ข้อมูลผู้รับผิด</option>
-              </select>
-            </td>
-            <td style="width: 25%;" rowspan="2"></td>
-          </tr>
-          <tr>
-            <td style="width: 15%;">รายละเอียดเพิ่มเติม:</td>
-            <td style="width: 25%;">
-              <textarea style="width: 306px;" v-model="remark"></textarea>
-            </td>
-          </tr>
-        </tbody>
-      </table>
       <div class="col-md-2"></div>
     </div>
-    <!-- <table style="width: 100%;">
+    <table style="width: 100%; margin-top: 20px;">
       <tbody>
         <tr>
           <td style="width: 30%;" rowspan="2"></td>
@@ -125,6 +96,7 @@
               <option value="wrong_codvalue">ยอด COD ผิด</option>
               <option value="wrong_member">ทำรายการผิด member</option>
               <option value="wrong_receiver_info">ข้อมูลผู้รับผิด</option>
+              <option value="wrong_sender">ข้อมูลผู้ส่งผิด</option>
             </select>
           </td>
           <td style="width: 25%;" rowspan="2"></td>
@@ -136,7 +108,7 @@
           </td>
         </tr>
       </tbody>
-    </table>-->
+    </table>
     <div class="group-btn">
       <button v-on:click="confirmData" type="button">บันทึก</button>
     </div>
@@ -156,9 +128,11 @@ export default {
       previous_value: {},
       billingInfo: {},
       memberCode: "",
-      // selectItem:[],
-      // result:[],
-
+      memberInfo:{},
+      currentMemberCode:"",
+      currentSenderName:"",
+      currentSenderPhone:"",
+      currentSenderAddress:"",
       sender_name: "",
       reasonValue: "",
       remark: "",
@@ -180,15 +154,16 @@ export default {
         this.resetData();
       } else {
         axios
-          .get("/check/info/billing?billing=" + this.billingInput)
+          .get("/check/info/billing?billing=" + this.billingInput.trim())
           .then(response => {
             if (response.data.status == "SUCCESS") {
+              this.resetData();
               this.previous_value = response.data.data;
               var pre_data = response.data.data;
               this.billingInfo = pre_data.billingNo;
               this.billingItem = pre_data.billingItem;
               this.countTracking = pre_data.countTracking;
-              this.sTracking = pre_data.countTracking;
+              this.sTracking = pre_data.sTracking;
               this.sender_name = this.billingItem[0].sender_name;
 
               this.billing_no = this.billingInfo.billing_no;
@@ -218,6 +193,44 @@ export default {
           });
       }
     },
+    getMemberInfo() {
+      const options = { okLabel: "ตกลง" };
+      if (this.memberCode.trim() == "") {
+        this.$dialogs.alert("กรุณาใส่รหัสผู้ส่งให้ถูกต้อง", options);
+        this.resetData();
+      } else {
+        var data = {
+          member_code: this.memberCode.trim()
+        };
+        axios.post("https://www.945api.com/parcel/select/member/api",JSON.stringify(data))
+          .then(response => {
+            if(response.data.status=="SUCCESS"){
+              this.memberInfo=response.data.memberInfo
+                if (this.memberInfo.phoneregis[0] + this.memberInfo.phoneregis[1] == "66") {
+                  this.memberInfo.phoneregis = this.changeDoubleSix(this.memberInfo.phoneregis);
+                }
+              this.currentMemberCode=this.memberInfo.memberId;
+              this.currentSenderName=this.memberInfo.firstname+" "+this.memberInfo.lastname;
+              this.currentSenderPhone=this.memberInfo.phoneregis;
+              this.currentSenderAddress=this.memberInfo.refAddress;
+            } else {
+              this.$dialogs.alert("กรุณาใส่รหัสผู้ส่ง(member code) ให้ถูกต้อง", options);
+            }
+          })
+          .catch(function(error) {
+            console.log(error);
+          });
+      }
+    },
+    changeDoubleSix(tels) {
+      if (tels[0] + tels[1] == "66") {
+        var phoneNO = "0";
+        for (let i = 2; i < tels.length; i++) {
+          phoneNO += tels[i];
+        }
+        return phoneNO;
+      }
+    },
     resetData() {
       this.billingInput = "";
       this.billingNo = {};
@@ -227,6 +240,7 @@ export default {
       this.previous_value = {};
       this.billingInfo = {};
       this.memberCode = "";
+      this.memberInfo={};
 
       this.sender_name = "";
       this.reasonValue = "";
@@ -243,50 +257,45 @@ export default {
       } else if (this.billingStatus == "cancel") {
         this.$dialogs.alert("รายการนี้ได้ถูกยกเลิกไปแล้ว", options);
       } else if (this.billingStatus == "pass") {
-        this.$dialogs.alert(
-          "รายการนี้กำลังถูกส่งข้อมูลไปยัง server หลัก กรุณารอ 2-3 นาที",
-          options
-        );
-      } else if (this.selectItem.length <= 0) {
-        this.$dialogs.alert("กรุณาเลือกรายการที่ต้องการยกเลิก", options);
+        this.$dialogs.alert("รายการนี้กำลังถูกส่งข้อมูลไปยัง server หลัก กรุณารอ 2-3 นาที",options);
+      } else if (this.currentMemberCode == "") {
+        this.$dialogs.alert("กรุณาเลือกผู้ส่งให้ถูกต้อง", options);
       } else if (this.reasonValue == "") {
         this.$dialogs.alert("กรุณาระบุ เหตุผล", options);
       } else if (this.remark.trim() == "") {
         this.$dialogs.alert("กรุณากรอกรายละเอียดเพิ่มเติม ให้ถูกต้อง", options);
       } else if (this.remark.length < 25) {
         this.$dialogs.alert("กรุณากรอกรายละเอียดเพิ่มเติม ให้ชัดเจน", options);
+      } else if (this.previous_value.billingNo.branch_id !== this.memberInfo.merid) {
+        this.$dialogs.alert("กรุณาเลือกผู้ส่งที่อยู่ในสาขาเดียวกันเท่านั้น", options);
       } else {
-        // var dataConfirm = {
-        //   billing_no: this.billing_no,
-        //   billing_status: this.billingStatus,
-        //   select_item: this.selectItem,
-        //   reason: this.reasonValue,
-        //   remark: this.remark,
-        //   user: this.$session.get("session_username")
-        // };
-        // axios.post("/save/cancel/billing", dataConfirm).then(response => {
-        //     if (response.data.status == "SUCCESS") {
-        //       let result=response.data.result;
-        //       let c_pass=true;
-        //       let str_result="";
-        //       for(let i=0;i<result.length;i++){
-        //         if(result[i].status!=="success" || result[i].status!=="SUCCESS"){
-        //           c_pass=false;
-        //           str_result+=result[i].tracking+" "+result[i].reason+", "
-        //         }
-        //       }
-        //       if(c_pass){
-        //         this.$dialogs.alert("รายการทั้งหมดถูกยกเลิกแล้ว"+result, options);
-        //         this.$router.push("/");
-        //       } else {
-        //         this.$dialogs.alert("ไม่สามารถยกเลิกรายการทั้งหมดได้ เนื่องจาก..."+str_result, options);
-        //         this.$router.push("/");
-        //       }
-        //     }
-        //   })
-        //   .catch(function(error) {
-        //     console.log(error);
-        //   });
+       
+        var dataConfirm = {
+          billing_no: this.billing_no,
+          billing_status: this.billingStatus,
+          previous_value: this.previous_value,
+          current_value: {
+            current_member_code:this.currentMemberCode,
+            current_sender_name:this.currentSenderName,
+            current_sender_phone:this.currentSenderPhone,
+            current_sender_address:this.currentSenderAddress,
+          },
+          reason: this.reasonValue,
+          remark: this.remark,
+          user: this.$session.get("session_username")
+        };
+        axios.post("/confirm-member-code", dataConfirm).then(response => {
+            if (response.data.status == "SUCCESS") {
+              this.$dialogs.alert("บันทึกเรียบร้อยแล้ว", options);
+              this.$router.push("/");
+            } else {
+              this.$dialogs.alert("ไม่สามารถเปลี่ยนข้อมูลผู้ส่งได้ เนื่องจาก..."+response.data.status, options);
+              this.$router.push("/");
+            }
+          })
+          .catch(function(error) {
+            console.log(error);
+          });
       }
     }
   }

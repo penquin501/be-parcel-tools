@@ -176,7 +176,7 @@ export default {
                 this.status_lb = "";
               }
             } else {
-              this.$dialogs.alert("ไม่พบข้อมุล", options);
+              this.$dialogs.alert("ไม่พบข้อมูล", options);
             }
           })
           .catch(function(error) {

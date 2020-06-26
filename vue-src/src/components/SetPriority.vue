@@ -12,7 +12,6 @@
         <div class="col-ms-4 col-sm-4"></div>
       </div>
     </div>
-
     <div class="search">
       <div class="row" style="margin-bottom: 15px;margin-top: 15px;" >
        <div class="col-ms-1 col-sm-1"></div>
@@ -25,9 +24,6 @@
         <div class="col-ms-4 col-sm-4"></div>
       </div>     
     </div>
-
-
-
     <div class="search">
       <div class="row">
          <div class="col-ms-4 col-sm-4"></div>
@@ -37,9 +33,6 @@
            <div class="col-ms-4 col-sm-4"></div>
       </div>
     </div>
-
-
-   
       <div class="row" style="margin-bottom: 15px;margin-top: 15px;">
        <div class="col-ms-1 col-sm-1"></div>
        <div class="col-ms-4 col-sm-4" style="text-align:right;">
@@ -82,9 +75,7 @@ export default {
     if (!this.$session.get("session_username")) {
       this.$router.push({ name: "Main" });
     }
-    var phoneNumber = this.$route.params.phoneNumber;
-    this.phoneInput = phoneNumber;
-    this.phoneInput = this.$session.get("numPhoneSet");
+    this.phoneInput = this.$session.get("phoneNumber");
   },
   methods: {
     isNumber: function(evt) {
@@ -103,7 +94,7 @@ export default {
     setPriority() {
       var data = {
         phoneNumber: this.phoneInput,
-        priority: this.priorityInput
+        priority: parseInt(this.priorityInput)
       };
       axios
         .post(

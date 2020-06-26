@@ -23,7 +23,6 @@ if (process.env.NODE_ENV === "production") {
 } else {
   console.log("In development mode");
 }
-app.use(express.static("public"));
 
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
@@ -318,25 +317,6 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
     })
   }
   
-  app.post("/update/sender-info", function(req, res) {
-    let billing_no = req.body.billing_no;
-    let member_code = req.body.member_code;
-    let sender_name = req.body.sender_name;
-    let sender_phone = req.body.sender_phone;
-    let sender_address = req.body.sender_address;
-    let reason = req.body.reason;
-    let remark = req.body.remark;
-    let module_name = "cancel_billing";
-    let user = req.body.user;
-    
-    parcelServices.selectTrackingToCheck(db,branch_id).then(function(data) {
-      res.json({
-        status: "SUCCESS",
-        tracking: data
-      });
-    });
-  });
-  
   app.post("/update/receiver/info", function(req, res) {
     let tracking = req.body.tracking;
     let billing_no = req.body.billing_no;
@@ -501,7 +481,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
                     tracking:tracking,
                     source:"QLChecker"
                   }
-                  amqpChannel.publish("parcel.exchange.prepare-booking","",Buffer.from(JSON.stringify(data)),{});
+                  amqpChannel.publish("parcel.exchange.prepare-booking","",Buffer.from(JSON.stringify(data)),{persistent: true});
                   res.json({ status: "SUCCESS" });
                 } else {
                   res.json({ status: "ERROR" });
@@ -510,6 +490,40 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
           });
       });
     });
+  });
+
+  app.post("/confirm-member-code", function(req, res) {
+    let billing_no = req.body.billing_no;
+    let previous_value = req.body.previous_value;
+    let current_value = req.body.current_value;
+    let billing_items=previous_value.billingItem;
+    let log_previous_value = previous_value.billingNo.member_code + "/" + previous_value.billingNo.status;
+    let log_current_value = current_value.current_member_code;
+    let module_name = "change_member_code";
+    let reason = req.body.reason;
+    let remark = req.body.remark;
+    let user = req.body.user;
+
+    parcelServices.updateMemberBilling(db, billing_no, current_value.current_member_code).then(function(result_billing) {
+      if(result_billing){
+        async function item() {
+          var listTracking = [];
+          await billing_items.forEach(async (val, index) => {
+            listTracking.push(parcelServices.updateSenderInfo(db,current_value.current_sender_name,current_value.current_sender_phone,current_value.current_sender_address,val.tracking));
+          });
+          var resultArr = await Promise.all(listTracking);
+          return resultArr;
+        }
+        item().then(function(result) {
+          parcelServices.insertLog(db,billing_no,log_previous_value,log_current_value,reason,module_name,user,billing_no,remark).then(function(data) {});
+          res.json({ status: "SUCCESS" });
+        });
+      } else {
+        res.json({ status: "error_data_not_found" });
+      }
+      
+    });
+    
   });
 
   app.get("/report-branch", (req, res) => {
@@ -737,6 +751,46 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
         });
       }
     });
+  });
+
+  app.post("/generate-resend-bill", function(req, res) {
+    if (req.headers['apikey'] != 'XbOiHrrpH8aQXObcWj69XAom1b0ac5eda2b') {
+      return res.send(401, 'Unauthorized');
+    } else {
+      let billing_no = req.body.billing_no;
+
+      let module_name = "generate_resend_bill";
+      let reason = req.body.reason;
+      let remark = req.body.remark;
+      let user = req.body.user;
+  
+      parcelServices.getBillingInfo(db, billing_no).then(function(data) {
+        if(data !== false){
+          var billing_status = data.billingNo.status;
+          if(billing_status == "SUCCESS" || billing_status == "pass"){
+            let log_previous_value = billing_status;
+            let log_current_value = 'booked';
+             parcelServices.updateResendBilling(db,billing_no,billing_status).then(function(data) {
+               if(data!==false){
+                 if(data.affectedRows>0){
+                  parcelServices.insertLog(db,billing_no,log_previous_value,log_current_value,reason,module_name,user,billing_no,remark).then(function(data) {});
+                  res.json({status:"SUCCESS"});
+                 } else {
+                  res.json({status:"error_resend_bill"});
+                 }
+               } else {
+                  res.json({status:"error_resend_bill"});
+               }
+             });       
+          } else {
+            res.json({status:"billing_status_can_not_resend"});
+          }
+        } else {
+          res.json({status:"data_not_found"});
+        }
+      });
+    }
+    
   });
   
   var smtp = {

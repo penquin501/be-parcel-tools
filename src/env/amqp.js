@@ -1,5 +1,4 @@
 var amqplib = require("amqplib");
-// const AMQP_URL = process.env.AMQP_URL || "amqp://rabbitmq";
 const AMQP_URL = process.env.AMQP_URL || "";
 const AMQP_PROTOCOL = process.env.AMQP_PROTOCOL;
 const AMQP_HOST = process.env.AMQP_HOST;

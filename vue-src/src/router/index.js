@@ -89,7 +89,7 @@ const routes = [
         hidden: true
     },
     {
-        path: "/add-branch",
+        path: "/add-branch/:branchId",
         name: 'AddBranch',
         component: () => import("../components/AddBranchInfo.vue"),
         hidden: true

@@ -45,7 +45,7 @@
             <td style="text-align: center;">{{ item.priority }}</td>
             <td style="text-align: center;">
             <button v-on:click="setPhone(item.phoneNumber)"  class="button-set"><i class="fa fa-bell" aria-hidden="true"></i></button>&nbsp;
-            <button v-on:click="setlist(item.phoneNumber)" class="button-list"><i class="fa fa-bars" aria-hidden="true"></i></button>
+            <button v-on:click="setlist(item.phoneNumber,item.priority)" class="button-list"><i class="fa fa-bars" aria-hidden="true"></i></button>
             <!-- <router-link :to="{ name: 'ListNotkeyTracking', params: { phoneNumber: item.phoneNumber }}"   tag="button" class="button-list" ><i class="fa fa-bars" aria-hidden="true"></i></router-link> -->
           </td>
           </tr>
@@ -74,14 +74,13 @@ export default {
   },
   methods: {
     setPhone(phone){
-     var numPhoneSet = phone;
-     this.$session.set("numPhoneSet",numPhoneSet);
-     this.$router.push({ name: 'SetPriority', params: { phoneNumber: phone } });
+     this.$session.set("phoneNumber",phone);
+     this.$router.push({ name: 'SetPriority'});
     },
-    setlist(phone){
-     var numPhoneSet = phone;
-     this.$session.set("numPhoneSet",numPhoneSet);
-     this.$router.push({ name: 'ListNotkeyTracking', params: { phoneNumber: phone } });
+    setlist(phone,priority){
+     this.$session.set("phoneNumber",phone);
+     this.$session.set("priority",priority);
+     this.$router.push({ name: 'ListNotkeyTracking'});
     },
     getlistPhoneNumber() {
       const options = { okLabel: "ตกลง" };

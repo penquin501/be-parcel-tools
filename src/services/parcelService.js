@@ -59,9 +59,6 @@ module.exports = {
     WHERE billing_no=?`;
     let data = [billing];
 
-    // let sqlCountItem = `SELECT count(tracking) as cTracking, sum(size_price) as sTracking FROM billing_item WHERE billing_no=?`;
-    // let dataCountItem = [billing];
-
     let sqlItem = `SELECT bi.tracking,s.alias_size,bi.size_price,bi.parcel_type,bi.cod_value,br.sender_name,br.sender_phone,br.sender_address,
     br.receiver_name,br.phone,br.receiver_address,br.district_name,br.amphur_name,br.province_name,br.zipcode,br.status 
     FROM billing_item bi
@@ -80,7 +77,6 @@ module.exports = {
               if (resultsItem.length <= 0) {
                 resolve(false);
               } else {
-                // db.query(sqlCountItem,dataCountItem,(err, resultsCountItem) => {
                 var sTracking = 0;
                 resultsItem.forEach(item => {
                   sTracking += item.size_price;
@@ -92,7 +88,6 @@ module.exports = {
                   sTracking: sTracking
                 };
                 resolve(dataResult);
-                // });
               }
             });
           }
@@ -166,8 +161,7 @@ module.exports = {
   },
 
   parcelSizeList: (db,zone) => {
-    let sql =
-      "SELECT alias_size FROM size_info GROUP BY alias_size ORDER BY min(parcel_price) ASC";
+    let sql = "SELECT alias_size FROM size_info GROUP BY alias_size ORDER BY min(parcel_price) ASC";
     return new Promise(function(resolve, reject) {
       db.query(sql, (error, results, fields) => {
         if (error === null) {
@@ -186,11 +180,9 @@ module.exports = {
   updateStatusBilling: (db,billing_no) => {
     let updateBilling = "UPDATE billing SET status='cancel' WHERE billing_no=?";
 
-    let selectBillingItem =
-      "SELECT tracking FROM billing_item WHERE billing_no=?";
+    let selectBillingItem = "SELECT tracking FROM billing_item WHERE billing_no=?";
 
-    let updateStatusReceiver =
-      "UPDATE billing_receiver_info SET status='cancel' WHERE tracking=?";
+    let updateStatusReceiver = "UPDATE billing_receiver_info SET status='cancel' WHERE tracking=?";
 
     let dataBilling = [billing_no];
 
@@ -207,8 +199,7 @@ module.exports = {
   },
   updateStatusReceiver: (db,tracking) => {
     return new Promise(function(resolve, reject) {
-      let sql =
-        "UPDATE billing_receiver_info SET status='cancel' WHERE tracking=?";
+      let sql = "UPDATE billing_receiver_info SET status='cancel' WHERE tracking=?";
       let data = [tracking];
       db.query(sql, data, (error, results, fields) => {
         if (error === null) {
@@ -286,12 +277,10 @@ module.exports = {
     });
   },
   updateCheckerInfo: (db,billing_no,tracking,size_id,size_price,cod_value,receiver_name,phone,address,parcel_type,district_id,district_name,amphur_id,amphur_name,province_id,province_name,zipcode) => {
-    let sqlBillingItem =
-      "UPDATE billing_item SET zipcode=?,size_id=?,size_price=?,parcel_type=?,cod_value=? WHERE tracking=?";
+    let sqlBillingItem = "UPDATE billing_item SET zipcode=?,size_id=?,size_price=?,parcel_type=?,cod_value=? WHERE tracking=?";
     let dataBillingItem = [zipcode,size_id,size_price,parcel_type,cod_value,tracking];
 
-    let sqlReceiver =
-      "UPDATE billing_receiver_info SET parcel_type=?,receiver_name=?,phone=?,receiver_address=?,district_id=?,district_name=?,amphur_id=?,amphur_name=?,province_id=?,province_name=?,zipcode=? WHERE tracking=?";
+    let sqlReceiver = "UPDATE billing_receiver_info SET parcel_type=?,receiver_name=?,phone=?,receiver_address=?,district_id=?,district_name=?,amphur_id=?,amphur_name=?,province_id=?,province_name=?,zipcode=? WHERE tracking=?";
     let dataReceiver = [parcel_type,receiver_name,phone,address,district_id,district_name,amphur_id,amphur_name,province_id,province_name,zipcode,tracking];
 
     let sqlSizeItem = "SELECT size_price FROM billing_item WHERE billing_no=?";
@@ -340,6 +329,55 @@ module.exports = {
     return new Promise(function(resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
         resolve(results);
+      });
+    });
+  },
+  updateResendBilling: (db,billing_no, status) => {
+    let sql = "UPDATE billing SET status='booked',prepare_raw_data=null WHERE billing_no=? AND status=?;";
+    let data = [billing_no, status];
+    return new Promise(function(resolve, reject) {
+      db.query(sql, data, (error, results, fields) => {
+        if(error==null){
+          resolve(results);
+        } else {
+          resolve(false);
+        }
+        
+      });
+    });
+  },
+  updateMemberBilling: (db,billing_no, member_code) => {
+    let sql = "UPDATE billing SET member_code=? WHERE billing_no=?";
+    let data = [member_code, billing_no];
+    return new Promise(function(resolve, reject) {
+      db.query(sql, data, (error, results, fields) => {
+        if(error==null){
+          if(results.affectedRows>0){
+            resolve(true);
+          } else {
+            resolve(false);
+          }
+        } else {
+          resolve(false);
+        }
+        
+      });
+    });
+  },
+  updateSenderInfo: (db, sender_name,sender_phone,sender_address,tracking) => {
+    let sql = "UPDATE billing_receiver_info SET sender_name=?,sender_phone=?,sender_address=? WHERE tracking=?";
+    let data = [sender_name,sender_phone,sender_address,tracking];
+    return new Promise(function(resolve, reject) {
+      db.query(sql, data, (error, results, fields) => {
+        if(error==null){
+          if(results.affectedRows>0){
+            resolve(true);
+          } else {
+            resolve(false);
+          }
+        } else {
+          resolve(false);
+        }
       });
     });
   },

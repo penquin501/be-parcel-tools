@@ -69,6 +69,7 @@ export default {
     return {
       listTracking: [],
       phoneNumberKey: "",
+      priority:0,
       trackingSeach: "",
       n:0,
       nModified:0,
@@ -81,9 +82,9 @@ export default {
     if (!this.$session.get("session_username")) {
       this.$router.push({ name: "Main" });
     }
-    var phoneNumber = this.$route.params.phoneNumber;
-    this.phoneNumberKey = phoneNumber;
-    this.phoneNumberKey = this.$session.get("numPhoneSet");
+
+    this.phoneNumberKey = this.$session.get("phoneNumber");
+    this.priority = this.$session.get("priority");
     this.getlistTracking();
   },
   methods: {
@@ -98,9 +99,8 @@ export default {
       const options = { okLabel: "ตกลง" };
       axios
         .get(
-          "https://key.my945capture.com/v2/api/parcel-capture/tasks/tracking/by-phone/" +
-          // "http://127.0.0.1:8081/v2/api/parcel-capture/tasks/tracking/by-phone/" +
-            this.phoneNumberKey
+          "https://key.my945capture.com/v2/api/parcel-capture/tasks/tracking/by-phone/" + this.phoneNumberKey+"/"+ parseInt(this.priority)
+          // "http://127.0.0.1:8081/v2/api/parcel-capture/tasks/tracking/by-phone/" + this.phoneNumberKey +"/"+ parseInt(this.priority)
         )
         .then(response => {
           if (response.data.status == "ok") {
