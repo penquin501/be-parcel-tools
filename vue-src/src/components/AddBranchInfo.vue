@@ -133,7 +133,7 @@ export default {
 
         if (this.action == "add") {
           axios
-            .post("http://localhost:3000/branch/add-branch", data)
+            .post("/branch/add-branch", data)
             .then(response => {
               if (response.data.status == "success") {
                 this.$dialogs.alert("เพิ่มข้อมูลสาขาเรียบร้อยแล้ว", options);
@@ -147,7 +147,7 @@ export default {
             });
         } else if (this.action == "edit") {
           axios
-            .post("http://localhost:3000/branch//edit-branch",data)
+            .post("/branch//edit-branch",data)
             .then(response => {
               if (response.data.status=="success") {
                 this.$dialogs.alert("บันทึกข้อมูลสาขาเรียบร้อยแล้ว", options);

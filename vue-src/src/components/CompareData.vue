@@ -220,23 +220,19 @@ export default {
     if (!this.$session.get("session_username")) {
       this.$router.push({ name: "Main" });
     }
-    var branch_id = this.$route.params.branch_id;
-    this.selectTrackingToCheck(branch_id);
+    var tracking = this.$route.params.tracking;
+    // this.selectTrackingToCheck(branch_id);
+    this.getData(tracking);
   },
   methods: {
     selectTrackingToCheck(branch_id) {
       const options = { okLabel: "ตกลง" };
       var resTracking;
       if (branch_id == "") {
-        this.$dialogs.alert(
-          "กรุณาเลือกสาขาที่ต้องการตรวจสอบให้ถูกต้อง",
-          options
-        );
+        this.$dialogs.alert("กรุณาเลือกสาขาที่ต้องการตรวจสอบให้ถูกต้อง",options);
       } else {
         axios
-          .get(
-            "/select/tracking/check?branch_id=" + branch_id
-          )
+          .get("/select/tracking/check?branch_id=" + branch_id)
           .then(response => {
             if (
               response.data.status == "SUCCESS" &&
@@ -252,9 +248,7 @@ export default {
       this.trackingIn = trackingIn;
 
       axios
-        .get(
-          "/check/info/tracking?tracking=" + this.trackingIn.toUpperCase()
-        )
+        .get("/check/info/tracking?tracking=" + this.trackingIn.toUpperCase())
         .then(response => {
           if (response.data.status == "SUCCESS") {
             // console.log(response.data.billingInfo);

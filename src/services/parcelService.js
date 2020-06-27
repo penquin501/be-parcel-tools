@@ -99,19 +99,22 @@ module.exports = {
     });
   },
   getListTrackingNotMatch: (db) => {
+    var current_date = moment().tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+    var weekAgo = moment(current_date).add(-2, "week").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+
     let sql = `SELECT bInfo.branch_name,b.branch_id,bi.tracking 
-            FROM billing b 
-            JOIN billing_item bi ON b.billing_no=bi.billing_no 
-            JOIN billing_receiver_info br ON bi.tracking=br.tracking 
-            JOIN branch_info bInfo ON b.branch_id=bInfo.branch_id 
-            WHERE (bi.zipcode<>br.zipcode OR bi.parcel_type<>br.parcel_type OR 
-              (bi.parcel_type='COD' AND bi.cod_value=0) OR 
-            (bi.parcel_type='NORMAL' AND bi.cod_value > 0)) AND (br.status not in ('cancel','SUCCESS','success') OR br.status is null)`;
+    FROM billing b 
+    JOIN billing_item bi ON b.billing_no=bi.billing_no 
+    JOIN billing_receiver_info br ON bi.tracking=br.tracking 
+    JOIN branch_info bInfo ON b.branch_id=bInfo.branch_id
+    WHERE (b.billing_date >= ? AND b.billing_date < ?) AND (br.status != 'cancel' OR br.status is null) 
+    and (bi.zipcode<>br.zipcode OR bi.parcel_type<>br.parcel_type OR (bi.parcel_type='COD' AND bi.cod_value=0) OR (bi.parcel_type='NORMAL' AND bi.cod_value > 0))`;
+    let data=[weekAgo, current_date];
 
     return new Promise(function(resolve, reject) {
-      db.query(sql, (error, results, fields) => {
+      db.query(sql,data, (error, results, fields) => {
         if (error === null) {
-          if (results.length == 0) {
+          if (results.length <= 0) {
             resolve(false);
           } else {
             resolve(results);

@@ -43,6 +43,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
   const amqpChannel = values[1];
 
   require('./routers/branch')(app,appCtx);
+  require('./routers/sizeInfo')(app,appCtx);
 
   app.get("/", function(req, res) {
     res.sendFile(path.resolve("public/index.html"));
@@ -335,7 +336,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
   
   app.get("/tools/list/tracking", function(req, res) {
     parcelServices.getListTrackingNotMatch(db).then(function(data) {
-      if (data.length == 0 || data == false) {
+      if (!data) {
         res.json({ status: "ERR_NO_TRACKING" });
       } else {
         branch_info = {}
@@ -351,12 +352,13 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
           });
   
         });
-  
+
         result=[];
         for (const [key, items] of Object.entries(branch_info)) {
           var dataBranch={
             branch_id:key,
             branch_name:items[0].branch_name,
+            tracking: items[0].tracking,
             total: items.length
           }
           result.push(dataBranch);
@@ -879,7 +881,6 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
         }
         wb.write(filename);
       }
-  
       var mail = {
         from: "booking@945holding.com", //from email (option)
         to: "penquin501@gmail.com, jade.yo@sunteen.co.th", //to email (require) cs@945holding.com
@@ -946,12 +947,30 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
     ws.cell(1, 10).string("Insurance Amount").style(bgStyle);
     ws.cell(1, 11).string("Invoice(ref.)").style(bgStyle);
   
-    parcelServices.getDailyDataUnbook(db,date_check).then(function(data) {
-      if (data === null) {
+    parcelServices.getDailyDataUnbook(db,date_check).then(function(result) {
+      if (result === null) {
         res.end("no data");
       } else {
-        number_parcel = data.length;
-        for (i = 0; i < data.length; i++) {
+        listTracking=[];
+        var resultList = [];
+        result.forEach((value)=>{
+          var item_valid = true;
+          item_valid = true;
+          item_valid = isGenericValid(value,"tracking",item_valid,resultList,value.tracking);
+          item_valid = isGenericValid(value,"receiver_name",item_valid,resultList,value.tracking);
+          item_valid = isGenericValid(value,"receiver_address",item_valid,resultList,value.tracking);
+          item_valid = isGenericValid(value,"district_name",item_valid,resultList,value.tracking);
+          item_valid = isGenericValid(value,"province_name",item_valid,resultList,value.tracking);
+          item_valid = isGenericValid(value,"zipcode",item_valid,resultList,value.tracking);
+          item_valid = isGenericValid(value,"phone",item_valid,resultList,value.tracking);
+          item_valid = isGenericValid(value,"billing_no",item_valid,resultList,value.tracking);
+
+          if(item_valid){
+            listTracking.push(value);
+          }
+        })
+
+        for (i = 0; i < listTracking.length; i++) {
             if ((i - 1) % 2 == 0) {
               var cellBgStyle = wb.createStyle({
                 fill: {
@@ -971,54 +990,79 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
                 }
               });
             }
-          ws.cell(i + 2, 1).string(data[i].tracking).style(cellBgStyle);
-          ws.cell(i + 2, 2).string(data[i].receiver_name).style(cellBgStyle);
-          ws.cell(i + 2, 3).string(data[i].receiver_address).style(cellBgStyle);
+          ws.cell(i + 2, 1).string(listTracking[i].tracking).style(cellBgStyle);
+          ws.cell(i + 2, 2).string(listTracking[i].receiver_name).style(cellBgStyle);
+          ws.cell(i + 2, 3).string(listTracking[i].receiver_address).style(cellBgStyle);
           ws.cell(i + 2, 4).string("").style(cellBgStyle);
-          ws.cell(i + 2, 5).string(data[i].district_name).style(cellBgStyle);
-          ws.cell(i + 2, 6).string(data[i].province_name).style(cellBgStyle);
-          ws.cell(i + 2, 7).string(data[i].zipcode).style(cellBgStyle);
-          ws.cell(i + 2, 8).string(data[i].phone).style(cellBgStyle);
-          ws.cell(i + 2, 9).number(data[i].cod_value).style(cellBgStyle);
+          ws.cell(i + 2, 5).string(listTracking[i].district_name).style(cellBgStyle);
+          ws.cell(i + 2, 6).string(listTracking[i].province_name).style(cellBgStyle);
+          ws.cell(i + 2, 7).string(listTracking[i].zipcode).style(cellBgStyle);
+          ws.cell(i + 2, 8).string(listTracking[i].phone).style(cellBgStyle);
+          ws.cell(i + 2, 9).number(listTracking[i].cod_value).style(cellBgStyle);
           ws.cell(i + 2, 10).string("").style(cellBgStyle);
-          ws.cell(i + 2, 11).string(data[i].billing_no).style(cellBgStyle);
+          ws.cell(i + 2, 11).string(listTracking[i].billing_no).style(cellBgStyle);
         }
-        wb.write(filename);
+
+        wb.write(filename,res);
+        // wb.write(filename);//สร้างไฟล์ excel
       }
+      /* ส่วนการส่ง mail */
+      // var mail = {
+      //   from: "booking@945holding.com", //from email (option)
+      //   to: "penquin501@gmail.com, jade.yo@sunteen.co.th", //to email (require) cs@945holding.com
+      //   subject: "TDZ-My945Parcel-" + current_date + " ", //subject
+      //   html:
+      //     ` &nbsp;Good day DHL team,<br><br>\r\n\r\n&nbsp;&nbsp;&nbsp;This attachment file is My945Parcel(945Holding) booking file for dhl express at ` +
+      //     current_date +
+      //     `<br>\r\n The total number of shipments : ` +
+      //     listTracking.length +
+      //     ` pcs. <br>\r\n And so, this mail was generate by automatically system.<br>\r\n&nbsp;&nbsp;&nbsp;If you have any concerned or some question, Please contact to My945Parcel Call Center 0914271551<br><br>\r\n\r\n&nbsp;Best Regards,<br>\r\n&nbsp;945Holding`, //email body
+      //   attachments: [
+      //     {
+      //       filename: filename,
+      //       path: __dirname + "/" + filename
+      //     }
+      //   ]
+      // };
   
-      var mail = {
-        from: "booking@945holding.com", //from email (option)
-        to: "penquin501@gmail.com, jade.yo@sunteen.co.th", //to email (require) cs@945holding.com
-        subject: "TDZ-My945Parcel-" + current_date + " ", //subject
-        html:
-          ` &nbsp;Good day DHL team,<br><br>\r\n\r\n&nbsp;&nbsp;&nbsp;This attachment file is My945Parcel(945Holding) booking file for dhl express at ` +
-          current_date +
-          `<br>\r\n The total number of shipments : ` +
-          number_parcel +
-          ` pcs. <br>\r\n And so, this mail was generate by automatically system.<br>\r\n&nbsp;&nbsp;&nbsp;If you have any concerned or some question, Please contact to My945Parcel Call Center 0914271551<br><br>\r\n\r\n&nbsp;Best Regards,<br>\r\n&nbsp;945Holding`, //email body
-        attachments: [
-          {
-            filename: filename,
-            path: __dirname + "/" + filename
-          }
-        ]
-      };
-  
-      smtpTransport.sendMail(mail, function(error, response) {
-        smtpTransport.close();
-        if (error) {
-          //error handler
-          console.log("send email error", error);
-          res.end("send email error");
-        } else {
-          //success handler
-          console.log("send email success");
-          res.end("send email success");
-        }
-      });
+      // smtpTransport.sendMail(mail, function(error, response) {
+      //   smtpTransport.close();
+      //   if (error) {
+      //     //error handler
+      //     console.log("send email error", error);
+      //     res.end("send email error");
+      //   } else {
+      //     //success handler
+      //     console.log("send email success");
+      //     res.end("send email success");
+      //   }
+      // });
     });
   });
+  function isGenericValid(data,key,defaultValue,resultList = null,check_tracking) {
+    var out = [];
 
+    if (resultList != null) {
+      out = resultList;
+    }
+    if (data[key] == "") {
+      // out.push("" + check_tracking + " empty");
+      console.log("" + check_tracking + " " + key + " empty");
+      return false;
+    }
+    if (data[key] == null) {
+      // out.push("" + check_tracking + " missing");
+      console.log("" + check_tracking + " " + key + " missing");
+      return false;
+    }
+    if (data[key] == undefined) {
+      // out.push("" + check_tracking + " missing");
+      console.log("" + check_tracking + " " + key + " missing");
+      return false;
+    }
+    // console.log(out);
+    return defaultValue;
+  }
   
 })
 // app.get("/", function (req, res) {

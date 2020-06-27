@@ -54,7 +54,7 @@ data: function() {
   methods: {
     getBranch() {
       const options = { okLabel: "ตกลง" };
-      axios.get("http://localhost:3000/branch/branch-info").then(response => {
+      axios.get("/branch/branch-info").then(response => {
           if(response.data) {
            this.dataBranch=response.data.data;
           } else {
