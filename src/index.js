@@ -7,6 +7,11 @@ var mailer = require("nodemailer");
 const app = express();
 const moment = require("moment");
 const m = require("moment-timezone");
+
+var fileSystem = require("fs");
+var fastcsv = require("fast-csv");
+const stringify = require('csv-stringify');
+
 const port = process.env.PORT || 3000;
 
 const initDb = require("./env/parceldb.js");
@@ -754,6 +759,20 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
       }
     });
   });
+
+  app.get("/create-csv",function(req, res) {
+    let date_check = req.query.date_check;
+    parcelServices.selectBillData(db,date_check).then(function(data) {
+      if(!data){
+        res.end('no data');
+      } else {
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=\"' + 'download-' + m().tz("Asia/Bangkok").format("YYYYMMDDHHmmss") + '.csv\"');
+        stringify(data, { header: true })
+        .pipe(res);
+      }
+    })
+  }); 
 
   app.post("/generate-resend-bill", function(req, res) {
     if (req.headers['apikey'] != 'XbOiHrrpH8aQXObcWj69XAom1b0ac5eda2b') {

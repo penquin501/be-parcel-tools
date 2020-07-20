@@ -667,6 +667,31 @@ module.exports = {
       });
     });
   },
+  selectBillData: (db,date_check) => {
+    var current_date = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+    var nextDay = moment(current_date).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+
+    var sql = `select b.billing_no, bi.tracking, b.billing_date, b.status
+              from billing b
+              inner join billing_item bi on b.billing_no = bi.billing_no
+              where
+              b.billing_date >=? and b.billing_date <?`;
+    var data = [current_date,nextDay];
+
+    return new Promise(function(resolve, reject) {
+      db.query(sql, data, (err, results) => {
+        if(err==null){
+          if(results.length>0){
+            resolve(results);
+          } else {
+            resolve(false);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
   selectDataItem: (db,tracking) => {
     var sqlItem = `SELECT * FROM billing_item WHERE tracking=?`;
     var dataItem = [tracking];
