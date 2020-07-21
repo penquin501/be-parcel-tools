@@ -766,18 +766,12 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
       if(!data){
         res.end('no data');
       } else {
-        result=[];
         data.forEach((val)=>{
-          result.push({
-            billing_no:val.billing_no,
-            tracking:val.tracking,
-            billing_date:m(val.billing_date).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss"),
-            status:val.status
-          });
+          val.billing_date=m(val.billing_date).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
         })
         res.setHeader('Content-Type', 'text/csv');
         res.setHeader('Content-Disposition', 'attachment; filename=\"' + 'download-' + m().tz("Asia/Bangkok").format("YYYYMMDDHHmmss") + '.csv\"');
-        stringify(result, { header: true })
+        stringify(data, { header: true })
         .pipe(res);
       }
     })
