@@ -101,14 +101,12 @@ module.exports = {
   getListTrackingNotMatch: (db) => {
     var current_date = moment().tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
     var weekAgo = moment(current_date).add(-2, "week").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
-
-    let sql = `SELECT bInfo.branch_name,b.branch_id,bi.tracking 
+    let sql = `SELECT bInfo.branch_name,b.branch_id,bi.tracking,bi.parcel_type as bi_type,bi.cod_value,bi.zipcode as bi_zipcode,br.parcel_type as br_type,br.zipcode as br_zipcode
     FROM billing b 
     JOIN billing_item bi ON b.billing_no=bi.billing_no 
     JOIN billing_receiver_info br ON bi.tracking=br.tracking 
     JOIN branch_info bInfo ON b.branch_id=bInfo.branch_id
-    WHERE (b.billing_date >= ? AND b.billing_date < ?) AND (br.status != 'cancel' OR br.status is null) 
-    and (bi.zipcode<>br.zipcode OR bi.parcel_type<>br.parcel_type OR (bi.parcel_type='COD' AND bi.cod_value=0) OR (bi.parcel_type='NORMAL' AND bi.cod_value > 0))`;
+    WHERE (b.billing_date >= ? AND b.billing_date < ?) AND (br.status != 'cancel' OR br.status is null)`; 
     let data=[weekAgo, current_date];
 
     return new Promise(function(resolve, reject) {
@@ -721,5 +719,192 @@ module.exports = {
       );
     });
   },
-  
+  sendDatatoServer: (db,billing_no) => {
+    var sqlBilling = `SELECT user_id,mer_authen_level,member_code,carrier_id,billing_no,branch_id,img_url FROM billing WHERE billing_no= ? AND status='complete'`;
+    var dataBilling = [billing_no];  
+
+    let sqlBillingItem =
+        `SELECT bItem.tracking,bItem.size_price,bItem.parcel_type as bi_parcel_type,bItem.cod_value,s.alias_size,gSize.product_id,gSize.product_name
+        FROM billing_item bItem 
+        JOIN size_info s ON bItem.size_id=s.size_id 
+        JOIN global_parcel_size gSize ON s.location_zone = gSize.area AND s.alias_size =gSize.alias_name AND bItem.parcel_type= gSize.type 
+        WHERE bItem.billing_no=?`;
+    var dataBillItem = [billing_no];    
+
+    return new Promise(function(resolve, reject) {
+        db.query(sqlBilling,dataBilling, (error_billing, result_billing, fields) => {
+            if(error_billing==null){
+                if(result_billing.length>0){
+                    db.query(sqlBillingItem,dataBillItem, (error_item, result_item, fields) => {
+                        if(error_item==null){
+                            if(result_item.length>0){
+                                var orderlist=[];
+
+                                result_item.forEach(value => {
+                                    var data_item = {
+                                      productinfo: {
+                                        globalproductid: value.product_id,
+                                        productname: value.product_name,
+                                        methodtype: value.bi_parcel_type.toUpperCase(),
+                                        paymenttype: value.bi_parcel_type.toUpperCase() == "NORMAL" ? "99" : "60",
+                                        price: value.size_price.toString(),
+                                        codvalue: value.cod_value.toString()
+                                      },
+                                      consignmentno: value.tracking
+                                    };
+                                    orderlist.push(data_item);
+                                })
+                                
+                                var data={
+                                    // apikey: "XbOiHrrpH8aQXObcWj69XAom1b0ac5eda2b",
+                                    authen: {
+                                      merid: result_billing[0].branch_id,
+                                      userid: result_billing[0].user_id,
+                                      merauthenlevel: result_billing[0].mer_authen_level
+                                    },
+                                    memberparcel: {
+                                      memberinfo: {
+                                        memberid: result_billing[0].member_code,
+                                        courierpid: result_billing[0].carrier_id,
+                                        courierimage: result_billing[0].img_url
+                                      },
+                                      billingno: result_billing[0].billing_no,
+                                      orderlist: orderlist
+                                    }
+                                }
+                                resolve(data);
+                            } else {
+                                resolve(false);
+                            }
+                        } else {
+                            resolve(false);
+                        }
+                    })
+                } else {
+                    resolve(false);
+                }
+            } else {
+                resolve(false);
+            }
+        });
+
+    })
+},
+  selectDataToExchangeUpdateBooking: (db, tracking) => {
+    let sqlReceiver = `SELECT br.tracking,br.sender_name,br.sender_phone,br.sender_address,br.receiver_name,br.phone,br.receiver_address,d.DISTRICT_CODE,
+    a.AMPHUR_CODE,p.PROVINCE_CODE,br.zipcode,br.remark,br.courirer_id,br.booking_date,g.GEO_ID,g.GEO_NAME
+    FROM billing_receiver_info br 
+    JOIN postinfo_district d ON br.district_id=d.DISTRICT_ID AND br.amphur_id=d.AMPHUR_ID AND br.province_id=d.PROVINCE_ID
+    JOIN postinfo_amphur a ON br.amphur_id=a.AMPHUR_ID 
+    JOIN postinfo_province p ON br.province_id=p.PROVINCE_ID 
+    JOIN postinfo_geography g ON d.GEO_ID=g.GEO_ID 
+    WHERE br.tracking=?`;
+    let dataReceiver = [tracking];
+
+    var sqlBillingItem=`SELECT bItem.tracking,bItem.size_price,bItem.parcel_type as bi_parcel_type,bItem.cod_value,s.alias_size,gSize.product_id,gSize.product_name
+    FROM billing_item bItem 
+    JOIN size_info s ON bItem.size_id=s.size_id 
+    JOIN global_parcel_size gSize ON s.location_zone = gSize.area AND s.alias_size =gSize.alias_name AND bItem.parcel_type= gSize.type 
+    WHERE bItem.tracking=?`;
+    var dataItem = [tracking];
+
+    return new Promise(function(resolve, reject) {
+      db.query(sqlReceiver, dataReceiver, (err_receiver, result_receiver) => {
+        if(err_receiver==null){
+          if(result_receiver.length>0){
+            db.query(sqlBillingItem, dataItem, (error_item, results_item, fields) => {
+              if(error_item==null){
+                if(results_item.length>0){
+                  var data=result_receiver[0];
+
+                  var result={
+                      status: 200,
+                      tracking: tracking,
+                      result: {
+                        manifestResponse: {
+                          hdr: {
+                            messageType: "SHIPMENT",
+                            messageDateTime: m(data.booking_date).tz("Asia/Bangkok"),
+                            messageVersion: "1.0",
+                            messageLanguage: "en"
+                          },
+                          bd: {
+                            shipmentItems: [
+                              {
+                                shipmentID: data.tracking,
+                                deliveryConfirmationNo: "5320076806463210",
+                                responseStatus: {
+                                  code: "200",
+                                  message: "SUCCESS",
+                                  messageDetails: [
+                                    {
+                                      messageDetail:
+                                        "Shipment processed Successfully; Handover Method has been updated to Drop-Off; Return Shipping Service has been updated to PDO."
+                                    }
+                                  ]
+                                }
+                              }
+                            ],
+                            responseStatus: {
+                              code: "200",
+                              message: "SUCCESS",
+                              messageDetails: [
+                                {
+                                  messageDetail: "All shipments processed successfully"
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      },
+                      productinfo: {
+                        globalproductid: results_item[0].product_id,
+                        productname: results_item[0].product_name,
+                        methodtype: results_item[0].bi_parcel_type.toUpperCase(),
+                        paymenttype: results_item[0].bi_parcel_type.toUpperCase() == "NORMAL" ? "99" : "60",
+                        price: results_item[0].size_price.toString(),
+                        codvalue: results_item[0].cod_value.toString()
+                      },
+                      destinationinfo: {
+                        custname: data.receiver_name,
+                        custphone: data.phone,
+                        custzipcode: data.zipcode,
+                        custaddr: data.receiver_address,
+                        ordershortnote: (data.remark == null || data.remark=="KEYIN") ? "" : data.remark,
+                        districtcode: data.DISTRICT_CODE,
+                        amphercode: data.AMPHUR_CODE,
+                        provincecode: data.PROVINCE_CODE,
+                        geoid: data.GEO_ID,
+                        geoname: data.GEO_NAME,
+                        sendername: data.sender_name,
+                        senderphone: data.sender_phone,
+                        senderaddr: (data.sender_address == null) ? "-" : data.sender_address
+                      },
+                      consignmentno: data.tracking,
+                      transporter_id: (data.courirer_id == null) ? 7 : parseInt(data.courirer_id),
+                      user_id: "0",
+                      // sendmaildate: momentTimezone(data.booking_date).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss", true)
+                  }
+      
+                  if(data.booking_date!==null){
+                    result.sendmaildate=m(data.booking_date).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss", true)
+                  }
+                  resolve(result);
+                } else {
+                  resolve(false);
+                }
+              } else {
+                resolve(false);
+              }
+            })
+            
+          } else {
+            resolve(false);
+          }
+        } else {
+          resolve(false);
+        }
+      })
+    });
+  },
 };

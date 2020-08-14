@@ -341,12 +341,23 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
   
   app.get("/tools/list/tracking", function(req, res) {
     parcelServices.getListTrackingNotMatch(db).then(function(data) {
-      if (!data) {
+
+      listTrackingNotMatch=[];
+      data.forEach(value => {
+        var resultList = [];
+        var valid = true;
+        valid = isMatched(valid,value.bi_type,value.br_type,value.bi_zipcode,value.br_zipcode,value.cod_value,resultList = null,value.tracking);
+        if(!valid){
+          listTrackingNotMatch.push(value);
+        }
+      });
+
+      if (listTrackingNotMatch.length<=0) {
         res.json({ status: "ERR_NO_TRACKING" });
       } else {
         branch_info = {}
         
-        data.forEach(value => {
+        listTrackingNotMatch.forEach(value => {
   
           if(!(value.branch_id in branch_info)){
             branch_info[String(value.branch_id)]=[];
@@ -814,7 +825,82 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
         }
       });
     }
+  });
+  app.post("/resume-booking-to-queue", function(req, res) {
+    if (req.headers['apikey'] != 'XbOiHrrpH8aQXObcWj69XAom1b0ac5eda2b') {
+      return res.send(401, 'Unauthorized');
+    } else {
+      let tracking = req.body.tracking;
+      let billing_no = req.body.billing_no;
+      let source = req.body.source;
+      let module_name = "resume_booking_to_queue";
+      let reason = req.body.reason;
+      let remark = req.body.remark;
+      let user = req.body.user;
+
+      var data = {
+        tracking: tracking.toUpperCase(),
+        source: source.toUpperCase()
+      };
+      amqpChannel.publish("parcel.exchange.prepare-booking","",Buffer.from(JSON.stringify(data)),{persistent: true});
+    }
+  });
+
+  app.post("/resend-bill-to-queue", function(req, res) {
+    if (req.headers['apikey'] != 'XbOiHrrpH8aQXObcWj69XAom1b0ac5eda2b') {
+      return res.send(401, 'Unauthorized');
+    } else {
+      let billing_no = req.body.billing_no;
+      let module_name = "resend_bill_to_queue";
+      let reason = req.body.reason;
+      let remark = req.body.remark;
+      let user = req.body.user;
+  
+      parcelServices.sendDatatoServer(db, billing_no).then(function(data_to_945) {
+        if(data_to_945 !== false){
+          let log_previous_value = billing_no+'/complete';
+          let log_current_value = billing_no+'/complete';
+          parcelServices.insertLog(db,billing_no,log_previous_value,log_current_value,reason,module_name,user,billing_no,remark).then(function(dataLog) {
+            // amqpChannel.publish("parcel.exchange.event","",Buffer.from(JSON.stringify(data_to_945)),{persistent: true});
+            amqpChannel.publish("share.exchange.event","",Buffer.from(JSON.stringify(data_to_945)),{persistent: true});
+            res.json(data_to_945);
+          });
+                  
     
+        } else {
+          res.json({status:"data_not_found"});
+        }
+      });
+    }
+  });
+
+  app.post("/resend-tracking-to-queue", function(req, res) {
+    if (req.headers['apikey'] != 'XbOiHrrpH8aQXObcWj69XAom1b0ac5eda2b') {
+      return res.send(401, 'Unauthorized');
+    } else {
+      let tracking = req.body.tracking;
+      let billing_no = req.body.billing_no;
+      let module_name = "resend_tracking_to_queue";
+      let reason = req.body.reason;
+      let remark = req.body.remark;
+      let user = req.body.user;
+  
+      parcelServices.selectDataToExchangeUpdateBooking(db, tracking).then(function(data_to_945) {
+        if(data_to_945 !== false){
+          let log_previous_value = tracking+'/booked';
+          let log_current_value = tracking+'/booked';
+          parcelServices.insertLog(db,billing_no,log_previous_value,log_current_value,reason,module_name,user,tracking,remark).then(function(dataLog) {
+            // amqpChannel.publish(EXCHANGE_UPDATE_BOOKING,"",Buffer.from(JSON.stringify(results)),{persistent: true});
+            amqpChannel.publish("share.exchange.task-update","",Buffer.from(JSON.stringify(data_to_945)),{persistent: true});
+            res.json(data_to_945);
+          });
+                  
+    
+        } else {
+          res.json({status:"data_not_found"});
+        }
+      });
+    }
   });
   
   var smtp = {
@@ -1068,21 +1154,38 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
       out = resultList;
     }
     if (data[key] == "") {
-      // out.push("" + check_tracking + " empty");
-      console.log("" + check_tracking + " " + key + " empty");
       return false;
     }
     if (data[key] == null) {
-      // out.push("" + check_tracking + " missing");
-      console.log("" + check_tracking + " " + key + " missing");
       return false;
     }
     if (data[key] == undefined) {
-      // out.push("" + check_tracking + " missing");
-      console.log("" + check_tracking + " " + key + " missing");
       return false;
     }
     // console.log(out);
+    return defaultValue;
+  }
+  function isMatched(defaultValue,bi_type,br_type,bi_zipcode,br_zipcode,cod_value,resultList = null,check_tracking) {
+    var out = [];
+    if (resultList != null) {
+      out = resultList;
+    }
+  
+    if (bi_type == "NORMAL" && cod_value !== 0) {
+      return false;
+    }
+  
+    if (bi_type == "COD" && cod_value == 0) {
+      return false;
+    }
+  
+    if (bi_type !== br_type) {
+      return false;
+    }
+  
+    if (bi_zipcode !== br_zipcode) {
+      return false;
+    }
     return defaultValue;
   }
   

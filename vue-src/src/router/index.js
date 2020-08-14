@@ -83,6 +83,12 @@ const routes = [
         hidden: true
     },
     {
+        path: "/add-size/:sizeId",
+        name: 'AddSize',
+        component: () => import("../components/AddSize.vue"),
+        hidden: true
+    },
+    {
         path: "/branch-info",
         name: 'BranchInfo',
         component: () => import("../components/BranchInfo.vue"),
@@ -98,6 +104,12 @@ const routes = [
         path: "/change-member",
         name: 'ChangeMember',
         component: () => import("../components/ChangeMember.vue"),
+        hidden: true
+    },
+    {
+        path: "/report-tool-log",
+        name: 'ReportToolLog',
+        component: () => import("../components/ReportToolLog.vue"),
         hidden: true
     },
 ];

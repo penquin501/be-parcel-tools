@@ -63,6 +63,7 @@
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                   <router-link to="/list-daily-billing"><a v-on:click="toView" class="dropdown-item">Report Billing</a></router-link>
                   <router-link to="/list-branch"><a v-on:click="toView"  class="dropdown-item" >Report Branch</a></router-link>
+                  <router-link to="/report-tool-log"><a v-on:click="toView"  class="dropdown-item" >Report Tools Log</a></router-link>
                 </div>
               </li>
               <!-- <li class="nav-item">
@@ -75,7 +76,7 @@
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-cog" aria-hidden="true"></i></a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                   <router-link to="/branch-info"><a v-on:click="toView"  class="dropdown-item" >Branch Info</a></router-link>
-                  <!-- <router-link to="/size-info"><a v-on:click="toView" class="dropdown-item">Size Info</a></router-link> -->
+                  <router-link to="/size-info"><a v-on:click="toView" class="dropdown-item">Size Info</a></router-link>
                 </div>
               </li>
             </ul>
