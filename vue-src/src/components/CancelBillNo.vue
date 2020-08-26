@@ -234,7 +234,7 @@ export default {
               let c_pass=true;
               let str_result="";
               for(let i=0;i<result.length;i++){
-                if(result[i].status!=="success" || result[i].status!=="SUCCESS"){
+                if(result[i].status!=="success" && result[i].status!=="SUCCESS"){
                   c_pass=false;
                   str_result+=result[i].tracking+" "+result[i].reason+", "
                 }
