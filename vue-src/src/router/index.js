@@ -35,6 +35,12 @@ const routes = [
         hidden: true
     },
     {
+        path: "/cancelallbillno",
+        name: 'CancelAllBill',
+        component: () => import("../components/CancelAllBillNo.vue"),
+        hidden: true
+    },
+    {
         path: "/setpriority",
         name: 'SetPriority',
         component: () => import("../components/SetPriority.vue"),

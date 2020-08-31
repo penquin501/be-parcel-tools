@@ -53,41 +53,46 @@ module.exports = {
     });
   },
   getBillingInfo: (db,billing) => {
-    let sql = `SELECT b.member_code,b.billing_date,b.billing_no,b.branch_id,bInfo.branch_name,b.status 
+    let sql = `SELECT b.user_id, b.mer_authen_level, b.member_code, b.carrier_id, b.billing_date, b.billing_no, b.branch_id, b.total, b.img_url, b.status, b.ref_billing_no, bInfo.branch_name
     FROM billing b
     LEFT JOIN branch_info bInfo ON b.branch_id=bInfo.branch_id
     WHERE billing_no=?`;
     let data = [billing];
 
-    let sqlItem = `SELECT bi.tracking,s.alias_size,bi.size_price,bi.parcel_type,bi.cod_value,br.sender_name,br.sender_phone,br.sender_address,
-    br.receiver_name,br.phone,br.receiver_address,br.district_name,br.amphur_name,br.province_name,br.zipcode,br.status 
+    let sqlItem = `SELECT bi.tracking, bi.size_id, bi.size_price,bi.parcel_type,bi.cod_value, bi.source, 
+    br.sender_name, br.sender_phone, br.sender_address, br.receiver_name, br.phone, br.receiver_address, 
+    br.district_id, br.district_name, br.amphur_id, br.amphur_name, br.province_id, br.province_name, br.zipcode,br.status, br.remark, s.alias_size
     FROM billing_item bi
     LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
-    LEFT JOIN size_info s ON bi.size_id=s.size_id
+    JOIN size_info s ON bi.size_id=s.size_id
     WHERE bi.billing_no=?`;
     let dataItem = [billing];
 
     return new Promise(function(resolve, reject) {
-      db.query(sql, data, (err, results) => {
-        if (err === null) {
-          if (results.length <= 0) {
+      db.query(sql, data, (errBilling, resultsBilling) => {
+        if (errBilling === null) {
+          if (resultsBilling.length <= 0) {
             resolve(false);
           } else {
-            db.query(sqlItem, dataItem, (err, resultsItem) => {
-              if (resultsItem.length <= 0) {
-                resolve(false);
+            db.query(sqlItem, dataItem, (errItem, resultsItem) => {
+              if(errItem == null){
+                if (resultsItem.length <= 0) {
+                  resolve(false);
+                } else {
+                  // var sum = 0;
+                  // resultsItem.forEach(item => {
+                  //   sum += item.size_price;
+                  // });
+                  var dataResult = {
+                    billing: resultsBilling[0],
+                    billingItem: resultsItem,
+                    // countTracking: resultsItem.length,
+                    // sum: sum
+                  };
+                  resolve(dataResult);
+                }
               } else {
-                var sTracking = 0;
-                resultsItem.forEach(item => {
-                  sTracking += item.size_price;
-                });
-                var dataResult = {
-                  billingNo: results[0],
-                  billingItem: resultsItem,
-                  countTracking: resultsItem.length,
-                  sTracking: sTracking
-                };
-                resolve(dataResult);
+                resolve(false);
               }
             });
           }
@@ -719,7 +724,7 @@ module.exports = {
       );
     });
   },
-  sendDatatoServer: (db,billing_no) => {
+  sendDataToServer: (db,billing_no) => {
     var sqlBilling = `SELECT user_id,mer_authen_level,member_code,carrier_id,billing_no,branch_id,img_url FROM billing WHERE billing_no= ? AND status='complete'`;
     var dataBilling = [billing_no];  
 
@@ -756,7 +761,6 @@ module.exports = {
                                 })
                                 
                                 var data={
-                                    // apikey: "XbOiHrrpH8aQXObcWj69XAom1b0ac5eda2b",
                                     authen: {
                                       merid: result_billing[0].branch_id,
                                       userid: result_billing[0].user_id,
@@ -789,6 +793,93 @@ module.exports = {
         });
 
     })
+},
+saveDataBilling: (db, billing, currentMember, total, newBillingNo) => {
+  var dateTimestamp = new Date();
+  var dateTimestamp2 = +dateTimestamp;
+  var status = "drafting";
+
+  var sqlUpdateBilling=`UPDATE billing SET status='cancel' WHERE billing_no=?`;
+  var dataUpdateBilling=[billing.billing_no];
+
+  var sqlSaveBilling = `INSERT INTO billing(user_id, mer_authen_level, member_code, carrier_id, billing_date, billing_no, branch_id, total, timestamp, img_url, status, ref_billing_no) 
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  var dataSaveBilling=[billing.user_id, billing.mer_authen_level, currentMember.memberCode, billing.carrier_id, new Date(), newBillingNo, billing.branch_id, total, dateTimestamp2, billing.img_url, status, billing.billing_no];
+
+  return new Promise(function(resolve, reject) {
+    db.query(sqlUpdateBilling,dataUpdateBilling, (errorUpdateBilling, resultUpdateBilling, fields) => {
+      if(errorUpdateBilling==null){
+        if(resultUpdateBilling.affectedRows>0){
+          db.query(sqlSaveBilling,dataSaveBilling, (errorSaveBilling, resultSaveBilling, fields) => {
+            if(errorSaveBilling==null){
+              if(resultSaveBilling.affectedRows > 0){
+                resolve(true);
+              } else {
+                resolve(false);
+              }
+            } else {
+              resolve(false);
+            }
+          })
+        } else {
+          resolve(false);
+        }
+      } else {
+        resolve(false);
+      }
+    });
+    
+  });
+},
+updateBillingNoItem: (db, newBillingNo, item, currentMember) => {
+  var sqlUpdateItem = `UPDATE billing_item SET billing_no=? WHERE tracking=?`;
+  var dataItem=[newBillingNo,item.tracking];
+
+  var sqlUpdateReceiver = `UPDATE billing_receiver_info SET sender_name=?, sender_phone=?,sender_address=? WHERE tracking=?`;
+  var dataReceiver=[currentMember.senderName, currentMember.senderPhone, currentMember.senderAddress, item.tracking];
+
+  return new Promise(function(resolve, reject) {
+    db.query(sqlUpdateItem,dataItem, (errorItem, resultItem, fields) => {
+      if(errorItem==null){
+        if(resultItem.affectedRows > 0){
+          db.query(sqlUpdateReceiver, dataReceiver, (errorReceiver, resultReceiver, fields) => {
+            if(errorReceiver==null){
+              if(resultReceiver.affectedRows > 0){
+                resolve(true);
+              } else {
+                resolve(false);
+              }
+            } else {
+              resolve(false);
+            }
+          })
+        } else {
+          resolve(false);
+        }
+      } else {
+        resolve(false);
+      }
+    })
+  });
+},
+updateStatusBilling:(db,billingNo)=>{
+  var updateStatusBilling="UPDATE billing SET status=? WHERE billing_no=? AND status=?"
+  var dataStatusBilling=['complete',billingNo,'drafting'];
+
+  return new Promise(function(resolve, reject) {
+      db.query(updateStatusBilling,dataStatusBilling, (error, results, fields) => {
+          // resolve(results)
+        if(error==null){
+          if(results.affectedRows>0){
+            resolve(true);
+          } else{
+            resolve(false);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+  })
 },
   selectDataToExchangeUpdateBooking: (db, tracking) => {
     let sqlReceiver = `SELECT br.tracking,br.sender_name,br.sender_phone,br.sender_address,br.receiver_name,br.phone,br.receiver_address,d.DISTRICT_CODE,

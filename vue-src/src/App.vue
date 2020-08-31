@@ -43,11 +43,12 @@
           <div v-else>
             <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
               <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">เมนู</a>
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Tools</a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                  <router-link to="/tools"><a v-on:click="toView" class="dropdown-item">เครื่องมือทั่วไป</a></router-link>
-                  <router-link to="/cancelbillno"><a v-on:click="toView" class="dropdown-item">ยกเลิกเลขที่บิล</a></router-link>
-                  <router-link to="/change-member"><a v-on:click="toView" class="dropdown-item">เปลี่ยนแปลง member</a></router-link>
+                  <!-- <router-link to="/tools"><a v-on:click="toView" class="dropdown-item">เครื่องมือทั่วไป</a></router-link> -->
+                  <router-link to="/cancelbillno"><a v-on:click="toView" class="dropdown-item">ยกเลิก Tracking</a></router-link>
+                  <router-link to="/cancelallbillno"><a v-on:click="toView" class="dropdown-item">ยกเลิก Bill</a></router-link>
+                  <router-link to="/change-member"><a v-on:click="toView" class="dropdown-item">เปลี่ยน Member</a></router-link>
                   <router-link to="/listtracking"><a v-on:click="toView" class="dropdown-item">QL Checker</a></router-link>
                 </div>
               </li>

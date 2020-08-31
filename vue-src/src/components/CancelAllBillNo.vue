@@ -5,6 +5,7 @@
       <input maxlength="30" v-model="billingInput" autocomplete="false" />
       <button v-on:click="getData" type="button">Search</button>
     </div>
+
     <div class="row">
       <div class="col-md-2"></div>
       <div class="col-md-8">
@@ -39,47 +40,45 @@
           </table>
         </div>
         <div style="height: 20px;"></div>
-        <div class="search" style="text-align:center; width: 100%;">
-          <label style="font-size:16px;">กรุณาใส่รหัสผู้ส่ง(Member Code) :</label>
-          <input maxlength="30" v-model="memberCodeInput" autocomplete="false" />
-          <button v-on:click="getMemberInfo" type="button">
-            <i class="fa fa-search" aria-hidden="true"></i>
-          </button>
-        </div>
-        <div class="center">
-          <table style="width: 100%;">
-            <tbody>
-              <tr>
-                <td style="width: 15%;">Member Code:</td>
-                <td style="width: 25%;">{{ this.memberInfo.memberId }}</td>
-                <td style="width: 10%;">ชื่อ-นามสกุล:</td>
-                <td style="width: 25%;">{{ this.memberInfo.firstname }} {{ this.memberInfo.lastname }}</td>
-              </tr>
-              <tr>
-                <td style="width: 15%;">เบอร์โทรศัพท์:</td>
-                <td style="width: 25%;">{{ this.memberInfo.phoneregis }}</td>
-                <td style="width: 10%;">ที่อยู่ผู้ส่ง:</td>
-                <td style="width: 25%;">{{ this.memberInfo.refAddress }}</td>
-              </tr>
-              <!-- <tr>
-                <td style="width: 15%;">จำนวนรายการ:</td>
-                <td style="width: 25%;">{{ countTracking }}</td>
-                <td style="width: 10%;">ยอดรวมบิล:</td>
-                <td style="width: 25%;">{{ sTracking }}</td>
-              </tr>
-              <tr>
-                <td style="width: 15%;">สถานะ:</td>
-                <td style="width: 25%;">{{ status_lb }}</td>
-                <td style="width: 10%;"></td>
-                <td style="width: 25%;"></td>
-              </tr> -->
-            </tbody>
+        <div class="table">
+          <table border="1">
+            <tr>
+              <th style="text-align:center; width: 10%;">Tracking</th>
+              <th style="text-align:center; width: 10%;">ขนาดพัสดุ</th>
+              <th style="text-align:center; width: 10%;">ราคาพัสดุ</th>
+              <th style="text-align:center; width: 10%">ประเภทพัสดุ</th>
+              <th style="text-align:center; width: 10%;">ยอด COD</th>
+              <th style="text-align:center; width: 30%;">ชื่อผู้รับ</th>
+              <th style="text-align:center; width: 5%">เบอร์ผู้รับ</th>
+              <th style="text-align:center; width: 5%">สถานะ</th>
+              <th style="text-align:center; width: 5%">
+                เลือก
+                <input type="checkbox" @click="selectAll" v-model="allSelected" disabled/>
+              </th>
+            </tr>
+            <tr v-for="(item) in billingItem" v-bind:key="item.id">
+              <td style="text-align: center;">{{ item.tracking }}</td>
+              <td style="text-align: center;">{{ item.alias_size }}</td>
+              <td style="text-align: center;">{{ item.size_price }}</td>
+              <td style="text-align: center;">{{ item.parcel_type }}</td>
+              <td style="text-align: center;">{{ item.cod_value }}</td>
+              <td style="text-align: center;">{{ item.receiver_name }}</td>
+              <td style="text-align: center;">{{ item.phone }}</td>
+              <td style="text-align: center;">{{ item.status }}</td>
+              <td style="text-align: center;"><input type="checkbox" :value="item" v-model="selectItem" @click="select" disabled /></td>
+              <!-- <td v-if="item.status != 'cancel'" style="text-align: center;">
+                <input type="checkbox" :value="item" v-model="selectItem" @click="select" />
+              </td>
+              <td v-else style="text-align: center;">
+                <input type="checkbox" :value="item" v-model="selectItem" @click="select" disabled />
+              </td> -->
+            </tr>
           </table>
         </div>
       </div>
       <div class="col-md-2"></div>
     </div>
-    <table style="width: 100%; margin-top: 20px;">
+    <table style="width: 100%;">
       <tbody>
         <tr>
           <td style="width: 30%;" rowspan="2"></td>
@@ -96,7 +95,6 @@
               <option value="wrong_codvalue">ยอด COD ผิด</option>
               <option value="wrong_member">ทำรายการผิด member</option>
               <option value="wrong_receiver_info">ข้อมูลผู้รับผิด</option>
-              <option value="wrong_sender">ข้อมูลผู้ส่งผิด</option>
             </select>
           </td>
           <td style="width: 25%;" rowspan="2"></td>
@@ -117,9 +115,15 @@
 
 <script>
 const axios = require("axios");
+import Vue from "vue";
+import "v-slim-dialog/dist/v-slim-dialog.css";
+import SlimDialog from "v-slim-dialog";
+
+Vue.use(SlimDialog);
 export default {
   data: function() {
     return {
+      actionId: 0,
       billingInput: "",
       billingNo: {},
       countTracking: 0,
@@ -127,22 +131,18 @@ export default {
       billingItem: [],
       responseData: {},
       billingInfo: {},
-      memberCode: "",
-      memberCodeInput: "",
-      memberInfo:{},
-      currentMemberCode:"",
-      currentSenderName:"",
-      currentSenderPhone:"",
-      currentSenderAddress:"",
+      selectItem: [],
+
       sender_name: "",
       reasonValue: "",
       remark: "",
       billing_no: "",
       billingStatus: "",
-      status_lb: ""
+      status_lb: "",
+      allSelected: false
     };
   },
-  mounted: function() {
+  mounted() {
     if (!this.$session.get("session_username")) {
       this.$router.push({ name: "Main" });
     }
@@ -155,21 +155,22 @@ export default {
         this.resetData();
       } else {
         axios
-          .get("/check/info/billing?billing=" + this.billingInput.trim())
+          .get(
+            "/check/info/billing?billing=" +
+              this.billingInput
+          )
           .then(response => {
             if (response.data.status == "SUCCESS") {
-              this.resetData();
               this.responseData = response.data.data;
-              // var pre_data = response.data.data;
+
               this.billingInfo = this.responseData.billing;
               this.billingItem = this.responseData.billingItem;
+
               this.countTracking = this.responseData.billingItem.length;
 
               this.billing_no = this.billingInfo.billing_no;
-              this.billingStatus = this.billingInfo.status;
-              
-              this.memberCode=this.billingInfo.member_code;
 
+              this.billingStatus = this.billingInfo.status;
               this.sum = this.billingInfo.total;
 
               this.sender_name = this.billingItem[0].sender_name;
@@ -189,6 +190,9 @@ export default {
               } else {
                 this.status_lb = "";
               }
+
+              this.allSelected = true;
+              this.selectAll();
             } else {
               this.$dialogs.alert("ไม่พบข้อมูล", options);
             }
@@ -198,106 +202,65 @@ export default {
           });
       }
     },
-    getMemberInfo() {
-      const options = { okLabel: "ตกลง" };
-      if (this.memberCodeInput.trim() == "") {
-        this.$dialogs.alert("กรุณาใส่รหัสผู้ส่งให้ถูกต้อง", options);
-        this.resetData();
-      } else if(this.memberCodeInput==this.memberCode){
-        this.$dialogs.alert("กรุณาใส่รหัสผู้ส่งให้ถูกต้อง เนื่องจากรหัสสมาชิกเป็นของบิลนี้อยู่แล้ว", options);
-        this.resetData();
-      } else {
-        var data = {
-          member_code: this.memberCodeInput.trim()
-        };
-        axios.post("https://www.945api.com/parcel/select/member/api",JSON.stringify(data))
-          .then(response => {
-            if(response.data.status=="SUCCESS"){
-              this.memberInfo=response.data.memberInfo
-                if (this.memberInfo.phoneregis[0] + this.memberInfo.phoneregis[1] == "66") {
-                  this.memberInfo.phoneregis = this.changeDoubleSix(this.memberInfo.phoneregis);
-                }
-              this.currentMemberCode=this.memberInfo.memberId;
-              this.currentSenderName=this.memberInfo.firstname+" "+this.memberInfo.lastname;
-              this.currentSenderPhone=this.memberInfo.phoneregis;
-              this.currentSenderAddress=this.memberInfo.refAddress;
-            } else {
-              this.$dialogs.alert("กรุณาใส่รหัสผู้ส่ง(member code) ให้ถูกต้อง", options);
-            }
-          })
-          .catch(function(error) {
-            console.log(error);
-          });
-      }
-    },
-    changeDoubleSix(tels) {
-      if (tels[0] + tels[1] == "66") {
-        var phoneNO = "0";
-        for (let i = 2; i < tels.length; i++) {
-          phoneNO += tels[i];
-        }
-        return phoneNO;
-      }
-    },
-    resetData() {
-      this.billingInput = "";
-      this.billingNo = {};
-      this.countTracking = 0;
-      this.sum = 0;
-      this.billingItem = [];
-      this.previous_value = {};
-      this.billingInfo = {};
-      this.memberCode = "";
-      this.memberInfo={};
+    resetData(){
+      this.billingInput="";
+      this.billingNo={};
+      this.countTracking= 0;
+      this.sum= 0;
+      this.billingItem=[];
+      this.previous_value= {};
+      this.billingInfo= {};
+      this.selectItem=[];
 
-      this.sender_name = "";
-      this.reasonValue = "";
-      this.remark = "";
-      this.billing_no = "";
-      this.billingStatus = "";
+      this.sender_name= "";
+      this.reasonValue= "";
+      this.remark="";
+      this.billing_no="";
+      this.billingStatus="";
       this.status_lb = "";
+      this.allSelected = false;
     },
     confirmData() {
       const options = { okLabel: "ตกลง" };
-      if (this.billing_no == "") {
+      if(this.billing_no==""){
         this.$dialogs.alert("กรุณาระบุเลขที่บิลเพื่อทำรายการ", options);
         this.resetData();
-      } else if (this.billingStatus == "cancel") {
+      } else if (this.billingStatus=='cancel') {
         this.$dialogs.alert("รายการนี้ได้ถูกยกเลิกไปแล้ว", options);
-      } else if (this.billingStatus == "pass") {
-        this.$dialogs.alert("รายการนี้กำลังถูกส่งข้อมูลไปยัง server หลัก กรุณารอ 2-3 นาที",options);
-      } else if (this.currentMemberCode == "") {
-        this.$dialogs.alert("กรุณาเลือกผู้ส่งให้ถูกต้อง", options);
-      } else if (this.currentMemberCode == this.memberCode) {
-        this.$dialogs.alert("กรุณาเลือกผู้ส่งให้ถูกต้อง เนื่องจากรหัสสมาชิกเป็นของบิลนี้อยู่แล้ว", options);
+      } else if(this.billingStatus=='pass'){
+        this.$dialogs.alert("รายการนี้กำลังถูกส่งข้อมูลไปยัง server หลัก กรุณารอ 2-3 นาที", options);
+      } else if(this.selectItem.length<=0){
+        this.$dialogs.alert("กรุณาเลือกรายการที่ต้องการยกเลิก", options);
       } else if (this.reasonValue == "") {
         this.$dialogs.alert("กรุณาระบุ เหตุผล", options);
       } else if (this.remark.trim() == "") {
         this.$dialogs.alert("กรุณากรอกรายละเอียดเพิ่มเติม ให้ถูกต้อง", options);
       } else if (this.remark.length < 25) {
         this.$dialogs.alert("กรุณากรอกรายละเอียดเพิ่มเติม ให้ชัดเจน", options);
-      } else if (this.billingInfo.branch_id !== this.memberInfo.merid) {
-        this.$dialogs.alert("กรุณาเลือกผู้ส่งที่อยู่ในสาขาเดียวกันเท่านั้น", options);
       } else {
-        let moduleName="change_member";
+        let moduleName="";
+        if(this.selectItem.length == this.billingItem.length){
+          moduleName="cancel_billing";
+        } else {
+          moduleName="cancel_tracking";
+        }
 
         var dataConfirm = {
           billingNo: this.billing_no,
           billingInfo: this.responseData,
           billingStatus: this.billingStatus,
-          selectItem: [],
+          selectItem: this.selectItem,
           currentMember: {
-            memberCode: this.currentMemberCode,
-            senderName: this.currentSenderName,
-            senderPhone: this.currentSenderPhone,
-            senderAddress: this.currentSenderAddress
+            memberCode: this.billingInfo.member_code,
+            senderName: this.billingItem[0].sender_name,
+            senderPhone: this.billingItem[0].sender_phone,
+            senderAddress: this.billingItem[0].sender_address
           },
           reason: this.reasonValue,
           remark: this.remark,
           user: this.$session.get("session_username"),
           moduleName: moduleName
         };
-
         axios.post("/tools/void-billing", dataConfirm).then(response => {
             if (response.data.status == "SUCCESS") {
               let billingNo=response.data.billingNo;
@@ -325,12 +288,23 @@ export default {
             console.log(error);
           });
       }
+    },
+    selectAll() {
+      this.selectItem = [];
+      if (this.allSelected) {
+        for (let item in this.billingItem) {
+          this.selectItem.push(this.billingItem[item]);
+        }
+      }
+    },
+    select: function() {
+      this.allSelected = false;
     }
   }
 };
 </script>
 
-<style lang="scss" >
+<style lang="scss">
 .search,
 .select-tool,
 .group-btn {

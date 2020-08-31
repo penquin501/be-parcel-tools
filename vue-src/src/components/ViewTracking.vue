@@ -40,12 +40,18 @@
           <th style="text-align:center; width: 5%;">วัน/เวลา booking</th>
         </tr>
         <tr v-bind:key="item.id" v-for="item in filteredResources">
-          <div v-if="item.booking_status != 100" style="text-align: center;">
+          <!-- <div v-if="item.booking_status != 100" style="text-align: center;">
             <td style="text-align: center;"><a href="#" v-on:click="getTracking(item.tracking)">{{ item.tracking }}</a></td>
           </div>
           <div v-else>
             <td style="text-align: center;">{{ item.tracking }}</td>
-          </div>
+          </div> -->
+          <td v-if="item.booking_status != 100" style="text-align: center;">
+            <a href="#" v-on:click="getTracking(item.tracking)">{{ item.tracking }}</a>
+          </td>
+          <td v-else style="text-align: center;">
+            {{ item.tracking }}
+          </td>
           <td style="text-align: center;">{{ item.alias_size }}/{{ item.size_price }}</td>
           <td style="text-align: center;">{{ item.bi_parcel_type }}/{{ item.br_parcel_type }}</td>
           <td style="text-align: center;">{{ item.bi_zipcode }}/{{ item.br_zipcode }}</td>
