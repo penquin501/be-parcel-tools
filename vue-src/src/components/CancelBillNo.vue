@@ -149,7 +149,7 @@ export default {
         this.resetData();
       } else {
         axios
-          .get("http://localhost:3000/check/info/billing?billing=" + this.billingInput)
+          .get("/check/info/billing?billing=" + this.billingInput)
           .then(response => {
             if (response.data.status == "SUCCESS") {
               this.responseData = response.data.data;
@@ -248,7 +248,7 @@ export default {
           moduleName: moduleName
         };
 
-        axios.post("http://localhost:3000/tools/void-billing", dataConfirm).then(response => {
+        axios.post("/tools/void-billing", dataConfirm).then(response => {
             if (response.data.status == "SUCCESS") {
               let billingNo=response.data.billingNo;
               if(billingNo!==""){
