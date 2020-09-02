@@ -699,10 +699,31 @@ module.exports = {
     var sqlItem = `SELECT * FROM billing_item WHERE tracking=?`;
     var dataItem = [tracking];
 
+    var sqlItemTemp = `SELECT * FROM billing_item_temp WHERE tracking=?`;
+    var dataItemTemp = [tracking];
+
     return new Promise(function(resolve, reject) {
       db.query(sqlItem, dataItem, (err_item, results_item) => {
         if (err_item == null) {
-          resolve(results_item);
+          if(results_item.length>0){
+            db.query(sqlItemTemp, dataItemTemp, (err_item_temp, results_item_temp) => {
+              if(err_item_temp==null){
+                if(results_item_temp.length>0){
+                  var data={
+                    billingItemTemp : results_item_temp,
+                    billingItem : results_item
+                  }
+                  resolve(data);
+                } else {
+                  resolve(false);
+                }
+              } else {
+                resolve(false);
+              }
+            });
+          } else {
+            resolve(false);
+          }
         } else {
           resolve(false);
         }
@@ -713,10 +734,31 @@ module.exports = {
     var sqlReceiver = `SELECT * FROM billing_receiver_info WHERE tracking=?`;
     var dataReceiver = [tracking];
 
+    var sqlReceiverTemp = `SELECT * FROM billing_receiver_info_temp WHERE tracking=?`;
+    var dataReceiverTemp = [tracking];
+
     return new Promise(function(resolve, reject) {
       db.query(sqlReceiver,dataReceiver,(err_receiver, results_receiver) => {
           if (err_receiver == null) {
-            resolve(results_receiver);
+            if(results_receiver.length > 0){
+              db.query(sqlReceiverTemp, dataReceiverTemp, (err_receiver_temp, results_receiver_temp) => {
+                if(err_receiver_temp==null){
+                  if(results_receiver_temp.length>0){
+                    var data={
+                      receiverInfoTemp : results_receiver_temp,
+                      receiverInfo : results_receiver
+                    }
+                    resolve(data);
+                  } else {
+                    resolve(false);
+                  }
+                } else {
+                  resolve(false);
+                }
+              });
+            } else {
+              resolve(false);
+            }
           } else {
             resolve(false);
           }
