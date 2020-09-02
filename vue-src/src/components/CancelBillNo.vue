@@ -27,7 +27,7 @@
               <tr>
                 <td style="width: 15%;">จำนวนรายการ:</td>
                 <td style="width: 25%;">{{ countTracking }}</td>
-                <td style="width: 10%;">ยอดรวมบิล:</td>
+                <td style="width: 10%;">ยอดรวมค่าส่ง:</td>
                 <td style="width: 25%;">{{ sum }}</td>
               </tr>
               <tr>
@@ -51,7 +51,8 @@
               <th style="text-align:center; width: 30%;">ชื่อผู้รับ</th>
               <th style="text-align:center; width: 5%">เบอร์ผู้รับ</th>
               <th style="text-align:center; width: 5%">สถานะ</th>
-              <th style="text-align:center; width: 5%">เลือก<input type="checkbox" @click="selectAll" v-model="allSelected"></th>
+              <th style="text-align:center; width: 5%">เลือก</th>
+              <!-- <th style="text-align:center; width: 5%">เลือก<input type="checkbox" @click="selectAll" v-model="allSelected"></th> -->
             </tr>
             <tr v-for="(item) in billingItem" v-bind:key="item.id">
               <td style="text-align: center;">{{ item.tracking }}</td>
@@ -148,7 +149,7 @@ export default {
         this.resetData();
       } else {
         axios
-          .get("/check/info/billing?billing=" + this.billingInput)
+          .get("http://localhost:3000/check/info/billing?billing=" + this.billingInput)
           .then(response => {
             if (response.data.status == "SUCCESS") {
               this.responseData = response.data.data;
@@ -247,11 +248,12 @@ export default {
           moduleName: moduleName
         };
 
-        axios.post("/tools/void-billing", dataConfirm).then(response => {
+        axios.post("http://localhost:3000/tools/void-billing", dataConfirm).then(response => {
             if (response.data.status == "SUCCESS") {
               let billingNo=response.data.billingNo;
               if(billingNo!==""){
-                const optionsDialog = {title: 'รายการที่คุณเลือกได้ถูกยกเลิกแล้ว', cancelLabel: 'cancel', okLabel: "ตกลง"}
+                // const optionsDialog = {title: 'รายการที่คุณเลือกได้ถูกยกเลิกแล้ว', cancelLabel: 'cancel', okLabel: "ตกลง"}
+                const optionsDialog = {title: 'รายการที่คุณเลือกได้ถูกยกเลิกแล้ว', okLabel: "ตกลง"}
                 this.$dialogs.confirm('เลขที่บิลใหม่...'+ billingNo, optionsDialog)
                 .then(res => {
                   // console.log(res) // {ok: true|false|undefined}

@@ -26,7 +26,7 @@
               <tr>
                 <td style="width: 15%;">จำนวนรายการ:</td>
                 <td style="width: 25%;">{{ countTracking }}</td>
-                <td style="width: 10%;">ยอดรวมบิล:</td>
+                <td style="width: 10%;">ยอดรวมค่าส่ง:</td>
                 <td style="width: 25%;">{{ sum }}</td>
               </tr>
               <tr>
@@ -40,7 +40,7 @@
         </div>
         <div style="height: 20px;"></div>
         <div class="search" style="text-align:center; width: 100%;">
-          <label style="font-size:16px;">กรุณาใส่รหัสผู้ส่ง(Member Code) :</label>
+          <label style="font-size:16px;">กรุณาใส่รหัสสมาชิก(Member Id) :</label>
           <input maxlength="30" v-model="memberCodeInput" autocomplete="false" />
           <button v-on:click="getMemberInfo" type="button">
             <i class="fa fa-search" aria-hidden="true"></i>
@@ -50,7 +50,7 @@
           <table style="width: 100%;">
             <tbody>
               <tr>
-                <td style="width: 15%;">Member Code:</td>
+                <td style="width: 15%;">Member Id:</td>
                 <td style="width: 25%;">{{ this.memberInfo.memberId }}</td>
                 <td style="width: 10%;">ชื่อ-นามสกุล:</td>
                 <td style="width: 25%;">{{ this.memberInfo.firstname }} {{ this.memberInfo.lastname }}</td>
@@ -302,7 +302,8 @@ export default {
             if (response.data.status == "SUCCESS") {
               let billingNo=response.data.billingNo;
               if(billingNo!==""){
-                const optionsDialog = {title: 'รายการที่คุณเลือกได้ถูกยกเลิกแล้ว', cancelLabel: 'cancel', okLabel: "ตกลง"}
+                // const optionsDialog = {title: 'รายการที่คุณเลือกได้ถูกยกเลิกแล้ว', cancelLabel: 'cancel', okLabel: "ตกลง"}
+                const optionsDialog = {title: 'รายการที่คุณเลือกได้ถูกยกเลิกแล้ว', okLabel: "ตกลง"}
                 this.$dialogs.confirm('เลขที่บิลใหม่...'+ billingNo, optionsDialog)
                 .then(res => {
                   // console.log(res) // {ok: true|false|undefined}
