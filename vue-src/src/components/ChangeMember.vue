@@ -2,37 +2,37 @@
   <div class="container" style="margin-top: 60px;">
     <div class="search">
       <b style="font-size:18px;">กรุณาใส่เลขที่บิล :</b>
-      <input maxlength="30" v-model="billingInput" autocomplete="false" />
+      <input maxlength="30" v-model="billingInput" autocomplete="false" style="width: 214px;"/>
       <button v-on:click="getData" type="button">Search</button>
     </div>
     <div class="row">
       <div class="col-md-2"></div>
       <div class="col-md-8">
         <div class="center">
-          <table style="width: 100%;">
+          <table class="head-table"  style="width: 100%;">
             <tbody>
               <tr>
                 <td style="width: 15%;">เลขที่บิล:</td>
                 <td style="width: 25%;">{{ billingInfo.billing_no }}</td>
-                <td style="width: 10%;">วันที่:</td>
+                <td style="width: 15%;">วันที่:</td>
                 <td style="width: 25%;">{{ billingInfo.billing_date | moment("LL HH:mm") }}</td>
               </tr>
               <tr>
                 <td style="width: 15%;">สาขา:</td>
                 <td style="width: 25%;">{{ billingInfo.branch_name }}</td>
-                <td style="width: 10%;">ชื่อผู้ส่ง:</td>
+                <td style="width: 15%;">ชื่อผู้ส่ง:</td>
                 <td style="width: 25%;">{{ sender_name }}</td>
               </tr>
               <tr>
                 <td style="width: 15%;">จำนวนรายการ:</td>
                 <td style="width: 25%;">{{ countTracking }}</td>
-                <td style="width: 10%;">ยอดรวมค่าส่ง:</td>
+                <td style="width: 15%;">ยอดรวมค่าส่ง:</td>
                 <td style="width: 25%;">{{ sum }}</td>
               </tr>
               <tr>
                 <td style="width: 15%;">สถานะ:</td>
                 <td style="width: 25%;">{{ status_lb }}</td>
-                <td style="width: 10%;"></td>
+                <td style="width: 15%;"></td>
                 <td style="width: 25%;"></td>
               </tr>
             </tbody>
@@ -52,13 +52,13 @@
               <tr>
                 <td style="width: 15%;">Member Id:</td>
                 <td style="width: 25%;">{{ this.memberInfo.memberId }}</td>
-                <td style="width: 10%;">ชื่อ-นามสกุล:</td>
+                <td style="width: 15%;">ชื่อ-นามสกุล:</td>
                 <td style="width: 25%;">{{ this.memberInfo.firstname }} {{ this.memberInfo.lastname }}</td>
               </tr>
               <tr>
                 <td style="width: 15%;">เบอร์โทรศัพท์:</td>
                 <td style="width: 25%;">{{ this.memberInfo.phoneregis }}</td>
-                <td style="width: 10%;">ที่อยู่ผู้ส่ง:</td>
+                <td style="width: 15%;">ที่อยู่ผู้ส่ง:</td>
                 <td style="width: 25%;">{{ this.memberInfo.refAddress }}</td>
               </tr>
               <!-- <tr>
@@ -303,8 +303,8 @@ export default {
               let billingNo=response.data.billingNo;
               if(billingNo!==""){
                 // const optionsDialog = {title: 'รายการที่คุณเลือกได้ถูกยกเลิกแล้ว', cancelLabel: 'cancel', okLabel: "ตกลง"}
-                const optionsDialog = {title: 'รายการที่คุณเลือกได้ถูกยกเลิกแล้ว', okLabel: "ตกลง"}
-                this.$dialogs.confirm('เลขที่บิลใหม่...'+ billingNo, optionsDialog)
+                const optionsDialog = {title: 'รายการที่คุณเลือกได้เปลี่ยนแปลงข้อมูลผู้ส่งแล้ว', okLabel: "ตกลง"}
+                this.$dialogs.alert('เลขที่บิลใหม่...'+ billingNo, optionsDialog)
                 .then(res => {
                   // console.log(res) // {ok: true|false|undefined}
                   if(res){
@@ -403,6 +403,22 @@ export default {
       margin: 5px 5px 0 5px;
     }
   }
+}
+.head-table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+  // border: 1px solid #ddd;
+  tbody,
+  th,
+  td {
+    text-align: left;
+    padding: 8px;
+  }
+
+  // tr:nth-child(even) {
+  //   background-color: #f2f2f2;
+  // }
 }
 .table {
   border-collapse: collapse;

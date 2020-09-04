@@ -184,18 +184,24 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
                       return resultArr;
                     }
                     cancelItem().then(function(result) {
-                      async function saveLogItem() {
-                        var listLogTracking = [];
-                        var previous_value_log = billingStatus;
-                        var current_value_log = "cancel";
-                        await listCancelTracking.forEach(async (val,index) => {
-                          listLogTracking.push(parcelServices.insertLog(db, billingNo, previous_value_log, current_value_log, reason, moduleName, user, val.tracking, remark));
-                        })
-                        var resultArr = await Promise.all(listLogTracking);
-                        return resultArr;
-                      }
-                      saveLogItem().then(function(result) {
-                        return res.json({ status: "SUCCESS", billingNo: "" });
+                      parcelServices.updateCancelBilling(db, billingNo).then((resultBilling)=>{
+                        if(resultBilling){
+                          async function saveLogItem() {
+                            var listLogTracking = [];
+                            var previous_value_log = billingStatus;
+                            var current_value_log = "cancel";
+                            await listCancelTracking.forEach(async (val,index) => {
+                              listLogTracking.push(parcelServices.insertLog(db, billingNo, previous_value_log, current_value_log, reason, moduleName, user, val.tracking, remark));
+                            })
+                            var resultArr = await Promise.all(listLogTracking);
+                            return resultArr;
+                          }
+                          saveLogItem().then(function(result) {
+                            return res.json({ status: "SUCCESS", billingNo: "" });
+                          });
+                        } else {
+                          return res.json({ status: "ERROR", reason: "cannot_cancel_billing" }); 
+                        }
                       });
                     });
                   } else {

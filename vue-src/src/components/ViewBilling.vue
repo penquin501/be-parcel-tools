@@ -36,7 +36,7 @@
         <div class="col-ms-1 col-sm-1 col-xs-1" style="margin-bottom: 5px;">
           <button class="button-re"  v-on:click="getBilingNo()"><i class="fa fa-refresh" aria-hidden="true"></i></button>
         </div>
-      <table>
+      <table class="table-detail">
         <tr>
           <th style="text-align:center;">ชื่อสาขา</th>
           <th style="text-align:center;">เลขที่บิล</th>
@@ -225,20 +225,19 @@ input {
   }
 }
 
-table {
+.table-detail {
   border-collapse: collapse;
   border-spacing: 0;
   width: 100%;
   border: 1px solid #ddd;
-}
+  th,
+  td {
+    text-align: left;
+    padding: 8px;
+  }
 
-th,
-td {
-  text-align: left;
-  padding: 8px;
-}
-
-tr:nth-child(even) {
-  background-color: #f2f2f2;
+  tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
 }
 </style>

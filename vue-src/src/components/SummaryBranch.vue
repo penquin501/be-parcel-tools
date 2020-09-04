@@ -23,7 +23,7 @@
         <div class="col-ms-1 col-sm-1 col-xs-1" style="text-align: center; margin-top: 5px; padding-left: 0px;padding-right: 0px;">
           <button class="button-re"  v-on:click="getReportBranch()"><i class="fa fa-refresh" aria-hidden="true"></i></button>
         </div>
-      <table>
+      <table class="table-branch">
         <tr>
           <th style="text-align:center;">ชื่อสาขา</th>
           <th style="text-align:center;">จำนวนที่ยังไม่ได้ Book</th>
@@ -146,20 +146,22 @@ input {
   }
 }
 
-table {
+.table-branch {
   border-collapse: collapse;
   border-spacing: 0;
   width: 100%;
   border: 1px solid #ddd;
+
+  th,
+  td {
+    text-align: left;
+    padding: 8px;
+  }
+
+  tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
 }
 
-th,
-td {
-  text-align: left;
-  padding: 8px;
-}
 
-tr:nth-child(even) {
-  background-color: #f2f2f2;
-}
 </style>

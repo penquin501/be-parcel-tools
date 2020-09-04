@@ -2,7 +2,7 @@
   <div class="container" style="margin-top: 60px;">
     <div class="search">
       <b style="font-size:18px;">กรุณาใส่เลขที่บิล :</b>
-      <input maxlength="30" v-model="billingInput" autocomplete="false" />
+      <input maxlength="30" v-model="billingInput" autocomplete="false" style="width: 214px;"/>
       <button v-on:click="getData" type="button">Search</button>
     </div>
 
@@ -10,30 +10,30 @@
       <div class="col-md-2"></div>
       <div class="col-md-8">
         <div class="center">
-          <table style="width: 100%;">
+          <table class="head-table" style="width: 100%;">
             <tbody>
               <tr>
                 <td style="width: 15%;">เลขที่บิล:</td>
                 <td style="width: 25%;">{{ billingInfo.billing_no }}</td>
-                <td style="width: 10%;">วันที่:</td>
+                <td style="width: 15%;">วันที่:</td>
                 <td style="width: 25%;">{{ billingInfo.billing_date | moment("LL HH:mm") }}</td>
               </tr>
               <tr>
                 <td style="width: 15%;">สาขา:</td>
                 <td style="width: 25%;">{{ billingInfo.branch_name }}</td>
-                <td style="width: 10%;">ชื่อผู้ส่ง:</td>
+                <td style="width: 15%;">ชื่อผู้ส่ง:</td>
                 <td style="width: 25%;">{{ sender_name }}</td>
               </tr>
               <tr>
                 <td style="width: 15%;">จำนวนรายการ:</td>
                 <td style="width: 25%;">{{ countTracking }}</td>
-                <td style="width: 10%;">ยอดรวมค่าส่ง:</td>
+                <td style="width: 15%;">ยอดรวมค่าส่ง:</td>
                 <td style="width: 25%;">{{ sum }}</td>
               </tr>
               <tr>
                 <td style="width: 15%;">สถานะ:</td>
                 <td style="width: 25%;">{{ status_lb }}</td>
-                <td style="width: 10%;"></td>
+                <td style="width: 15%;"></td>
                 <td style="width: 25%;"></td>
               </tr>
             </tbody>
@@ -49,8 +49,8 @@
               <th style="text-align:center; width: 10%">ประเภทพัสดุ</th>
               <th style="text-align:center; width: 10%;">ยอด COD</th>
               <th style="text-align:center; width: 30%;">ชื่อผู้รับ</th>
-              <th style="text-align:center; width: 5%">เบอร์ผู้รับ</th>
-              <th style="text-align:center; width: 5%">สถานะ</th>
+              <th style="text-align:center; width: 5%;">เบอร์ผู้รับ</th>
+              <th style="text-align:center; width: 5%;">สถานะ</th>
               <th style="text-align:center; width: 5%; display:none">
                 เลือก
                 <input type="checkbox" @click="selectAll" v-model="allSelected" disabled/>
@@ -264,7 +264,7 @@ export default {
             if (response.data.status == "SUCCESS") {
               let billingNo=response.data.billingNo;
               if(billingNo!==""){
-                // const optionsDialog = {title: 'รายการที่คุณเลือกได้ถูกยกเลิกแล้ว', cancelLabel: 'cancel', okLabel: "ตกลง"}
+                // const optionsDialog = {title: 'รายการที่คุณเลือกได้ถูกยกเลิกแล้ว', cancelLabel: 'ยกเลิก', okLabel: "ตกลง"}
                 const optionsDialog = {title: 'รายการที่คุณเลือกได้ถูกยกเลิกแล้ว', okLabel: "ตกลง"}
                 this.$dialogs.confirm('เลขที่บิลใหม่...'+ billingNo, optionsDialog)
                 .then(res => {
@@ -376,6 +376,22 @@ export default {
       margin: 5px 5px 0 5px;
     }
   }
+}
+.head-table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+  // border: 1px solid #ddd;
+  tbody,
+  th,
+  td {
+    text-align: left;
+    padding: 8px;
+  }
+
+  // tr:nth-child(even) {
+  //   background-color: #f2f2f2;
+  // }
 }
 .table {
   border-collapse: collapse;

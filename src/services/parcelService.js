@@ -79,15 +79,16 @@ module.exports = {
                 if (resultsItem.length <= 0) {
                   resolve(false);
                 } else {
-                  // var sum = 0;
-                  // resultsItem.forEach(item => {
-                  //   sum += item.size_price;
-                  // });
+                  resultsItem.forEach((item)=>{
+                    if(resultsBilling[0].status == 'cancel'){
+                      item.status=resultsBilling[0].status;
+                    } else {
+                      item.status=item.status;
+                    }
+                  });
                   var dataResult = {
                     billing: resultsBilling[0],
-                    billingItem: resultsItem,
-                    // countTracking: resultsItem.length,
-                    // sum: sum
+                    billingItem: resultsItem
                   };
                   resolve(dataResult);
                 }
@@ -874,14 +875,16 @@ saveDataBilling: (db, billing, currentMember, total, newBillingNo) => {
   });
 },
 updateBillingNoItem: (db, newBillingNo, item, currentMember) => {
-  var sqlUpdateItem = `UPDATE billing_item SET billing_no=? WHERE tracking=?`;
-  var dataItem=[newBillingNo,item.tracking];
+  // var sqlUpdateItem = `UPDATE billing_item SET billing_no=? WHERE tracking=?`;
+  // var dataItem=[newBillingNo,item.tracking];
+  var sqlSaveItem=`INSERT INTO billing_item(billing_no, tracking, zipcode, size_id, size_price, parcel_type, cod_value, source,created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)`;
+  var data=[newBillingNo, item.tracking, item.zipcode, item.size_id, item.size_price, item.parcel_type.toUpperCase(), item.cod_value, item.source, new Date()];
 
   var sqlUpdateReceiver = `UPDATE billing_receiver_info SET sender_name=?, sender_phone=?,sender_address=? WHERE tracking=?`;
   var dataReceiver=[currentMember.senderName, currentMember.senderPhone, currentMember.senderAddress, item.tracking];
 
   return new Promise(function(resolve, reject) {
-    db.query(sqlUpdateItem,dataItem, (errorItem, resultItem, fields) => {
+    db.query(sqlSaveItem,data, (errorItem, resultItem, fields) => {
       if(errorItem==null){
         if(resultItem.affectedRows > 0){
           db.query(sqlUpdateReceiver, dataReceiver, (errorReceiver, resultReceiver, fields) => {
@@ -907,6 +910,25 @@ updateBillingNoItem: (db, newBillingNo, item, currentMember) => {
 updateStatusBilling:(db,billingNo)=>{
   var updateStatusBilling="UPDATE billing SET status=? WHERE billing_no=? AND status=?"
   var dataStatusBilling=['complete',billingNo,'drafting'];
+
+  return new Promise(function(resolve, reject) {
+      db.query(updateStatusBilling,dataStatusBilling, (error, results, fields) => {
+          // resolve(results)
+        if(error==null){
+          if(results.affectedRows>0){
+            resolve(true);
+          } else{
+            resolve(false);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+  })
+},
+updateCancelBilling:(db,billingNo)=>{
+  var updateStatusBilling="UPDATE billing SET status=? WHERE billing_no=? AND status=?"
+  var dataStatusBilling=['cancel',billingNo,'complete'];
 
   return new Promise(function(resolve, reject) {
       db.query(updateStatusBilling,dataStatusBilling, (error, results, fields) => {

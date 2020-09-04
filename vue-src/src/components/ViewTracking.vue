@@ -25,7 +25,7 @@
 
         </div>
 
-      <table>
+      <table class="table-detail">
         <tr>
           <th style="text-align:center; width: 5%;">เลขที่พัสดุ</th>
           <th style="text-align:center; width: 5%;">ขนาด/ราคา</th>
@@ -199,21 +199,19 @@ input {
   }
 }
 
-table {
+.table-detail {
   border-collapse: collapse;
   border-spacing: 0;
   width: 100%;
   border: 1px solid #ddd;
-}
+  th,
+  td {
+    text-align: left;
+    padding: 8px;
+  }
 
-th,
-td {
-  text-align: left;
-  padding: 8px;
-  word-wrap: break-word;
-}
-
-tr:nth-child(even) {
-  background-color: #f2f2f2;
+  tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
 }
 </style>
