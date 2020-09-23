@@ -558,15 +558,9 @@ export default {
       } else if (this.br_zipcode == "") {
         this.$dialogs.alert("กรุณากรอก รหัสไปรษณีย์ผู้รับให้ถูกต้อง", options);
       } else if (this.br_zipcode != this.bi_zipcode) {
-        this.$dialogs.alert(
-          "กรุณากรอก รหัสไปรษณีย์ผู้รับ ให้ตรงกับหน้ากล่องผู้รับ",
-          options
-        );
+        this.$dialogs.alert("กรุณากรอก รหัสไปรษณีย์ผู้รับ ให้ตรงกับหน้ากล่องผู้รับ",options);
       } else if (this.bi_parcel_type != this.br_parcel_type) {
-        this.$dialogs.alert(
-          "กรุณากรอก ประเภทการจัดส่ง ให้ตรงกับหน้ากล่องผู้รับ",
-          options
-        );
+        this.$dialogs.alert("กรุณากรอก ประเภทการจัดส่ง ให้ตรงกับหน้ากล่องผู้รับ",options);
       } else if (
         this.bi_parcel_type == "COD" &&
         (this.cod_value == "" || this.cod_value == 0)
@@ -575,11 +569,7 @@ export default {
       } else if (this.bi_parcel_type == "NORMAL" && this.cod_value > 0) {
         this.$dialogs.alert("กรุณากรอก ค่าเก็บเงินปลายทาง ให้ถูกต้อง", options);
       } else {
-        axios
-          .get(
-            "/check-availabel-tracking?tracking=" +
-              this.newTrackingInput.toUpperCase()
-          )
+        axios.get("/check-availabel-tracking?tracking=" + this.newTrackingInput.toUpperCase())
           .then(response => {
             this.resultDuplicatedTracking = response.data;
 
@@ -617,20 +607,17 @@ export default {
                 user: this.$session.get("session_username"),
                 moduleName: moduleName
               };
-              console.log(JSON.stringify(dataConfirm));
+              // console.log(JSON.stringify(dataConfirm));
               axios
                 .post("/tools/relabel-tracking", dataConfirm)
                 .then(response => {
                   if (response.data.status == "SUCCESS") {
                     let billingNo = response.data.billingNo;
-                    if (billingNo !== "") {
-                      // const optionsDialog = {title: 'รายการที่คุณเลือกได้ถูกยกเลิกแล้ว', cancelLabel: 'cancel', okLabel: "ตกลง"}
                       const optionsDialog = {
-                        title: "รายการที่คุณเลือกได้ถูกยกเลิกแล้ว",
+                        title: "รายการที่คุณเลือกได้ relabel แล้ว",
                         okLabel: "ตกลง"
                       };
-                      this.$dialogs
-                        .alert("เลขที่บิลใหม่..." + billingNo, optionsDialog)
+                      this.$dialogs.alert("เลขที่บิลใหม่..." + billingNo, optionsDialog)
                         .then(res => {
                           // console.log(res) // {ok: true|false|undefined}
                           if (res) {
@@ -639,12 +626,8 @@ export default {
                             this.$router.push("/");
                           }
                         });
-                    } else {
-                      this.$dialogs.alert("ยกเลิกรายการทั้งหมดแล้ว", options);
-                      this.$router.push("/");
-                    }
                   } else {
-                    this.$dialogs.alert("ไม่สามารถยกเลิกรายการได้ เนื่องจาก..." + response.data.reason, options);
+                    this.$dialogs.alert("ไม่สามารถ relabel tracking ได้ เนื่องจาก..." + response.data.reason, options);
                     this.$router.push("/");
                   }
                 })
