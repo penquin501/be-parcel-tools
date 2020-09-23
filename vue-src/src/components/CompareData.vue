@@ -299,7 +299,7 @@ export default {
 
             this.previous_value = response.data.billingInfo[0];
           } else {
-            alert("ไม่พบข้อมุล");
+            alert("ไม่พบข้อมูล");
           }
         })
         .catch(function(error) {

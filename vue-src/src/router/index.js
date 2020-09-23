@@ -118,6 +118,12 @@ const routes = [
         component: () => import("../components/ReportToolLog.vue"),
         hidden: true
     },
+    {
+        path: "/relabeling",
+        name: 'ReLabeling',
+        component: () => import("../components/ReLabeling.vue"),
+        hidden: true
+    },
 ];
 
 export default new Router({

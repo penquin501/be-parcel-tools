@@ -49,6 +49,7 @@
                   <router-link to="/cancelbillno"><a v-on:click="toView" class="dropdown-item">ยกเลิก Tracking</a></router-link>
                   <router-link to="/cancelallbillno"><a v-on:click="toView" class="dropdown-item">ยกเลิก Bill</a></router-link>
                   <router-link to="/change-member"><a v-on:click="toView" class="dropdown-item">เปลี่ยน Member</a></router-link>
+                  <router-link to="/relabeling"><a v-on:click="toView" class="dropdown-item">Re-Labeling</a></router-link>
                   <router-link to="/listtracking"><a v-on:click="toView" class="dropdown-item">QL Checker</a></router-link>
                 </div>
               </li>
@@ -67,12 +68,6 @@
                   <!-- <router-link to="/report-tool-log"><a v-on:click="toView"  class="dropdown-item" >Report Tools Log</a></router-link> -->
                 </div>
               </li>
-              <!-- <li class="nav-item">
-                <router-link to="/list-daily-billing"> <a class="nav-link" v-on:click="toView" role="button" aria-haspopup="true" aria-expanded="false">Report Billing</a></router-link>
-              </li>
-              <li class="nav-item">
-                <router-link to="/list-branch"> <a class="nav-link" v-on:click="toView" role="button" aria-haspopup="true" aria-expanded="false">Report Branch</a></router-link>
-              </li> -->
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-cog" aria-hidden="true"></i></a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
