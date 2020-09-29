@@ -43,15 +43,15 @@
         <div class="table">
           <table border="1">
             <tr>
-              <th style="text-align:center; width: 10%;">Tracking</th>
-              <th style="text-align:center; width: 10%;">ขนาดพัสดุ</th>
-              <th style="text-align:center; width: 10%;">ราคาพัสดุ</th>
-              <th style="text-align:center; width: 10%">ประเภทพัสดุ</th>
-              <th style="text-align:center; width: 10%;">ยอด COD</th>
-              <th style="text-align:center; width: 30%;">ชื่อผู้รับ</th>
-              <th style="text-align:center; width: 5%;">เบอร์ผู้รับ</th>
-              <th style="text-align:center; width: 5%;">สถานะ</th>
-              <th style="text-align:center; width: 5%; display:none">
+              <th style="text-align:center; width: 10%;border-top: 1px solid;">Tracking</th>
+              <th style="text-align:center; width: 10%;border-top: 1px solid;">ขนาดพัสดุ</th>
+              <th style="text-align:center; width: 10%;border-top: 1px solid;">ราคาพัสดุ</th>
+              <th style="text-align:center; width: 10%;border-top: 1px solid;">ประเภทพัสดุ</th>
+              <th style="text-align:center; width: 10%;border-top: 1px solid;">ยอด COD</th>
+              <th style="text-align:center; width: 30%;border-top: 1px solid;">ชื่อผู้รับ</th>
+              <th style="text-align:center; width: 5%;border-top: 1px solid;">เบอร์ผู้รับ</th>
+              <th style="text-align:center; width: 5%;border-top: 1px solid;">สถานะ</th>
+              <th style="text-align:center; width: 5%;border-top: 1px solid; display:none">
                 เลือก
                 <input type="checkbox" @click="selectAll" v-model="allSelected" disabled/>
               </th>
@@ -157,7 +157,7 @@ export default {
         this.resetData();
       } else {
         axios
-          .get("/check/info/billing?billing=" + this.billingInput)
+          .get("http://localhost:3000/check/info/billing?billing=" + this.billingInput)
           .then(response => {
             if (response.data.status == "SUCCESS") {
               this.responseData = response.data.data;

@@ -32,7 +32,7 @@
 
         </div>
       </div>
-      <table>
+      <table class="list_phone">
         <tr>
           <th style="text-align: center;">เบอร์โทรศัพท์ผู้ส่ง</th>
           <th style="text-align: center;">จำนวนที่ค้าง</th>
@@ -200,17 +200,16 @@ export default {
 
 }
 
-table {
+.list_phone{
   border-collapse: collapse;
   border-spacing: 0;
   width: 100%;
-  border: 1px solid #ddd;
-}
-
+  border: 1px solid #ddd; 
 th, td {
   text-align: left;
   padding: 8px;
 }
-
 tr:nth-child(even){background-color: #f2f2f2}
+}
+
 </style>

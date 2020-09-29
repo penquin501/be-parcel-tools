@@ -45,7 +45,7 @@
                 <th style="text-align:center; width: 10%;">Tracking</th>
               <th style="text-align:center; width: 10%;">ขนาดพัสดุ</th>
               <th style="text-align:center; width: 10%;">ราคาพัสดุ</th>
-              <th style="text-align:center; width: 10%">ประเภทพัสดุ</th>
+              <th style="text-align:center; width: 10%;">ประเภทพัสดุ</th>
               <th style="text-align:center; width: 10%;">ยอด COD</th>
               <th style="text-align:center; width: 30%;">ชื่อผู้รับ</th>
               <th style="text-align:center; width: 5%;">เบอร์ผู้รับ</th>
@@ -154,7 +154,7 @@ export default {
       } else {
         axios
           .get(
-            "/check/info/billing?billing=" +
+            "http://localhost:3000/check/info/billing?billing=" +
               this.billingInput
           )
           .then(response => {
