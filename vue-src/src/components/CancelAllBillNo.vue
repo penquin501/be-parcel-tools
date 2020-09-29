@@ -157,7 +157,7 @@ export default {
         this.resetData();
       } else {
         axios
-          .get("http://localhost:3000/check/info/billing?billing=" + this.billingInput)
+          .get("/check/info/billing?billing=" + this.billingInput)
           .then(response => {
             if (response.data.status == "SUCCESS") {
               this.responseData = response.data.data;

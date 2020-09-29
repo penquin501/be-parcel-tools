@@ -154,7 +154,7 @@ export default {
       } else {
         axios
           .get(
-            "http://localhost:3000/check/info/billing?billing=" +
+            "/check/info/billing?billing=" +
               this.billingInput
           )
           .then(response => {
