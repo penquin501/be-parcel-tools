@@ -7,6 +7,7 @@ var mailer = require("nodemailer");
 const app = express();
 const moment = require("moment");
 const m = require("moment-timezone");
+const queryString = require("query-string");
 
 var fileSystem = require("fs");
 var fastcsv = require("fast-csv");
@@ -289,6 +290,8 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
       return res.json({ status: "ERROR", reason: "no_data_was_created" });
     } else if(billingInfo.billing_status == 'cancel') {
       return res.json({ status: "ERROR", reason: "data_cancelled" });
+    } else if(billingInfo.billing_status == 'relabel') {
+      return res.json({ status: "ERROR", reason: "data_relabled" });
     } else if(currentValue == undefined){
       return res.json({ status: "ERROR", reason: "no_data_to_relabeling" });
     } else if(causeType =="" || causeType==0 || causeType == undefined){
@@ -318,7 +321,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
           item_valid = isGenericValid(billingItem,"tracking",item_valid,resultList,billingItem.tracking);
           item_valid = isGenericValid(billingItem,"parcelType",item_valid,resultList,billingItem.tracking);
           item_valid = isGenericValid(billingItem,"sizeId",item_valid,resultList,billingItem.tracking);
-          item_valid = isGenericValid(billingItem,"sizePrice",item_valid,resultList,billingItem.tracking);
+          // item_valid = isGenericValid(billingItem,"sizePrice",item_valid,resultList,billingItem.tracking);
 
           item_valid = isGenericValid(receiverInfo,"receiverName",item_valid,resultList,billingItem.tracking);
           item_valid = isGenericValid(receiverInfo,"phone",item_valid,resultList,billingItem.tracking);
@@ -332,6 +335,13 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
           item_valid = isGenericValid(receiverAddress,"AMPHUR_NAME",item_valid,resultList,billingItem.tracking);
           item_valid = isGenericValid(receiverAddress,"PROVINCE_ID",item_valid,resultList,billingItem.tracking);
           item_valid = isGenericValid(receiverAddress,"PROVINCE_NAME",item_valid,resultList,billingItem.tracking);
+
+          if(causeType == 1 && billingItem.sizePrice !== 0){
+            item_valid=false;
+          }
+          if(causeType == 2 && billingItem.sizePrice == 0){
+            item_valid=false;
+          }
 
           if (billingItem.parcelType == "NORMAL" && billingItem.codValue !== 0) {
             item_valid=false;
@@ -1222,6 +1232,27 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
       });
     }
   });
+  app.get("/get-new-tracking", (req, res) => {
+    var qs = queryString.stringify({
+      prefix: "TDZ"
+    });
+    request(
+      {
+        url:
+          "https://www.945holding.com/webservice/restful/parcel/gentracking/v11/generator",
+        method: "POST",
+        headers: {
+          apikey: "XbOiHrrpH8aQXObcWj69XAom1b0ac5eda2b",
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: qs
+      },
+      (err, result, body) => {
+        var newTracking=JSON.parse(result.body);
+        res.send(newTracking[0]);
+      });
+
+  });
   
   var smtp = {
     pool: true,
@@ -1632,6 +1663,9 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
                         restructureBilling: result[1]
                       };
                       // console.log("dataTo945", JSON.stringify(dataTo945));
+                      amqpChannel.publish("parcel.exchange.event","",Buffer.from(JSON.stringify(result[1])),{persistent: true});
+                      amqpChannel.publish("share.exchange.event","",Buffer.from(JSON.stringify(result[1])),{persistent: true});
+
                       amqpChannel.publish("parcel.exchange.relabel-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
                       amqpChannel.publish("share.exchange.relabel-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
 
@@ -1664,12 +1698,15 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
       out = resultList;
     }
     if (data[key] == "") {
+      console.log(key+" empty");
       return false;
     }
     if (data[key] == null) {
+      console.log(key+" null");
       return false;
     }
     if (data[key] == undefined) {
+      console.log(key+" undefined");
       return false;
     }
     // console.log(out);

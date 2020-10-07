@@ -78,7 +78,7 @@ export default {
       const options = { okLabel: "ตกลง" };
       if (this.branch_id !== 0) {
         axios
-          .get("http://localhost:3000/branch/get-branch-info/" + this.branch_id)
+          .get("/branch/get-branch-info/" + this.branch_id)
           .then(response => {
             if (response.data) {
               this.dataBranch = response.data.data;

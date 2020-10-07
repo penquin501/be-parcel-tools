@@ -175,6 +175,7 @@
               v-model="newTrackingInput"
               v-on:keypress="engOnly"
               autocomplete="false"
+              disabled
             />
           </td>
         </tr>
@@ -294,11 +295,12 @@ export default {
   },
   methods: {
     getData() {
-      axios
-        .get(
-          "/check/info/tracking?tracking=" +
-            this.trackingInput.toUpperCase()
-        )
+      const options = { okLabel: "ตกลง" };
+      if(this.trackingInput==""){
+          this.$dialogs.alert("กรุณาใส่เลข Tracking ให้ถูกต้อง",options);
+      } else {
+
+      axios.get("/check/info/tracking?tracking=" + this.trackingInput.toUpperCase())
         .then(response => {
           if (response.data.status == "SUCCESS") {
             var responseData = response.data.billingInfo;
@@ -346,6 +348,8 @@ export default {
               this.order_status_lb = "ข้อมูลถูกยกเลิกแล้ว";
             } else if (this.status == "success") {
               this.order_status_lb = "ข้อมูลกำลังถูกส่งข้อมูลไปที่ server หลัก";
+            } else if (this.status == "relabel") {
+              this.order_status_lb = "ข้อมูลถูกย้ายไปที่ tracking ใหม่แล้ว";
             } else {
               this.order_status_lb = "";
             }
@@ -358,6 +362,7 @@ export default {
             } else {
               this.imgUrl = this.imgCapture[0].image_url;
             }
+            this.getNewTracking();
 
             this.codeValueEdit = false;
             this.receiverFNameEdit = false;
@@ -366,12 +371,13 @@ export default {
             this.receiverAddressEdit = false;
             this.receriverZipcodeEdit = false;
           } else {
-            alert("ไม่พบข้อมูล");
+            this.$dialogs.alert("ไม่พบข้อมูล",options);
           }
         })
         .catch(function(error) {
           console.log(error);
         });
+      }
     },
     parcelAddressList(zipcode) {
       axios
@@ -506,6 +512,12 @@ export default {
     selectCause(causeType) {
       this.causeType = causeType;
     },
+    getNewTracking() {
+      axios.get("/get-new-tracking")
+        .then(response => {
+          this.newTrackingInput=response.data.toUpperCase();
+        });
+    },
     confirmSelectTools() {
       const options = { okLabel: "ตกลง" };
 
@@ -547,6 +559,8 @@ export default {
         this.$dialogs.alert("กรุณาใส่เลขที่จัดส่งใหม่ให้ถูกต้อง", options);
       } else if (this.status == "cancel") {
         this.$dialogs.alert("รายการนี้ได้ถูกยกเลิกไปแล้ว", options);
+      } else if (this.status == "relabel") {
+        this.$dialogs.alert("ไม่สามารถเปลี่ยนเลขนี้ได้ เนื่องจากเลขนี้ได้ถูกเปลี่ยนเลขไปแล้ว", options);
       } else if (
         phone[0] + phone[1] != "06" &&
         phone[0] + phone[1] != "08" &&
@@ -569,15 +583,15 @@ export default {
       } else if (this.bi_parcel_type == "NORMAL" && this.cod_value > 0) {
         this.$dialogs.alert("กรุณากรอก ค่าเก็บเงินปลายทาง ให้ถูกต้อง", options);
       } else {
-        axios.get("/check-availabel-tracking?tracking=" + this.newTrackingInput.toUpperCase())
-          .then(response => {
+        axios.get("/check-availabel-tracking?tracking=" + this.newTrackingInput.toUpperCase()).then(response => {
             this.resultDuplicatedTracking = response.data;
 
             if (!this.resultDuplicatedTracking) {
-              this.$dialogs.alert(
-                "กรุณาใส่ เลขจัดส่งใหม่ ให้ถูกต้อง เนื่องจากเลขจัดส่งมีในระบบแล้ว",
-                options
-              );
+              // this.$dialogs.alert(
+              //   "กรุณาใส่ เลขจัดส่งใหม่ ให้ถูกต้อง เนื่องจากเลขจัดส่งมีในระบบแล้ว",
+              //   options
+              // );
+              this.getNewTracking();
             } else {
               var moduleName = "relabeling_tracking";
 
@@ -591,7 +605,7 @@ export default {
                     parcelType: this.bi_parcel_type,
                     codValue: this.cod_value,
                     sizeId: this.size_id,
-                    sizePrice: this.size_price
+                    sizePrice: (this.causeType == 1)? 0 : this.size_price
                   },
                   receiverInfo: {
                     receiverName:
@@ -608,24 +622,23 @@ export default {
                 moduleName: moduleName
               };
               // console.log(JSON.stringify(dataConfirm));
-              axios
-                .post("/tools/relabel-tracking", dataConfirm)
+              axios.post("/tools/relabel-tracking", dataConfirm)
                 .then(response => {
                   if (response.data.status == "SUCCESS") {
                     let billingNo = response.data.billingNo;
-                      const optionsDialog = {
-                        title: "รายการที่คุณเลือกได้ relabel แล้ว",
-                        okLabel: "ตกลง"
-                      };
-                      this.$dialogs.alert("เลขที่บิลใหม่..." + billingNo, optionsDialog)
-                        .then(res => {
-                          // console.log(res) // {ok: true|false|undefined}
-                          if (res) {
-                            this.$router.push("/");
-                          } else {
-                            this.$router.push("/");
-                          }
-                        });
+                    const optionsDialog = {
+                      title: "รายการที่คุณเลือกได้ relabel แล้ว",
+                      okLabel: "ตกลง"
+                    };
+                    this.$dialogs.alert("เลขที่บิลใหม่..." + billingNo, optionsDialog)
+                      .then(res => {
+                        // console.log(res) // {ok: true|false|undefined}
+                        if (res) {
+                          this.$router.push("/");
+                        } else {
+                          this.$router.push("/");
+                        }
+                      });
                   } else {
                     this.$dialogs.alert("ไม่สามารถ relabel tracking ได้ เนื่องจาก..." + response.data.reason, options);
                     this.$router.push("/");
