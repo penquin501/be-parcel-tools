@@ -308,7 +308,7 @@ export default {
 
             this.billing_no = this.billingInfo.billing_no;
             this.tracking = this.billingInfo.tracking;
-            this.bi_parcel_type = this.billingInfo.bi_parcel_type;
+            this.bi_parcel_type = this.billingInfo.bi_parcel_type.toUpperCase();
             this.district_code = this.billingInfo.DISTRICT_CODE;
             this.size_id = this.billingInfo.size_id;
             this.alias_size = this.billingInfo.alias_size.toUpperCase();
@@ -602,7 +602,7 @@ export default {
                 currentValue: {
                   billingItem: {
                     tracking: this.newTrackingInput.toUpperCase(),
-                    parcelType: this.bi_parcel_type,
+                    parcelType: this.bi_parcel_type.toUpperCase(),
                     codValue: this.cod_value,
                     sizeId: this.size_id,
                     sizePrice: (this.causeType == 1)? 0 : this.size_price

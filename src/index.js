@@ -337,16 +337,20 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
           item_valid = isGenericValid(receiverAddress,"PROVINCE_NAME",item_valid,resultList,billingItem.tracking);
 
           if(causeType == 1 && billingItem.sizePrice !== 0){
+            console.log("causeType = 1, sizePrice = %d", billingItem.sizePrice);
             item_valid=false;
           }
           if(causeType == 2 && billingItem.sizePrice == 0){
+            console.log("causeType = 2, sizePrice = %d", billingItem.sizePrice);
             item_valid=false;
           }
 
-          if (billingItem.parcelType == "NORMAL" && billingItem.codValue !== 0) {
+          if (billingItem.parcelType.toUpperCase() == "NORMAL" && parseInt(billingItem.codValue) !== 0) {
+            console.log("parcelType = NORMAL, codValue = %d", billingItem.codValue);
             item_valid=false;
           }
-          if (billingItem.parcelType == "COD" && billingItem.codValue == 0) {
+          if (billingItem.parcelType.toUpperCase() == "COD" && parseInt(billingItem.codValue) == 0) {
+            console.log("parcelType = COD, codValue = %d", billingItem.codValue);
             item_valid=false;
           }
 
@@ -397,6 +401,47 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
         }
       } 
     }
+  });
+
+  app.post("/tools/move-member-info", function(req, res) {
+    let previousValue = req.body.previousValue;
+    let currentValue = req.body.currentValue;
+    let moduleName = req.body.moduleName;
+    let user = req.body.user;
+
+    var dataJson = currentValue;
+
+    request(
+      {
+        url: "http://localhost:3300/update/member-info/api",
+        method: "POST",
+        body: dataJson,
+        json: true
+      },
+      (err, res2, body) => {
+        var resultUpdateApi = res2.body.status;
+
+        if (resultUpdateApi == "SUCCESS") {
+          var previousValueLog = previousValue.member_id + "/" +previousValue.merid + "/" + previousValue.status;
+          var currentValueLog = currentValue.memberId + "/" + previousValue.merId + "/" + previousValue.status;
+
+          parcelServices.insertLog(db, "-", previousValueLog, currentValueLog, moduleName, user, "-").then(function(data) {});
+
+          request(
+            {
+              url: "http://localhost:3300/check/member-info?memberId="+currentValue.memberId,
+              method: "GET"
+            },
+            (err, res3, body) => {
+              var resultCheckMember=JSON.parse(res3.body);
+              res.json({ status: "SUCCESS", memberInfo: resultCheckMember.memberInfo[0]});
+            });
+          
+        } else {
+          res.json({ status: "ERROR", reason: res2.body.reason });
+        }
+      }
+    );
   });
   
   app.post("/save/cancel/tracking", function(req, res) {
@@ -1173,7 +1218,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
       // let source = req.body.source;
       var data = {
         tracking: tracking.toUpperCase(),
-        source: "ReBOOKING"
+        source: "ReBooking"
       };
       amqpChannel.publish("parcel.exchange.prepare-booking","",Buffer.from(JSON.stringify(data)),{persistent: true});
       res.json(data);

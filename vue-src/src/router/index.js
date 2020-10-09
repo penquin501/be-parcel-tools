@@ -124,6 +124,12 @@ const routes = [
         component: () => import("../components/ReLabeling.vue"),
         hidden: true
     },
+    {
+        path: "/movemember",
+        name: 'MoveMember',
+        component: () => import("../components/MoveMember.vue"),
+        hidden: true
+    },
 ];
 
 export default new Router({

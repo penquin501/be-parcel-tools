@@ -51,6 +51,7 @@
                   <router-link to="/change-member"><a v-on:click="toView" class="dropdown-item">เปลี่ยน Member</a></router-link>
                   <router-link to="/relabeling"><a v-on:click="toView" class="dropdown-item">Re-Labeling</a></router-link>
                   <router-link to="/listtracking"><a v-on:click="toView" class="dropdown-item">QL Checker</a></router-link>
+                  <router-link to="/movemember"><a v-on:click="toView" class="dropdown-item">ย้าย Member ไป Shop อื่น</a></router-link>
                 </div>
               </li>
               <li class="nav-item dropdown">
