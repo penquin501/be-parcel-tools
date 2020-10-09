@@ -423,9 +423,9 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
 
         if (resultUpdateApi == "SUCCESS") {
           var previousValueLog = previousValue.member_id + "/" +previousValue.merid + "/" + previousValue.status;
-          var currentValueLog = currentValue.memberId + "/" + previousValue.merId + "/" + previousValue.status;
+          var currentValueLog = currentValue.memberId + "/" + currentValue.merId + "/" + currentValue.status;
 
-          parcelServices.insertLog(db, "-", previousValueLog, currentValueLog, moduleName, user, "-").then(function(data) {});
+          parcelServices.insertLog(db, '-', previousValueLog, currentValueLog, 'move_member', moduleName, user, '-', '-');
 
           request(
             {
