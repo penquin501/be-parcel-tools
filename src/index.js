@@ -413,7 +413,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
 
     request(
       {
-        url: "http://localhost:3300/update/member-info/api",
+        url: "https://api-key-tool.945holding.com/update/member-info/api",
         method: "POST",
         body: dataJson,
         json: true
@@ -429,7 +429,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
 
           request(
             {
-              url: "http://localhost:3300/check/member-info?memberId="+currentValue.memberId,
+              url: "https://api-key-tool.945holding.com/check/member-info?memberId="+currentValue.memberId,
               method: "GET"
             },
             (err, res3, body) => {
