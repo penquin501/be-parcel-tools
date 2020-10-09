@@ -1215,13 +1215,21 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
       return res.send(401, 'Unauthorized');
     } else {
       let tracking = req.body.tracking;
-      // let source = req.body.source;
-      var data = {
-        tracking: tracking.toUpperCase(),
-        source: "ReBooking"
-      };
-      amqpChannel.publish("parcel.exchange.prepare-booking","",Buffer.from(JSON.stringify(data)),{persistent: true});
-      res.json(data);
+      parcelServices.updateStatusReceiver(db,null,tracking).then(function(resultUpdateStatus) {
+        if(resultUpdateStatus !== false){
+          var data = {
+            tracking: tracking.toUpperCase(),
+            source: "ReBooking"
+          };
+  
+          amqpChannel.publish("parcel.exchange.prepare-booking","",Buffer.from(JSON.stringify(data)),{persistent: true});
+          return res.json(data);
+        } else {
+          return res.json({status: "ERROR"});
+        }
+
+      });
+
     }
   });
 
