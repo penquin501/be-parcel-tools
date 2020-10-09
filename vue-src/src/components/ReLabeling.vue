@@ -286,7 +286,6 @@ export default {
         { code: "01", name: "945 เป็นฝ่ายผิด", value: 1 },
         { code: "02", name: "ลูกค้า/shop เป็นฝ่ายผิด", value: 2 }
       ],
-      url:"http://localhost:3000"
     };
   },
   mounted() {
@@ -301,7 +300,7 @@ export default {
           this.$dialogs.alert("กรุณาใส่เลข Tracking ให้ถูกต้อง",options);
       } else {
 
-      axios.get(this.url+"/check/info/tracking?tracking=" + this.trackingInput.toUpperCase())
+      axios.get("/check/info/tracking?tracking=" + this.trackingInput.toUpperCase())
         .then(response => {
           if (response.data.status == "SUCCESS") {
             var responseData = response.data.billingInfo;
@@ -517,7 +516,7 @@ export default {
       this.causeType = causeType;
     },
     getNewTracking() {
-      axios.get(this.url+"/get-new-tracking")
+      axios.get("/get-new-tracking")
         .then(response => {
           this.newTrackingInput=response.data.toUpperCase();
         });
@@ -587,7 +586,7 @@ export default {
       } else if (this.bi_parcel_type == "NORMAL" && this.cod_value !== 0) {
         this.$dialogs.alert("กรุณากรอก ค่าเก็บเงินปลายทาง ให้ถูกต้อง", options);
       } else {
-        axios.get(this.url+"/check-availabel-tracking?tracking=" + this.newTrackingInput.toUpperCase()).then(response => {
+        axios.get("/check-availabel-tracking?tracking=" + this.newTrackingInput.toUpperCase()).then(response => {
             this.resultDuplicatedTracking = response.data;
 
             if (!this.resultDuplicatedTracking) {
@@ -626,7 +625,7 @@ export default {
                 moduleName: moduleName
               };
               // console.log(JSON.stringify(dataConfirm));
-              axios.post(this.url+"/tools/relabel-tracking", dataConfirm)
+              axios.post("/tools/relabel-tracking", dataConfirm)
                 .then(response => {
                   if (response.data.status == "SUCCESS") {
                     let billingNo = response.data.billingNo;
