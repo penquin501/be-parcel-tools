@@ -198,11 +198,11 @@
               v-model="reasonValue"
             >
               <option value disabled="disabled" selected="selected">----- เลือกเหตุผล -----</option>
-              <option value="wrong_size">เลือก size พัสดุผิด</option>
-              <option value="wrong_type">เลือกประเภทการจัดส่งผิด</option>
-              <option value="wrong_codvalue">ยอด COD ผิด</option>
-              <option value="wrong_member">ทำรายการผิด member</option>
-              <option value="wrong_receiver_info">ข้อมูลผู้รับผิด</option>
+              <option value="change_cod_to_normal">เปลี่ยนประเภท COD เป็น NORMAL</option>
+              <option value="change_normal_to_cod">เปลี่ยนประเภท NORMAL เป็น COD</option>
+              <option value="change_codvalue">เปลี่ยนมูลค่า COD</option>
+              <option value="change_address">เปลี่ยนที่อยู่</option>
+              <option value="close_status_early_due">ปิดสถานะก่อนกำหนด</option>
             </select>
           </td>
         </tr>
