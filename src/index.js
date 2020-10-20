@@ -1592,12 +1592,37 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
         if(dataTo945==false){
           resolve(false);
         } else {
+          console.log("send to parcel exchange void-billing = %s",billingNo);
           amqpChannel.publish("parcel.exchange.void-billing","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
+          console.log("sent to parcel exchange void-billing = %s",billingNo);
+          
+          console.log("send to share exchange void-billing = %s",billingNo);
           amqpChannel.publish("share.exchange.void-billing","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
+          console.log("sent to share exchange void-billing = %s",billingNo);
           resolve(true);
         }
       });
     })
+  }
+
+  function sendTrackingDataToServer(consignmentNo){
+    return new Promise(function(resolve, reject) {
+      parcelServices.selectTrackingDataToExchange(db,consignmentNo).then((dataTo945)=>{
+        
+        if(dataTo945==false){
+          resolve(false);
+        } else {
+          console.log("send to parcel exchange restructure-tracking = %s",consignmentNo);
+          amqpChannel.publish("parcel.exchange.restructure-tracking","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
+          console.log("sent to parcel.exchange restructure-tracking = %s",consignmentNo);
+
+          console.log("send to share exchange restructure-tracking = %s",consignmentNo);
+          amqpChannel.publish("share.exchange.restructure-tracking","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
+          console.log("sent to share exchange restructure-tracking = %s",consignmentNo);
+          resolve(true);
+        }
+      });
+    });
   }
 
   function createBilling(billingInfo, listCreateTracking, currentMember) {
@@ -1634,15 +1659,32 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
               if(result.length==listCreateTracking.length){
                 parcelServices.updateStatusBilling(db, newBillingNo).then((resultUpdateBilling)=>{
                   if(resultUpdateBilling){
-                    parcelServices.sendDataToServer(db, newBillingNo).then((dataTo945)=>{
-                        amqpChannel.publish("parcel.exchange.restructure-billing","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
-                        amqpChannel.publish("share.exchange.restructure-billing","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
+                    parcelServices.sendDataToServer(db, newBillingNo).then(async dataTo945 => {
 
-                        console.log("create billing = %s",newBillingNo);
-                        resolve({
-                          status: "success",
-                          billingNo: newBillingNo});
-                    })
+                        console.log("send to parcel exchange restructure-billing = %s", newBillingNo);
+                        amqpChannel.publish("parcel.exchange.restructure-billing","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
+                        console.log("sent to parcel exchange restructure-billing = %s", newBillingNo);
+
+                        console.log("send to share exchange restructure-billing = %s", newBillingNo);
+                        amqpChannel.publish("share.exchange.restructure-billing","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
+                        console.log("sent to share exchange restructure-billing = %s", newBillingNo);
+
+                        var orderList = dataTo945.memberparcel.orderlist;
+                        var resultListTracking = [];
+                        for (let item of orderList) {
+                          let sentItem = await sendTrackingDataToServer(item.consignmentno);
+                          resultListTracking.push(sentItem);
+                        }
+                        if(resultListTracking.length == orderList.length){
+                          console.log("restructure billing = %s", newBillingNo);
+                          resolve({
+                            status: "success",
+                            billingNo: newBillingNo
+                          });
+                        } else {
+                          resolve(false);
+                        }
+                      });
                   } else {
                     resolve(false);
                   }
