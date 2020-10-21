@@ -1605,26 +1605,6 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
     })
   }
 
-  function sendTrackingDataToServer(consignmentNo){
-    return new Promise(function(resolve, reject) {
-      parcelServices.selectTrackingDataToExchange(db,consignmentNo).then((dataTo945)=>{
-        
-        if(dataTo945==false){
-          resolve(false);
-        } else {
-          console.log("send to parcel exchange restructure-tracking = %s",consignmentNo);
-          amqpChannel.publish("parcel.exchange.restructure-tracking","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
-          console.log("sent to parcel.exchange restructure-tracking = %s",consignmentNo);
-
-          console.log("send to share exchange restructure-tracking = %s",consignmentNo);
-          amqpChannel.publish("share.exchange.restructure-tracking","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
-          console.log("sent to share exchange restructure-tracking = %s",consignmentNo);
-          resolve(true);
-        }
-      });
-    });
-  }
-
   function createBilling(billingInfo, listCreateTracking, currentMember) {
     return new Promise(function(resolve, reject) {
       var dataCreateBillingNo = {
@@ -1669,21 +1649,11 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
                         amqpChannel.publish("share.exchange.restructure-billing","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
                         console.log("sent to share exchange restructure-billing = %s", newBillingNo);
 
-                        var orderList = dataTo945.memberparcel.orderlist;
-                        var resultListTracking = [];
-                        for (let item of orderList) {
-                          let sentItem = await sendTrackingDataToServer(item.consignmentno);
-                          resultListTracking.push(sentItem);
-                        }
-                        if(resultListTracking.length == orderList.length){
-                          console.log("restructure billing = %s", newBillingNo);
-                          resolve({
-                            status: "success",
-                            billingNo: newBillingNo
-                          });
-                        } else {
-                          resolve(false);
-                        }
+                        console.log("restructure billing = %s", newBillingNo);
+                        resolve({
+                          status: "success",
+                          billingNo: newBillingNo
+                        });
                       });
                   } else {
                     resolve(false);
