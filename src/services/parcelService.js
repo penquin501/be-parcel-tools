@@ -171,17 +171,18 @@ module.exports = {
             resolve(false);
           } else {
             var listTracking=[];
+            var resultList = [];
             results.forEach((value)=>{
               var item_valid = true;
               item_valid = true;
-              item_valid = isGenericValid(value,"branch_name",item_valid,resultList,value.tracking);
+              item_valid = isGenericValid(value,"branch_name",item_valid,resultList=null,value.tracking);
               // item_valid = isGenericValid(value,"branch_id",item_valid,resultList,value.tracking);
-              item_valid = isGenericValid(value,"tracking",item_valid,resultList,value.tracking);
-              item_valid = isGenericValid(value,"bi_type",item_valid,resultList,value.tracking);
+              item_valid = isGenericValid(value,"tracking",item_valid,resultList=null,value.tracking);
+              item_valid = isGenericValid(value,"bi_type",item_valid,resultList=null,value.tracking);
               // item_valid = isGenericValid(value,"cod_value",item_valid,resultList,value.tracking);
-              item_valid = isGenericValid(value,"bi_zipcode",item_valid,resultList,value.tracking);
-              item_valid = isGenericValid(value,"br_type",item_valid,resultList,value.tracking);
-              item_valid = isGenericValid(value,"br_zipcode",item_valid,resultList,value.tracking);
+              item_valid = isGenericValid(value,"bi_zipcode",item_valid,resultList=null,value.tracking);
+              item_valid = isGenericValid(value,"br_type",item_valid,resultList=null,value.tracking);
+              item_valid = isGenericValid(value,"br_zipcode",item_valid,resultList=null,value.tracking);
     
               if(item_valid){
                 listTracking.push(value);
