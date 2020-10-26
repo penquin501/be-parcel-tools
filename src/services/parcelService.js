@@ -170,7 +170,24 @@ module.exports = {
           if (results.length <= 0) {
             resolve(false);
           } else {
-            resolve(results);
+            var listTracking=[];
+            results.forEach((value)=>{
+              var item_valid = true;
+              item_valid = true;
+              item_valid = isGenericValid(value,"branch_name",item_valid,resultList,value.tracking);
+              // item_valid = isGenericValid(value,"branch_id",item_valid,resultList,value.tracking);
+              item_valid = isGenericValid(value,"tracking",item_valid,resultList,value.tracking);
+              item_valid = isGenericValid(value,"bi_type",item_valid,resultList,value.tracking);
+              // item_valid = isGenericValid(value,"cod_value",item_valid,resultList,value.tracking);
+              item_valid = isGenericValid(value,"bi_zipcode",item_valid,resultList,value.tracking);
+              item_valid = isGenericValid(value,"br_type",item_valid,resultList,value.tracking);
+              item_valid = isGenericValid(value,"br_zipcode",item_valid,resultList,value.tracking);
+    
+              if(item_valid){
+                listTracking.push(value);
+              }
+            });
+            resolve(listTracking);
           }
         } else {
           console.log(error);
@@ -750,25 +767,17 @@ module.exports = {
     return new Promise(function(resolve, reject) {
       db.query(sqlItem, dataItem, (err_item, results_item) => {
         if (err_item == null) {
-          if (results_item.length > 0) {
             db.query(sqlItemTemp, dataItemTemp, (err_item_temp, results_item_temp) => {
                 if (err_item_temp == null) {
-                  if (results_item_temp.length > 0) {
                     var data = {
                       billingItemTemp: results_item_temp,
                       billingItem: results_item
                     };
                     resolve(data);
-                  } else {
-                    resolve(false);
-                  }
                 } else {
                   resolve(false);
                 }
             });
-          } else {
-            resolve(false);
-          }
         } else {
           resolve(false);
         }
@@ -785,25 +794,17 @@ module.exports = {
     return new Promise(function(resolve, reject) {
       db.query(sqlReceiver, dataReceiver, (err_receiver, results_receiver) => {
         if (err_receiver == null) {
-          if (results_receiver.length > 0) {
             db.query(sqlReceiverTemp, dataReceiverTemp, (err_receiver_temp, results_receiver_temp) => {
                 if (err_receiver_temp == null) {
-                  if (results_receiver_temp.length > 0) {
-                    var data = {
-                      receiverInfoTemp: results_receiver_temp,
-                      receiverInfo: results_receiver
-                    };
-                    resolve(data);
-                  } else {
-                    resolve(false);
-                  }
+                  var data = {
+                    receiverInfoTemp: results_receiver_temp,
+                    receiverInfo: results_receiver
+                  };
+                  resolve(data);
                 } else {
                   resolve(false);
                 }
             });
-          } else {
-            resolve(false);
-          }
         } else {
           resolve(false);
         }
@@ -1258,6 +1259,7 @@ module.exports = {
   }
 };
 
+/*******************************************************************************************************************************/
 function selectReceiverData(db, dataItem) {
   let sqlReceiver = `SELECT br.tracking,br.sender_name,br.sender_phone,br.sender_address,br.receiver_name,br.phone,br.receiver_address,d.DISTRICT_CODE,
                     a.AMPHUR_CODE,p.PROVINCE_CODE,br.zipcode,br.remark,br.courirer_id,br.booking_date,g.GEO_ID,g.GEO_NAME, br.booking_status
@@ -1280,6 +1282,29 @@ function selectReceiverData(db, dataItem) {
         } else {
           resolve(dataItem);
         }
-    });
+      }
+    );
   });
+}
+
+function isGenericValid(data, key, defaultValue, resultList = null, check_tracking) {
+  var out = [];
+
+  if (resultList != null) {
+    out = resultList;
+  }
+  if (data[key] == "") {
+    console.log(key + " empty");
+    return false;
+  }
+  if (data[key] == null) {
+    console.log(key + " null");
+    return false;
+  }
+  if (data[key] == undefined) {
+    console.log(key + " undefined");
+    return false;
+  }
+  // console.log(out);
+  return defaultValue;
 }
