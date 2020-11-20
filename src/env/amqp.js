@@ -19,7 +19,7 @@ let AMQP_CONNECTION_CONFIG = {
     AMQP_CONNECTION_CONFIG = AMQP_URL;
   }
   // Exchange/Queue config
-const MY_AMQP_PREFIX = "parcel";
+const MY_AMQP_PREFIX = process.env.MY_AMQP_PREFIX;
 
 const MY_EXCHANGE_PREPARE_BOOKING = MY_AMQP_PREFIX + ".exchange.prepare-booking";
 const MY_EXCHANGE_VOID_BILLING = MY_AMQP_PREFIX + ".exchange.void-billing";

@@ -24,6 +24,7 @@ app.use(express.json());
 app.use(express.static("public"));
 
 const parcelServices = require("./services/parcelService.js");
+const MY_AMQP_PREFIX = process.env.MY_AMQP_PREFIX;
 
 if (process.env.NODE_ENV === "production") {
   console.log("In production mode");
@@ -373,7 +374,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
                               tracking: billingItem.tracking,
                               source: "RELABEL"
                             };
-                            amqpChannel.publish("parcel.exchange.prepare-booking", "", Buffer.from(JSON.stringify(dataToPrepareBooking)), { persistent: true });
+                            amqpChannel.publish(MY_AMQP_PREFIX+".exchange.prepare-booking", "", Buffer.from(JSON.stringify(dataToPrepareBooking)), { persistent: true });
 
                             var previous_value_log = billingInfo.status + "/" + billingInfo.tracking;
                             var current_value_log = "relabel" + "/" + billingItem.tracking;
@@ -527,7 +528,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
                     orderPhoneNo: previous_value[0].phone,
                     parcelMethod: previous_value[0].bi_parcel_type
                   };
-                  amqpChannel.publish("parcel.exchange.cancel-task","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
+                  amqpChannel.publish(MY_AMQP_PREFIX+".exchange.cancel-task","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
                   amqpChannel.publish("share.exchange.cancel-task","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
   
                   return res.json({ status: "SUCCESS" });
@@ -653,7 +654,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
                       orderPhoneNo: previous_value[0].phone,
                       parcelMethod: previous_value[0].bi_parcel_type
                     };
-                    amqpChannel.publish("parcel.exchange.cancel-task","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
+                    amqpChannel.publish(MY_AMQP_PREFIX+".exchange.cancel-task","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
                     amqpChannel.publish("share.exchange.cancel-task","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
 
                     resolve({tracking:data.tracking,status:"SUCCESS",reason: ""});
@@ -843,7 +844,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
                     tracking:tracking,
                     source:"QLChecker"
                   }
-                  amqpChannel.publish("parcel.exchange.prepare-booking","",Buffer.from(JSON.stringify(data)),{persistent: true});
+                  amqpChannel.publish(MY_AMQP_PREFIX+".exchange.prepare-booking","",Buffer.from(JSON.stringify(data)),{persistent: true});
                   res.json({ status: "SUCCESS" });
                 } else {
                   res.json({ status: "ERROR" });
@@ -915,7 +916,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
                   previousMemberCode: previous_value.billingNo.member_code,
                   currentMemberCode: current_value.current_member_code
                 };
-                amqpChannel.publish("parcel.exchange.update-member","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
+                amqpChannel.publish(MY_AMQP_PREFIX+".exchange.update-member","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
                 amqpChannel.publish("share.exchange.update-member","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
                 res.json({ status: "SUCCESS" });
               });
@@ -1185,7 +1186,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
   
       parcelServices.getBillingInfo(db, billing_no).then(function(data) {
         if(data !== false){
-          var billing_status = data.billingNo.status;
+          var billing_status = data.billing.status;
           if(billing_status == "SUCCESS" || billing_status == "pass"){
             let log_previous_value = billing_status;
             let log_current_value = 'booked';
@@ -1223,7 +1224,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
             source: "ReBooking"
           };
   
-          amqpChannel.publish("parcel.exchange.prepare-booking","",Buffer.from(JSON.stringify(data)),{persistent: true});
+          amqpChannel.publish(MY_AMQP_PREFIX+".exchange.prepare-booking","",Buffer.from(JSON.stringify(data)),{persistent: true});
           return res.json(data);
         } else {
           return res.json({status: "ERROR"});
@@ -1249,7 +1250,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
           let log_previous_value = billing_no+'/complete';
           let log_current_value = billing_no+'/complete';
           parcelServices.insertLog(db,billing_no,log_previous_value,log_current_value,reason,module_name,user,billing_no,remark).then(function(dataLog) {
-            // amqpChannel.publish("parcel.exchange.event","",Buffer.from(JSON.stringify(data_to_945)),{persistent: true});
+            // amqpChannel.publish(MY_AMQP_PREFIX+".exchange.event","",Buffer.from(JSON.stringify(data_to_945)),{persistent: true});
             amqpChannel.publish("share.exchange.event","",Buffer.from(JSON.stringify(data_to_945)),{persistent: true});
             res.json(data_to_945);
           });
@@ -1593,7 +1594,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
           resolve(false);
         } else {
           console.log("send to parcel exchange void-billing = %s",billingNo);
-          amqpChannel.publish("parcel.exchange.void-billing","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
+          amqpChannel.publish(MY_AMQP_PREFIX+".exchange.void-billing","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
           console.log("sent to parcel exchange void-billing = %s",billingNo);
           
           console.log("send to share exchange void-billing = %s",billingNo);
@@ -1642,7 +1643,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
                     parcelServices.sendDataToServer(db, newBillingNo).then(async dataTo945 => {
 
                         console.log("send to parcel exchange restructure-billing = %s", newBillingNo);
-                        amqpChannel.publish("parcel.exchange.restructure-billing","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
+                        amqpChannel.publish(MY_AMQP_PREFIX+".exchange.restructure-billing","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
                         console.log("sent to parcel exchange restructure-billing = %s", newBillingNo);
 
                         console.log("send to share exchange restructure-billing = %s", newBillingNo);
@@ -1729,10 +1730,10 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
                         restructureBilling: result[1]
                       };
                       // console.log("dataTo945", JSON.stringify(dataTo945));
-                      amqpChannel.publish("parcel.exchange.event","",Buffer.from(JSON.stringify(result[1])),{persistent: true});
+                      amqpChannel.publish(MY_AMQP_PREFIX+".exchange.event","",Buffer.from(JSON.stringify(result[1])),{persistent: true});
                       amqpChannel.publish("share.exchange.event","",Buffer.from(JSON.stringify(result[1])),{persistent: true});
 
-                      amqpChannel.publish("parcel.exchange.relabel-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
+                      amqpChannel.publish(MY_AMQP_PREFIX+".exchange.relabel-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
                       amqpChannel.publish("share.exchange.relabel-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
 
                       resolve({

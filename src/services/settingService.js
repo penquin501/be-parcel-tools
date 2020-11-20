@@ -107,7 +107,7 @@ module.exports = {
     let sqlSizeInfo =`SELECT size_id,size_name,location_zone,parcel_price,parcel_cost,alias_size,sold_to_account_id,pickup_account_id,customer_account_id FROM size_info WHERE size_id=?`;
     let dataSizeInfo = [sizeId];
 
-    let sqlGlobalSize =`SELECT * FROM parcel.global_parcel_size WHERE alias_name=? AND area=?`;
+    let sqlGlobalSize =`SELECT * FROM global_parcel_size WHERE alias_name=? AND area=?`;
     // let dataGlobalSize = [sizeId];
 
     return new Promise(function(resolve, reject) {
