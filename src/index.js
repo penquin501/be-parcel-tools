@@ -24,7 +24,7 @@ app.use(express.json());
 app.use(express.static("public"));
 
 const parcelServices = require("./services/parcelService.js");
-const MY_AMQP_PREFIX = process.env.MY_AMQP_PREFIX;
+const MY_AMQP_PREFIX = process.env.MY_AMQP_PREFIX || "parcel";
 
 if (process.env.NODE_ENV === "production") {
   console.log("In production mode");
@@ -750,109 +750,131 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
       });
     });
   });
-  
+
   app.post("/confirm/match/data/info", function(req, res) {
-    let tracking = req.body.tracking;
-    let billing_no = req.body.billing_no;
-    let previous_value = req.body.previous_value;
-    let current_value = req.body.current_value;
-    let receiver_name = current_value.first_name + " " + current_value.last_name;
-    let phone = current_value.phone;
-    let address = current_value.address;
-    let district_code = current_value.district_code;
-    let parcel_type = current_value.parcel_type;
-    let cod_value = current_value.cod_value;
-    let size_id = current_value.size_id;
-    let size_price = current_value.size_price;
-    let br_zipcode = current_value.br_zipcode;
-    let log_previous_value = previous_value.bi_parcel_type +"/" +previous_value.br_parcel_type +"/" +previous_value.bi_zipcode +"/" +previous_value.br_zipcode;
-    let log_current_value = parcel_type + "/" + br_zipcode;
-    let module_name = "ql_checker";
-    let cs_name = req.body.user;
-  
-    parcelServices.addressInfo(db,district_code).then(function(data) {
-      let addressInfo = data[0];
-      let district_id = addressInfo.DISTRICT_ID;
-      let district_name = addressInfo.DISTRICT_NAME;
-      let amphur_id = addressInfo.AMPHUR_ID;
-      let amphur_name = addressInfo.AMPHUR_NAME;
-      let province_id = addressInfo.PROVINCE_ID;
-      let province_name = addressInfo.PROVINCE_NAME;
-      let zipcode = addressInfo.zipcode;
-  
-      let billing_no_str = billing_no.split("-");
-      let branch_id = billing_no_str[0];
-      let user_id = billing_no_str[1];
-  
-      let error_code;
-      let error_maker;
-      let remark;
-      /* error_maker = shop staff,key operator, system */
-      if (previous_value.bi_parcel_type !== previous_value.br_parcel_type) {
-        /* error_zipcode = zipcode ไม่ตรงกัน */
-        error_code = "error_parcel_type";
-        if (parcel_type !== previous_value.bi_parcel_type) {
-          error_maker = "shop staff";
-        } else if (parcel_type !== previous_value.br_parcel_type) {
-          error_maker = "key operator";
+    let valid = true;
+
+    valid = isGenericValid(req.body, "tracking", valid);
+    valid = isGenericValid(req.body, "billing_no", valid);
+    valid = isGenericValid(req.body, "previous_value", valid);
+    valid = isGenericValid(req.body, "current_value", valid);
+    valid = isGenericValid(req.body, "user", valid);
+
+    valid = isGenericValid(req.body.current_value, "parcel_type", valid);
+    valid = isGenericValid(req.body.current_value, "size_id", valid);
+    valid = isGenericValid(req.body.current_value, "size_price", valid);
+    valid = isGenericValid(req.body.current_value, "first_name", valid);
+    valid = isGenericValid(req.body.current_value, "last_name", valid);
+    valid = isGenericValid(req.body.current_value, "phone", valid);
+    valid = isGenericValid(req.body.current_value, "address", valid);
+    valid = isGenericValid(req.body.current_value, "district_code", valid);
+    valid = isGenericValid(req.body.current_value, "br_zipcode", valid);
+
+    valid = isValidMatched(valid, req.body.current_value.parcel_type, req.body.current_value.cod_value);
+
+    if (!valid) {
+      return res.json({ status: "ERROR_DATA_NOT_VALID" });
+    } else {
+      let tracking = req.body.tracking;
+      let billing_no = req.body.billing_no;
+      let previous_value = req.body.previous_value;
+      let current_value = req.body.current_value;
+      let receiver_name = current_value.first_name + " " + current_value.last_name;
+      let phone = current_value.phone;
+      let address = current_value.address;
+      let district_code = current_value.district_code;
+      let parcel_type = current_value.parcel_type;
+      let cod_value = current_value.cod_value;
+      let size_id = current_value.size_id;
+      let size_price = current_value.size_price;
+      let br_zipcode = current_value.br_zipcode;
+      let log_previous_value = previous_value.bi_parcel_type + "/" + previous_value.br_parcel_type + "/" + previous_value.bi_zipcode + "/" + previous_value.br_zipcode;
+      let log_current_value = parcel_type + "/" + br_zipcode;
+      let module_name = "ql_checker";
+      let cs_name = req.body.user;
+
+      parcelServices.addressInfo(db, district_code).then(function(data) {
+        let addressInfo = data[0];
+        let district_id = addressInfo.DISTRICT_ID;
+        let district_name = addressInfo.DISTRICT_NAME;
+        let amphur_id = addressInfo.AMPHUR_ID;
+        let amphur_name = addressInfo.AMPHUR_NAME;
+        let province_id = addressInfo.PROVINCE_ID;
+        let province_name = addressInfo.PROVINCE_NAME;
+        let zipcode = addressInfo.zipcode;
+
+        let billing_no_str = billing_no.split("-");
+        let branch_id = billing_no_str[0];
+        let user_id = billing_no_str[1];
+
+        let error_code;
+        let error_maker;
+        let remark;
+        /* error_maker = shop staff,key operator, system */
+        if (previous_value.bi_parcel_type !== previous_value.br_parcel_type) {
+          /* error_zipcode = zipcode ไม่ตรงกัน */
+          error_code = "error_parcel_type";
+          if (parcel_type !== previous_value.bi_parcel_type) {
+            error_maker = "shop staff";
+          } else if (parcel_type !== previous_value.br_parcel_type) {
+            error_maker = "key operator";
+          } else {
+            error_maker = "system";
+          }
+        } else if (previous_value.bi_zipcode !== previous_value.br_zipcode) {
+          /* error_parcel_type = type ไม่ตรงกัน */
+          error_code = "error_zipcode";
+
+          if (zipcode !== previous_value.bi_zipcode) {
+            error_maker = "shop staff";
+          } else if (parcel_type !== previous_value.br_zipcode) {
+            error_maker = "key operator";
+          } else {
+            error_maker = "system";
+          }
         } else {
+          error_code = "both";
           error_maker = "system";
         }
-      } else if (previous_value.bi_zipcode !== previous_value.br_zipcode) {
-        /* error_parcel_type = type ไม่ตรงกัน */
-        error_code = "error_zipcode";
-  
-        if (zipcode !== previous_value.bi_zipcode) {
-          error_maker = "shop staff";
-        } else if (parcel_type !== previous_value.br_zipcode) {
-          error_maker = "key operator";
-        } else {
-          error_maker = "system";
+        if (error_maker == "shop staff") {
+          remark = "สาขาทำรายการผิด";
         }
-      } else {
-        error_code = "both";
-        error_maker = "system";
-      }
-      if(error_maker=="shop staff"){
-        remark="สาขาทำรายการผิด"
-      } 
-      if(error_maker=="key operator"){
-        remark="เจ้าหน้าที่คีย์ข้อมูลผิด"
-      }
-      if(error_maker=="system"){
-        remark="ระบบเกิดความผิดพลาด"
-      }
-      console.log("confirm :", tracking, error_code, error_maker);
-      parcelServices.findOperator(db,tracking).then(function(data) {
-        let operation_key = "";
-        if (data.length <= 0) {
-          operation_key = "";
-        } else {
-          operation_key = data[0].operator_id;
+        if (error_maker == "key operator") {
+          remark = "เจ้าหน้าที่คีย์ข้อมูลผิด";
         }
-        parcelServices.selectBillingInfo(db,billing_no).then(function(previous_total) {
-            parcelServices.updateCheckerInfo(db,billing_no,tracking,size_id,size_price,cod_value,receiver_name,phone,address,parcel_type,district_id,district_name,amphur_id,amphur_name,province_id,province_name,zipcode).then(function(current_total) {
-                if (current_total !== false) {
-                  parcelServices.updateBilling(db,billing_no, current_total).then(function(data) {});
-                  parcelServices.saveLogQlChecker(db,branch_id,user_id,billing_no,error_code,error_maker,cs_name,tracking,operation_key).then(function(data) {});
-  
-                  log_previous_value += "/total=" + previous_total[0].total;
-                  log_current_value += "/total=" + current_total;
-                  parcelServices.insertLog(db,billing_no,log_previous_value,log_current_value,error_code,module_name,cs_name,tracking,remark).then(function(data) {});
-                  /* ส่งเข้าคิว เพื่อไป booking ข้อมูล */
-                  let data={
-                    tracking:tracking,
-                    source:"QLChecker"
+        if (error_maker == "system") {
+          remark = "ระบบเกิดความผิดพลาด";
+        }
+        console.log("confirm :", tracking, error_code, error_maker);
+        parcelServices.findOperator(db, tracking).then(function(data) {
+          let operation_key = (data.length <= 0) ? "" : data[0].operator_id;
+
+          parcelServices.selectBillingInfo(db, billing_no).then(function(previous_total) {
+              parcelServices.updateCheckerInfo(db,billing_no,tracking,size_id,size_price,cod_value,receiver_name,phone,address,parcel_type,district_id,district_name,amphur_id,amphur_name,province_id,province_name,zipcode).then(function(current_total) {
+                  if (current_total !== false) {
+                    parcelServices.updateBilling(db, billing_no, current_total).then(function(data) {});
+                    parcelServices.saveLogQlChecker(db, branch_id, user_id, billing_no, error_code, error_maker, cs_name, tracking, operation_key).then(function(data) {});
+
+                    log_previous_value += "/total=" + previous_total[0].total;
+                    log_current_value += "/total=" + current_total;
+                    parcelServices.insertLog(db, billing_no, log_previous_value, log_current_value, error_code, module_name, cs_name, tracking, remark).then(function(data) {});
+                    /* ส่งเข้าคิว เพื่อไป booking ข้อมูล */
+                    let data = {
+                      tracking: tracking,
+                      source: "QLChecker"
+                    };
+                    console.log("send to parcel exchange prepare-booking = %s", tracking);
+                    amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.prepare-booking", "", Buffer.from(JSON.stringify(data)), { persistent: true });
+                    console.log("sent to parcel exchange prepare-booking = %s", tracking);
+                    return res.json({ status: "SUCCESS" });
+                  } else {
+                    return res.json({ status: "ERROR" });
                   }
-                  amqpChannel.publish(MY_AMQP_PREFIX+".exchange.prepare-booking","",Buffer.from(JSON.stringify(data)),{persistent: true});
-                  res.json({ status: "SUCCESS" });
-                } else {
-                  res.json({ status: "ERROR" });
-                }
-              });
-          });
+                });
+            });
+        });
       });
-    });
+    }
   });
 
   app.post("/confirm-member-code", function(req, res) {
@@ -1115,6 +1137,17 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
   app.get("/log-daily-tool", (req, res) => {
     let dateCheck = req.query.date_check;
     parcelServices.logDailyTool(db,dateCheck).then(function(data) {
+      if (data == false) {
+        res.json([]);
+      } else {
+        res.json(data);
+      }
+    });
+  });
+
+  app.get("/log-daily-qlchecker", (req, res) => {
+    let dateCheck = req.query.date_check;
+    parcelServices.logDailyQlChecker(db, dateCheck).then(function(data) {
       if (data == false) {
         res.json([]);
       } else {
@@ -1798,6 +1831,19 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
     }
   
     if (bi_zipcode !== br_zipcode) {
+      return false;
+    }
+    return defaultValue;
+  }
+
+  function isValidMatched(defaultValue,bi_type,cod_value) {
+    if(bi_type !== "NORMAL" && bi_type !== "COD"){
+      return false;
+    }
+    if (bi_type == "NORMAL" && parseInt(cod_value) !== 0) {
+      return false;
+    }
+    if (bi_type == "COD" && (parseInt(cod_value) == 0 || cod_value == undefined || cod_value == "")) {
       return false;
     }
     return defaultValue;

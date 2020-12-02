@@ -702,8 +702,29 @@ module.exports = {
       });
     });
   },
+  logDailyQlChecker: (db, dateCheck) => {
+    var currentDay = moment(dateCheck+" 00:00:00").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+    var nextDay = moment(currentDay).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+
+    var sql = "SELECT * FROM log_ql_checker WHERE record_date >= ? AND record_date < ?";
+    var data = [currentDay, nextDay];
+
+    return new Promise(function(resolve, reject) {
+      db.query(sql, data, (err, results) => {
+        if (err === null) {
+          if (results.length <= 0) {
+            resolve(false);
+          } else {
+            resolve(results);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
   logDailyTool: (db, dateCheck) => {
-    var currentDay = moment(dateCheck).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+    var currentDay = moment(dateCheck+" 00:00:00").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
     var nextDay = moment(currentDay).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
     var sql = "SELECT * FROM log_parcel_tool WHERE (time_to_system>=? AND time_to_system<?)";
@@ -1153,8 +1174,9 @@ module.exports = {
     WHERE br.tracking=?`;
     let dataReceiver = [tracking];
 
-    var sqlBillingItem = `SELECT bItem.tracking,bItem.size_price,bItem.parcel_type as bi_parcel_type,bItem.cod_value,s.alias_size,gSize.product_id,gSize.product_name
+    var sqlBillingItem=`SELECT b.billing_date, bItem.billing_no, bItem.tracking, bItem.size_price, bItem.parcel_type as bi_parcel_type,bItem.cod_value,s.alias_size,gSize.product_id,gSize.product_name
     FROM billing_item bItem 
+    JOIN billing b ON bItem.billing_no=b.billing_no
     JOIN size_info s ON bItem.size_id=s.size_id 
     JOIN global_parcel_size gSize ON s.location_zone = gSize.area AND s.alias_size =gSize.alias_name AND bItem.parcel_type= gSize.type 
     WHERE bItem.tracking=?`;
@@ -1234,7 +1256,9 @@ module.exports = {
                       },
                       consignmentno: data.tracking,
                       transporter_id: data.courirer_id == null  ? 7 : parseInt(data.courirer_id),
-                      user_id: "0"
+                      user_id: "0",
+                      billing_no: results_item[0].billing_no,
+                      billing_date: m(results_item[0].billing_date).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss", true)
                       // sendmaildate: momentTimezone(data.booking_date).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss", true)
                     };
 

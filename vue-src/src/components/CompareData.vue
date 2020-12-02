@@ -355,6 +355,7 @@ export default {
     selectType(parcel_type) {
       this.bi_parcel_type = parcel_type;
       this.br_parcel_type = parcel_type;
+      this.cod_value = parcel_type=='NORMAL'? 0 :this.cod_value;
     },
     selectSize() {
       var dataSize = {
@@ -376,14 +377,10 @@ export default {
     },
     confirmData() {
       const options = { okLabel: "ตกลง" };
-      if (this.bi_parcel_type == "COD" && this.cod_value >= 10000) {
-        this.$dialogs.alert(
-          "กรุณาแน่ใจว่า ค่าเก็บเงินปลายทางเกิน 10000 หรือไม่",
-          options
-        );
+      if (this.bi_parcel_type == "COD" && parseInt(this.cod_value) >= 10000) {
+        this.$dialogs.alert("กรุณาแน่ใจว่า ค่าเก็บเงินปลายทางเกิน 10000 หรือไม่",options);
       }
       var phone = this.phone;
-      var receiver_last_name;
       if (this.receiver_first_name == "") {
         this.$dialogs.alert("กรุณากรอก ชื่อผู้รับ ให้ถูกต้อง", options);
       } else if (
@@ -397,44 +394,27 @@ export default {
       } else if (this.br_zipcode == "") {
         this.$dialogs.alert("กรุณากรอก รหัสไปรษณีย์ผู้รับให้ถูกต้อง", options);
       } else if (this.br_zipcode != this.bi_zipcode) {
-        this.$dialogs.alert(
-          "กรุณากรอก รหัสไปรษณีย์ผู้รับ ให้ตรงกับหน้ากล่องผู้รับ",
-          options
-        );
+        this.$dialogs.alert("กรุณากรอก รหัสไปรษณีย์ผู้รับ ให้ตรงกับหน้ากล่องผู้รับ", options);
       } else if (this.bi_parcel_type != this.br_parcel_type) {
-        this.$dialogs.alert(
-          "กรุณากรอก ประเภทการจัดส่ง ให้ตรงกับหน้ากล่องผู้รับ",
-          options
-        );
-      } else if (
-        this.bi_parcel_type == "COD" &&
-        (this.cod_value == "" || this.cod_value == 0)
-      ) {
+        this.$dialogs.alert( "กรุณากรอก ประเภทการจัดส่ง ให้ตรงกับหน้ากล่องผู้รับ", options);
+      } else if (this.cod_value == null) {
+        this.$dialogs.alert( "กรุณากรอก ค่าเก็บเงินปลายทาง ให้ถูกต้อง", options);
+      } else if (this.bi_parcel_type == "COD" && (this.cod_value == "" || parseInt(this.cod_value) == 0)) {
         this.$dialogs.alert("กรุณากรอก ค่าเก็บเงินปลายทาง ให้ถูกต้อง", options);
-      } else if (this.bi_parcel_type == "NORMAL" && this.cod_value > 0) {
+      } else if (this.bi_parcel_type == "NORMAL" && parseInt(this.cod_value) !== 0) {
         this.$dialogs.alert("กรุณากรอก ค่าเก็บเงินปลายทาง ให้ถูกต้อง", options);
       } else {
-        if (
-          this.receiver_last_name == "" ||
-          this.receiver_last_name == undefined
-        ) {
-          receiver_last_name = "";
-        } else {
-          receiver_last_name = this.receiver_last_name;
-        }
-
         var dataConfirm = {
           tracking: this.tracking,
           billing_no: this.billing_no,
           previous_value: this.previous_value,
           current_value: {
             parcel_type: this.bi_parcel_type,
-            cod_value: this.cod_value,
+            cod_value: parseInt(this.cod_value),
             size_id: this.size_id,
             size_price: this.size_price,
-
             first_name: this.receiver_first_name,
-            last_name: receiver_last_name,
+            last_name: (this.receiver_last_name == undefined || this.receiver_last_name == "") ? "": this.receiver_last_name,
             phone: this.phone,
             address: this.receiver_address,
             district_code: this.district_code,
@@ -442,12 +422,14 @@ export default {
           },
           user: this.$session.get("session_username")
         };
-
         axios
           .post("/confirm/match/data/info", dataConfirm)
           .then(response => {
             if (response.data.status == "SUCCESS") {
               this.$dialogs.alert("แก้ไขข้อมูลผู้รับเรียบร้อยแล้ว", options);
+              this.$router.push("/listtracking");
+            } else {
+              this.$dialogs.alert("ข้อมูลไม่ถูกต้อง", options);
               this.$router.push("/listtracking");
             }
           })
