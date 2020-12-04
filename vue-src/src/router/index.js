@@ -130,6 +130,18 @@ const routes = [
         component: () => import("../components/MoveMember.vue"),
         hidden: true
     },
+    {
+        path: "/report-relabel",
+        name: 'ReportRelabel',
+        component: () => import("../components/ReportRelabel.vue"),
+        hidden: true
+    },
+    {
+        path: "/report-ql-checker",
+        name: 'ReportQLChecker',
+        component: () => import("../components/ReportQLChecker.vue"),
+        hidden: true
+    },
 ];
 
 export default new Router({

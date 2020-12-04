@@ -4,7 +4,7 @@
         <div class="row">
         <div class="col-ms-1 col-sm-1 col-xs-1"></div>
         <div class="col-ms-10 col-sm-10 col-xs-10" style="text-align:center;">
-          <h2 style="margin-top: 10px;">รายการเครื่องมือที่ใช้ {{ date | moment("LL") }}</h2>
+          <h2 style="margin-top: 10px;">รายการเปลี่ยนเลขที่จัดส่ง {{ date | moment("LL") }}</h2>
         </div>
         <div class="col-ms-1 col-sm-1 col-xs-1"></div>
       </div>
@@ -14,21 +14,13 @@
               <input type="date" id="datePick" v-model="datePick" name="datePick">
               <span><button class="button-re"  v-on:click="getReportBranch()"><i class="fa fa-search" aria-hidden="true"></i></button> </span>
             </div>
+            
           </div>
-          <div class="col-ms-5 col-sm-5 col-xs-5" style="text-align: right; margin-top: 5px; padding-left: 0px;padding-right: 0px;">
-            <table style="margin-right: 92px;width: 100%;">
-                <tr>
-                    <td style="font-size: 18px;">ทั้งหมด</td>
-                    <td><input type="checkbox" style="height: 18px;" @click='checkAll()' v-model='isCheckAll'></td>
-                </tr>
-                <tr  v-for="item in reason" v-bind:key="item.id">
-                    <td style="font-size: 18px;">{{ item }}</td>
-                    <td><input type="checkbox" style="height: 18px;" v-bind:value='item' v-model='languages' @change='updateCheckall()'></td>
-                </tr>
-            </table>
-          </div>
-        <div class="col-ms-2 col-sm-2 col-xs-2"  style="text-align: center; margin-top: 5px; padding-left: 0px;padding-right: 0px;">
-          <label style="margin-top: 5px;margin-right: 13px;">Refresh</label>
+          <div class="col-ms-5 col-sm-5 col-xs-5" style=" text-align: center; margin-top: 5px;"></div>
+          <div class="col-ms-2 col-sm-2 col-xs-2" style="text-align: right; margin-top: 5px; padding-left: 0px;padding-right: 0px;">
+          <label style="margin-top: 5px;">Refresh</label>
+        </div>
+        <div class="col-ms-1 col-sm-1 col-xs-1" style="text-align: center; margin-top: 5px; padding-left: 0px;padding-right: 0px;">
           <button class="button-re"  v-on:click="getReportBranch()"><i class="fa fa-refresh" aria-hidden="true"></i></button>
         </div>
       <table class="table-branch">
@@ -42,13 +34,13 @@
           <th style="text-align:center;">รายละเอียดเพิ่มเติม</th>
           <th style="text-align:center;">เครื่องมือที่ใช้</th>
         </tr>
-        <tr v-for="(item) in data" v-bind:key="item.id">
+        <tr v-for="(item) in ql_checker" v-bind:key="item.id">
             <td style="text-align: center;">{{ item.time_to_system | moment("HH:mm:ss") }}</td>
             <td style="text-align: center;">1</td>
             <td style="text-align: center;">{{ item.billing_no }}</td>
             <td style="text-align: center;">{{ item.ref }}</td>
             <td style="text-align: center;">{{ item.current_value }}</td>
-            <td style="text-align: center;">
+            <td style="text-align: center;width: 200px;">
                 <p v-if="item.reason == 'error_parcel_type'">
                     ประเภทการจัดส่งไม่ตรงกัน
                 </p>
@@ -57,12 +49,6 @@
                 </p>
                 <p v-if="item.reason == 'both'">
                     ทั้ง2ฝั่งไม่ตรงกัน
-                </p>
-                <p v-if="item.reason == 'wrong_member'">
-                    ทำรายการผิด member
-                </p>
-                <p v-if="item.reason == 'data_not_reach'">
-                    ฝั่งserver ไม่ได้รับข้อมูล
                 </p>
                 </td>
             <td style="text-align: center;">{{ item.remark }}</td>
@@ -84,10 +70,7 @@ export default {
       ql_checker: [],
       date: new Date(),
       datePick: moment().tz("Asia/Bangkok").format("YYYY-MM-DD"),
-      sorting: -1,
-      reason: ["ql_checker","cancel_billing"],
-      languages: [],
-      isCheckAll: false,
+      sorting: -1
     };
   },
   mounted() {
@@ -95,69 +78,39 @@ export default {
       this.$router.push({ name: "Main" });
     }
     this.getReportBranch();
-    this.checkAll();
   },
   methods: {
     getReportBranch() {
       const options = { okLabel: "ตกลง" };
       axios
-        .get("https://tool.945parcel.com/log-daily-tool?date_check=" +this.datePick)
+        .get("https://tool.945parcel.com/log-daily-tool?date_check=2020-12-02")
         .then(response => {
           if (response.data.length === 0) {
             this.$dialogs.alert("ไม่พบข้อมูล", options);
             this.data=[];
           } else {
-            var result = response.data;
-            if(this.languages.length > 1){
-                this.data = result;
-            }else{
-              for(var i=0; i< result.length; i++){
-              if(this.languages[0] == result[i].module_name){
-                this.data.push(result[i]);
-              }
+            for(var i=0; i< response.data.length; i++) {
+                if(response.data[i].module_name == "ql_checker"){
+                        this.ql_checker.push(response.data[i]);
+                }
             }
-            }
+            console.log(this.ql_checker);
           }
+            //   +this.datePick
         })
         .catch(function(error) {
           console.log(error);
         });
     },
-    checkAll: function(){
-        this.isCheckAll = !this.isCheckAll;
-        this.languages = [];
-        if(this.isCheckAll){ // Check all
-          for (var key in this.reason) {
-            this.languages.push(this.reason[key]);
-          }
-        }
-        this.data = [];
-        this.getReportBranch();
-      },
-    updateCheckall: function(){
-      if(this.languages.length == this.reason.length){
-         this.isCheckAll = true;
-      }else{
-         this.isCheckAll = false;
-      }
-      this.data = [];
-      this.getReportBranch();
-    },
   },
   computed: {
        filteredResourcesBilling() {
         return this.data.slice(0).sort((a, b) => a.id < b.id ? this.sorting : -this.sorting );
-    },
+    }
   }
 };
 </script>
 <style lang="scss">
-.radio-inline {
-  flex: 1 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
 input {
   margin: 10px 5px 10px 5px;
   background: none;
