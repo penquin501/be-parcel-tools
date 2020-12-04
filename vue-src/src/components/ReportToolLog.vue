@@ -52,17 +52,20 @@
                 <p v-if="item.reason == 'error_parcel_type'">
                     ประเภทการจัดส่งไม่ตรงกัน
                 </p>
-                <p v-if="item.reason == 'error_zipcode'">
+                <p v-else-if="item.reason == 'error_zipcode'">
                     รหัสไปรษณีย์ไม่ตรงกัน
                 </p>
-                <p v-if="item.reason == 'both'">
+                <p v-else-if="item.reason == 'both'">
                     ทั้ง2ฝั่งไม่ตรงกัน
                 </p>
-                <p v-if="item.reason == 'wrong_member'">
+                <p v-else-if="item.reason == 'wrong_member'">
                     ทำรายการผิด member
                 </p>
-                <p v-if="item.reason == 'data_not_reach'">
+                <p v-else-if="item.reason == 'data_not_reach'">
                     ฝั่งserver ไม่ได้รับข้อมูล
+                </p>
+                <p v-else>
+                  {{item.reason}}
                 </p>
                 </td>
             <td style="text-align: center;">{{ item.remark }}</td>
@@ -108,6 +111,7 @@ export default {
             this.data=[];
           } else {
             var result = response.data;
+            console.log(response);
             if(this.languages.length > 1){
                 this.data = result;
             }else{

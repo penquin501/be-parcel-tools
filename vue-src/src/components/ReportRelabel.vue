@@ -34,7 +34,7 @@
           <th style="text-align:center;">รายละเอียดเพิ่มเติม</th>
           <th style="text-align:center;">เครื่องมือที่ใช้</th>
         </tr>
-        <tr v-for="(item) in ql_checker" v-bind:key="item.id">
+        <tr v-for="(item) in relabeling_tracking" v-bind:key="item.id">
             <td style="text-align: center;">{{ item.time_to_system | moment("HH:mm:ss") }}</td>
             <td style="text-align: center;">1</td>
             <td style="text-align: center;">{{ item.billing_no }}</td>
@@ -44,11 +44,14 @@
                 <p v-if="item.reason == 'error_parcel_type'">
                     ประเภทการจัดส่งไม่ตรงกัน
                 </p>
-                <p v-if="item.reason == 'error_zipcode'">
+                <p v-else-if="item.reason == 'error_zipcode'">
                     รหัสไปรษณีย์ไม่ตรงกัน
                 </p>
-                <p v-if="item.reason == 'both'">
+                <p v-else-if="item.reason == 'both'">
                     ทั้ง2ฝั่งไม่ตรงกัน
+                </p>
+                <p v-else>
+                  {{item.reason}}
                 </p>
                 </td>
             <td style="text-align: center;">{{ item.remark }}</td>
@@ -67,7 +70,7 @@ export default {
   data: function() {
     return {
       data: [],
-      ql_checker: [],
+      relabeling_tracking: [],
       date: new Date(),
       datePick: moment().tz("Asia/Bangkok").format("YYYY-MM-DD"),
       sorting: -1
@@ -83,20 +86,20 @@ export default {
     getReportBranch() {
       const options = { okLabel: "ตกลง" };
       axios
-        .get("https://tool.945parcel.com/log-daily-tool?date_check=2020-12-02")
+        .get("https://tool.945parcel.com/log-daily-tool?date_check=" +this.datePick)
         .then(response => {
           if (response.data.length === 0) {
             this.$dialogs.alert("ไม่พบข้อมูล", options);
             this.data=[];
           } else {
+            console.log(response.data);
             for(var i=0; i< response.data.length; i++) {
-                if(response.data[i].module_name == "ql_checker"){
-                        this.ql_checker.push(response.data[i]);
+                if(response.data[i].module_name == "relabeling_tracking"){
+                        this.relabeling_tracking.push(response.data[i]);
                 }
             }
-            console.log(this.ql_checker);
+            console.log(this.relabeling_tracking);
           }
-            //   +this.datePick
         })
         .catch(function(error) {
           console.log(error);
