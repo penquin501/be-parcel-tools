@@ -45,15 +45,18 @@
       </div>
     </div>
     <div class="search" style="text-align:center; width: 100%;">
-      <label style="font-size:16px;">กรุณาเลือกสาขา:</label>
-      <select style="margin-left: 0px; margin-right: 0px;" class="select" v-model="selectedMerId">
-        <option value="0">-----เลือก shop-----</option>
-        <option
-          v-for="item in shopInfo"
-          v-bind:key="item.takeorderby"
-          :value="item"
-        >{{ item.merchantname }}</option>
-      </select>
+      <label style="font-size:16px;">กรุณาใส่เบอร์โทรศัพท์:</label>
+      <input
+        maxlength="10"
+        v-model="phoneInput"
+        autocomplete="false"
+        style="width: 214px;"
+        v-on:keypress="onlyNumber"
+      />
+      <button v-on:click="checkMemberData" type="button"><i class="fa fa-search" aria-hidden="true"></i></button>
+
+      <p style="font-size:16px; color: green;" v-if="availablePhone==true">{{reasonDisplay}}</p>
+      <p style="font-size:16px; color: red;" v-else>{{reasonDisplay}}</p>
       <button v-on:click="confirmData" type="button">บันทึก</button>
     </div>
   </div>
@@ -67,15 +70,17 @@ export default {
       memberInput: "",
       memberInfo: {},
       displayPhone: "",
-      shopInfo: [],
+      phoneInput: "",
       merId: "",
-      selectedMerId: "0",
       selectedStatus: "",
+      availablePhone: true,
+      reasonDisplay: "",
       listStatus: [
         { code: "01", name: "active", value: "active" },
         { code: "02", name: "inactive", value: "inactive" }
       ],
-      url945: "https://api-key-tool.945holding.com"
+      url945: "https://api-key-tool.945holding.com",
+      url945Dev: "https://admin-pc-tool.945.report"
     };
   },
   mounted: function() {
@@ -92,7 +97,9 @@ export default {
       } else {
         axios
           .get(
-            this.url945 + "/check/member-info?memberId=" + this.memberInput.trim()
+            this.url945Dev +
+              "/check/member-info?memberId=" +
+              this.memberInput.trim()
           )
           .then(response => {
             if (response.data.status == "SUCCESS") {
@@ -101,7 +108,6 @@ export default {
                 this.memberInfo = response.data.memberInfo[0];
                 this.selectedStatus = this.memberInfo.status;
                 this.changeDoubleSix2Zero();
-                this.getShopData();
               } else {
                 this.$dialogs.alert("ไม่พบข้อมูล สมาชิกนี้ในระบบ", options);
               }
@@ -117,81 +123,99 @@ export default {
           });
       }
     },
-    getShopData() {
+    onlyNumber($event) {
+      let keyCode = $event.keyCode ? $event.keyCode : $event.which;
+      if (keyCode < 48 || keyCode > 57) {
+        // 46 is dot
+        $event.preventDefault();
+      }
+    },
+    checkMemberData() {
       const options = { okLabel: "ตกลง" };
-      axios
-        .get(this.url945 + "/select/parcel-shop-info")
-        .then(response => {
-          if (response.data.status == "SUCCESS") {
-            var shopInfo = response.data.parcelShopInfo;
-            if (shopInfo.length !== 0) {
-              this.shopInfo = shopInfo;
-              this.shopInfo.forEach(element => {
-                if (element.takeorderby == this.memberInfo.merid) {
-                  this.selectedMerId = element;
-                }
-              });
+      this.reasonDisplay = "";
+      if (!this.memberInfo.member_id) {
+        this.$dialogs.alert("กรุณาใส่เลขสมาชิกให้ถูกต้อง", options);
+      } else if (this.phoneInput.length !== 10) {
+        this.$dialogs.alert("กรุณาใส่เบอร์โทรศัพท์ให้ถูกต้อง", options);
+      } else if (
+        this.phoneInput[0] + this.phoneInput[1] !== "06" &&
+        this.phoneInput[0] + this.phoneInput[1] !== "08" &&
+        this.phoneInput[0] + this.phoneInput[1] !== "09"
+      ) {
+        this.$dialogs.alert("กรุณาใส่เบอร์โทรศัพท์มือถือเท่านั้น", options);
+      } else if (this.displayPhone == this.phoneInput) {
+        this.$dialogs.alert("กรุณาใส่เบอร์โทรศัพท์ใหม่ เนื่องจากเป็นเบอร์ที่ลงทะเบียนปัจจุบัน",options);
+      } else {
+        this.changeZero2DoubleSix();
+        axios
+          .get(
+            this.url945Dev +
+              "/parcel/check-member/phoneregis?phoneregis=" +
+              this.phoneRegis
+          )
+          .then(response => {
+            if (response.data.status == "EXISTED_MEMBER") {
+              this.availablePhone = false;
+              this.reasonDisplay = "กรุณาใส่เบอร์โทรศัพท์ใหม่ เนื่องจากเบอร์นี้ได้ลงทะเบียนไว้แล้ว";
+            } else if (response.data.status == "SUCCESS") {
+              this.availablePhone = true;
+              this.reasonDisplay = "สามารถใช้เบอร์โทรศัพท์นี้ได้";
             } else {
-              this.$dialogs.alert("ไม่พบข้อมูล shop ในระบบ", options);
+              this.$dialogs.alert("ไม่พบข้อมูล เนื่องจาก..." + response.data.status,options);
             }
-          } else {
-            this.$dialogs.alert(
-              "ไม่พบข้อมูล เนื่องจาก..." + response.data.reason,
-              options
-            );
-          }
-        })
-        .catch(function(error) {
-          console.log(error);
-        });
+          })
+          .catch(function(error) {
+            console.log(error);
+          });
+      }
     },
     confirmData() {
       const options = { okLabel: "ตกลง" };
 
       if (!this.memberInfo.member_id) {
         this.memberInfo == "";
-        this.$dialogs.alert("กรุณาระบุ member Id เพื่อทำรายการ", options);
-      } else if (this.selectedMerId == "0") {
-        this.$dialogs.alert(
-          "กรุณาเลือก shop ที่ต้องการเปลี่ยนให้ถูกต้อง",
-          options
-        );
+        this.$dialogs.alert("กรุณาระบุ Tracking เพื่อทำรายการ", options);
+      } else if (this.phoneInput.length !== 10) {
+        this.$dialogs.alert("กรุณาใส่เบอร์โทรศัพท์ให้ถูกต้อง", options);
       } else if (
-        this.memberInfo.merid == this.selectedMerId.takeorderby &&
-        this.selectedStatus == "active"
+        this.phoneInput[0] + this.phoneInput[1] !== "06" &&
+        this.phoneInput[0] + this.phoneInput[1] !== "08" &&
+        this.phoneInput[0] + this.phoneInput[1] !== "09"
       ) {
-        this.$dialogs.alert(
-          "กรุณาเปลี่ยน shop เนื่องจาก สมาชิกอยู่ที่ shop นี้แล้ว",
-          options
-        );
+        this.$dialogs.alert("กรุณาใส่เบอร์โทรศัพท์มือถือเท่านั้น", options);
+      } else if (this.displayPhone == this.phoneInput) {
+        this.$dialogs.alert("กรุณาใส่เบอร์โทรศัพท์ใหม่ เนื่องจากเป็นเบอร์ที่ลงทะเบียนปัจจุบัน",options);
+      } else if (this.availablePhone == false) {
+        this.$dialogs.alert("กรุณาใส่เบอร์โทรศัพท์ใหม่ เนื่องจากเบอร์นี้ได้ลงทะเบียนแล้ว", options);
       } else {
-
-        var moduleName = "move_member";
+        var moduleName = "change_phone_regis";
         var dataConfirm = {
           previousValue: this.memberInfo,
           currentValue: {
             memberId: this.memberInfo.member_id,
-            merId: this.selectedMerId.takeorderby,
-            status: this.selectedStatus
+            phoneRegis: this.phoneRegis
           },
           user: this.$session.get("session_username"),
           moduleName: moduleName
         };
-        // console.log(JSON.stringify(dataConfirm));
-          axios
-            .post("/tools/move-member-info", dataConfirm)
-            .then(response => {
-              if (response.data.status == "SUCCESS") {
-                this.$dialogs.alert("ย้ายเลขสมาชิก : "+response.data.memberInfo.member_id+" ไปยัง "+response.data.memberInfo.merchantname+" เรียบร้อยแล้ว", options);
-                this.$router.push("/");
-              } else {
-                this.$dialogs.alert("ไม่สามารถย้ายเลขสมาชิกได้ เนื่องจาก..." +response.data.reason,options);
-                this.$router.push("/");
-              }
-            })
-            .catch(function(error) {
-              console.log(error);
-            });
+
+        axios
+          .post("/tools/change-phoneregis", dataConfirm)
+          .then(response => {
+            if (response.data.status == "SUCCESS") {
+              this.$dialogs.alert("เปลี่ยนเบอร์โทรศัพท์สมาชิกเรียบร้อยแล้ว",options);
+              this.$router.push("/");
+            } else {
+              this.$dialogs.alert(
+                "เปลี่ยนเบอร์โทรศัพท์สมาชิกได้ เนื่องจาก..." + response.data.reason,
+                options
+              );
+              this.$router.push("/");
+            }
+          })
+          .catch(function(error) {
+            console.log(error);
+          });
       }
     },
     changeDoubleSix2Zero() {
@@ -199,6 +223,13 @@ export default {
       this.displayPhone = "0";
       for (let i = 2; i < phone.length; i++) {
         this.displayPhone += phone[i];
+      }
+    },
+    changeZero2DoubleSix() {
+      var phone = this.phoneInput;
+      this.phoneRegis = "66";
+      for (let i = 1; i < phone.length; i++) {
+        this.phoneRegis += phone[i];
       }
     }
   }
