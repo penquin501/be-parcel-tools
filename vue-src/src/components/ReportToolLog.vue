@@ -82,9 +82,9 @@
                 type="radio"
                 style="margin-right: 0px; margin-left: 0px; width: 30px"
                 @click="setValue"
-                :value="item.moduleName"
+                :value="item"
               />
-              {{ item.moduleName + "(" + item.numberCase + ")" }}
+              {{ item }}
             </label>
           </div>
         </div>
@@ -146,7 +146,7 @@ export default {
       datePick: moment().tz("Asia/Bangkok").format("YYYY-MM-DD"),
       sorting: -1,
       isCheckAll: false,
-      listModuleName: [],
+      listModuleName: ["ql_checker","relabeling_tracking","change_member","move_member","cancel_tracking","cancel_billing"],
       radioValue: ""
     };
   },
@@ -163,7 +163,7 @@ export default {
       axios
         .get(
           "https://tool.945parcel.com/log-daily-tool?date_check=" + "2020-12-01"
-          // this.datePick
+          // "2020-12-01" this.datePick
         )
         .then(response => {
           if (response.data.length === 0) {
@@ -171,20 +171,20 @@ export default {
             this.data = [];
           } else {
             var result = response.data;
-            var moduleInfo = {};
+            // var moduleInfo = {};
 
-            for (let item of result) {
-              if (!(item.module_name in moduleInfo)) {
-                moduleInfo[String(item.module_name)] = [];
-              }
-              moduleInfo[String(item.module_name)].push(item);
-            }
-            for (const [key, items] of Object.entries(moduleInfo)) {
-              this.listModuleName.push({
-                moduleName: key,
-                numberCase: items.length
-              });
-            }
+            // for (let item of result) {
+            //   if (!(item.module_name in moduleInfo)) {
+            //     moduleInfo[String(item.module_name)] = [];
+            //   }
+            //   moduleInfo[String(item.module_name)].push(item);
+            // }
+            // for (const [key, items] of Object.entries(moduleInfo)) {
+            //   this.listModuleName.push({
+            //     moduleName: key,
+            //     numberCase: items.length
+            //   });
+            // }
             if(this.radioValue != ""){
                 for(var i=0; i< result.length; i++){
                   if(this.radioValue == result[i].module_name){
