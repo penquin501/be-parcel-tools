@@ -81,6 +81,7 @@
               <input
                 type="radio"
                 style="margin-right: 0px; margin-left: 0px; width: 30px"
+                @click="setValue"
                 :value="item.moduleName"
               />
               {{ item.moduleName + "(" + item.numberCase + ")" }}
@@ -144,9 +145,9 @@ export default {
       date: new Date(),
       datePick: moment().tz("Asia/Bangkok").format("YYYY-MM-DD"),
       sorting: -1,
-      reason: ["ql_checker","cancel_billing","cancel_tracking"],
       isCheckAll: false,
       listModuleName: [],
+      radioValue: ""
     };
   },
   mounted() {
@@ -184,33 +185,24 @@ export default {
                 numberCase: items.length
               });
             }
+            if(this.radioValue != ""){
+                for(var i=0; i< result.length; i++){
+                  if(this.radioValue == result[i].module_name){
+                    this.data.push(result[i]);
+                  }
+                }
+            }
           }
-            //     if(this.listModuleName.length > 2){
-            //     this.data = result;
-            // }else if(this.listModuleName.length == 2){
-            //   for(var i=0; i< result.length; i++){
-            //   if(this.listModuleName[0] == result[i].module_name){
-            //     this.data.push(result[i]);
-            //   }
-            //   if(this.listModuleName[1] == result[i].module_name){
-            //     this.data.push(result[i]);
-            //   }
-            // }
-            // }else{
-            //   for(var j=0; j< result.length; j++){
-            //   if(this.listModuleName[0] == result[j].module_name){
-            //     this.data.push(result[j]);
-            //   }
-            //   if(this.listModuleName[1] == result[j].module_name){
-            //     this.data.push(result[j]);
-            // }
-            // }
-            // }
           
         })
         .catch(function(error) {
           console.log(error);
         });
+    },
+    setValue(event) {
+      const value = event.target.value;
+      this.radioValue = value;
+      this.getReportBranch();
     },
     checkAll: function() {
       this.isCheckAll = !this.isCheckAll;
