@@ -72,6 +72,16 @@
           class="controls"
           style="overflow-x: auto; width: 90%; margin: 10px auto"
         >
+          <div class="radio-inline">
+             <label>
+              <input
+                type="checkbox"
+                style="margin-right: 0px; margin-left: 0px; width: 30px"
+               @click='checkAll()' v-model='isCheckAll'
+              />
+              ทั้งหมด
+            </label>
+          </div>
           <div
             class="radio-inline"
             v-for="item in listModuleName"
@@ -79,10 +89,10 @@
           >
             <label>
               <input
-                type="radio"
+                type="checkbox"
                 style="margin-right: 0px; margin-left: 0px; width: 30px"
-                @click="setValue"
-                :value="item"
+                v-bind:value="item"
+                v-model='languages' @change='updateCheckall()'
               />
               {{ item }}
             </label>
@@ -145,6 +155,8 @@ export default {
       date: new Date(),
       datePick: moment().tz("Asia/Bangkok").format("YYYY-MM-DD"),
       sorting: -1,
+      reason: ["ql_checker","relabeling_tracking","change_member","move_member","cancel_tracking","cancel_billing"],
+      languages: [],
       isCheckAll: false,
       listModuleName: ["ql_checker","relabeling_tracking","change_member","move_member","cancel_tracking","cancel_billing"],
       radioValue: ""
@@ -162,7 +174,7 @@ export default {
       const options = { okLabel: "ตกลง" };
       axios
         .get(
-          "https://tool.945parcel.com/log-daily-tool?date_check=" + "2020-12-01"
+          "https://tool.945parcel.com/log-daily-tool?date_check=" + this.datePick
           // "2020-12-01" this.datePick
         )
         .then(response => {
@@ -171,26 +183,72 @@ export default {
             this.data = [];
           } else {
             var result = response.data;
-            // var moduleInfo = {};
-
-            // for (let item of result) {
-            //   if (!(item.module_name in moduleInfo)) {
-            //     moduleInfo[String(item.module_name)] = [];
-            //   }
-            //   moduleInfo[String(item.module_name)].push(item);
-            // }
-            // for (const [key, items] of Object.entries(moduleInfo)) {
-            //   this.listModuleName.push({
-            //     moduleName: key,
-            //     numberCase: items.length
-            //   });
-            // }
-            if(this.radioValue != ""){
-                for(var i=0; i< result.length; i++){
-                  if(this.radioValue == result[i].module_name){
-                    this.data.push(result[i]);
-                  }
-                }
+            if(this.languages.length == 6){
+                this.data = result;
+            }else if(this.languages.length == 5){
+              for(var i=0; i< result.length; i++){
+              if(this.languages[0] == result[i].module_name){
+                this.data.push(result[i]);
+              }
+              if(this.languages[1] == result[i].module_name){
+                this.data.push(result[i]);
+              }
+                if(this.languages[2] == result[i].module_name){
+                this.data.push(result[i]);
+              }
+                if(this.languages[3] == result[i].module_name){
+                this.data.push(result[i]);
+              }
+               if(this.languages[4] == result[i].module_name){
+                this.data.push(result[i]);
+              }
+            }
+            }
+            else if(this.languages.length == 4){
+              for(var x=0; x< result.length; x++){
+              if(this.languages[0] == result[x].module_name){
+                this.data.push(result[x]);
+              }
+              if(this.languages[1] == result[x].module_name){
+                this.data.push(result[x]);
+              }
+                if(this.languages[2] == result[x].module_name){
+                this.data.push(result[x]);
+              }
+                if(this.languages[3] == result[x].module_name){
+                this.data.push(result[x]);
+              }
+            }
+            }
+            else if(this.languages.length == 3){
+              for(var k=0; i< result.length; k++){
+              if(this.languages[0] == result[k].module_name){
+                this.data.push(result[k]);
+              }
+              if(this.languages[1] == result[k].module_name){
+                this.data.push(result[k]);
+              }
+                if(this.languages[2] == result[k].module_name){
+                this.data.push(result[k]);
+              }
+            }
+            }
+            else if(this.languages.length == 2){
+              for(var n=0; i< result.length; n++){
+              if(this.languages[0] == result[n].module_name){
+                this.data.push(result[n]);
+              }
+              if(this.languages[1] == result[n].module_name){
+                this.data.push(result[n]);
+              }
+            }
+            }
+            else{
+              for(var j=0; j< result.length; j++){
+              if(this.languages[0] == result[j].module_name){
+                this.data.push(result[j]);
+              }
+            }
             }
           }
           
@@ -198,11 +256,6 @@ export default {
         .catch(function(error) {
           console.log(error);
         });
-    },
-    setValue(event) {
-      const value = event.target.value;
-      this.radioValue = value;
-      this.getReportBranch();
     },
     checkAll: function() {
       this.isCheckAll = !this.isCheckAll;
@@ -241,6 +294,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin-top: 6px;
 }
 .controls {
   display: flex;
