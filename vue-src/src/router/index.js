@@ -131,6 +131,12 @@ const routes = [
         hidden: true
     },
     {
+        path: "/change-phoneregis",
+        name: 'ChangePhoneRegis',
+        component: () => import("../components/ChangePhoneRegis.vue"),
+        hidden: true
+    },
+    {
         path: "/report-relabel",
         name: 'ReportRelabel',
         component: () => import("../components/ReportRelabel.vue"),

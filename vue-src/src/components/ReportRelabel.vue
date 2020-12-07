@@ -32,30 +32,20 @@
           <th style="text-align:center;">ค่าปัจจุบัน</th>
           <th style="text-align:center;">เหตุผล</th>
           <th style="text-align:center;">รายละเอียดเพิ่มเติม</th>
-          <th style="text-align:center;">เครื่องมือที่ใช้</th>
+          <!-- <th style="text-align:center;">เครื่องมือที่ใช้</th> -->
         </tr>
-        <tr v-for="(item) in relabeling_tracking" v-bind:key="item.id">
+        <tr v-for="(item) in data" v-bind:key="item.id">
             <td style="text-align: center;">{{ item.time_to_system | moment("HH:mm:ss") }}</td>
             <td style="text-align: center;">1</td>
             <td style="text-align: center;">{{ item.billing_no }}</td>
             <td style="text-align: center;">{{ item.ref }}</td>
             <td style="text-align: center;">{{ item.current_value }}</td>
-            <td style="text-align: center;width: 200px;">
-                <p v-if="item.reason == 'error_parcel_type'">
-                    ประเภทการจัดส่งไม่ตรงกัน
-                </p>
-                <p v-else-if="item.reason == 'error_zipcode'">
-                    รหัสไปรษณีย์ไม่ตรงกัน
-                </p>
-                <p v-else-if="item.reason == 'both'">
-                    ทั้ง2ฝั่งไม่ตรงกัน
-                </p>
-                <p v-else>
-                  {{item.reason}}
-                </p>
-                </td>
+            <!-- <td style="text-align: center;width: 200px;"> -->
+            <td v-if="item.reason == 'error_parcel_type'">ประเภทการจัดส่งไม่ตรงกัน</td>
+            <td v-else-if="item.reason == 'error_zipcode'">รหัสไปรษณีย์ไม่ตรงกัน</td>
+            <td v-else>ทั้ง2ฝั่งไม่ตรงกัน</td>
             <td style="text-align: center;">{{ item.remark }}</td>
-            <td style="text-align: center;">{{ item.module_name }}</td>
+            <!-- <td style="text-align: center;">{{ item.module_name }}</td> -->
         </tr>
       </table>
     </div>
@@ -70,7 +60,6 @@ export default {
   data: function() {
     return {
       data: [],
-      relabeling_tracking: [],
       date: new Date(),
       datePick: moment().tz("Asia/Bangkok").format("YYYY-MM-DD"),
       sorting: -1
@@ -92,13 +81,11 @@ export default {
             this.$dialogs.alert("ไม่พบข้อมูล", options);
             this.data=[];
           } else {
-            console.log(response.data);
             for(var i=0; i< response.data.length; i++) {
-                if(response.data[i].module_name == "relabeling_tracking"){
-                        this.relabeling_tracking.push(response.data[i]);
-                }
+              if(response.data[i].module_name == "relabeling_tracking"){
+                this.data.push(response.data[i]);
+              }
             }
-            console.log(this.relabeling_tracking);
           }
         })
         .catch(function(error) {

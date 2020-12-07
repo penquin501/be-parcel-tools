@@ -445,6 +445,53 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
       }
     );
   });
+
+  app.post("/tools/change-phoneregis", function(req, res) {
+    let previousValue = req.body.previousValue;
+    let currentValue = req.body.currentValue;
+    let moduleName = req.body.moduleName;
+    let user = req.body.user;
+
+    var dataJson = currentValue;
+    var url945 = "https://admin-pc-tool.945.report";
+    request(
+      {
+        url: url945+"/update/phoneregis/api",
+        method: "POST",
+        body: dataJson,
+        json: true
+      },
+      (err, res2, body) => {
+        var resultUpdateApi = res2.body.status;
+
+        if (resultUpdateApi == "SUCCESS") {
+          var previousValueLog = previousValue.member_id + "/" +previousValue.phoneregis;
+          var currentValueLog = currentValue.memberId + "/" + currentValue.phoneRegis;
+
+          parcelServices.insertLog(db, '-', previousValueLog, currentValueLog, 'change_phone_regis', moduleName, user, '-', '-');
+
+          request(
+            {
+              url: url945+"/parcel/check-member/phoneregis?phoneregis="+currentValue.phoneRegis,
+              method: "GET"
+            },
+            (err, res3, body) => {
+              var resultCheckMember=JSON.parse(res3.body);
+              if(resultCheckMember.status == "EXISTED_MEMBER"){
+                return res.json({ status: "SUCCESS" });
+              } else if(resultCheckMember.status == "SUCCESS") {
+                return res.json({ status: "ERROR", reason: "ไม่มีข้อมูลอยู่ใน server หลัก" });
+              } else {
+                return res.json({ status: "ERROR", reason: "ไม่สามารถเชื่อมต่อข้อมูลที่ server หลักได้" });
+              }
+            });
+          
+        } else {
+          return res.json({ status: "ERROR", reason: res2.body.reason });
+        }
+      }
+    );
+  });
   
   app.post("/save/cancel/tracking", function(req, res) {
     console.log("save_cancel_tracking", req.body.tracking);
