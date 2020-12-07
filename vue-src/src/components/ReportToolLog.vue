@@ -88,7 +88,7 @@ export default {
       date: new Date(),
       datePick: moment().tz("Asia/Bangkok").format("YYYY-MM-DD"),
       sorting: -1,
-      reason: ["ql_checker","cancel_billing"],
+      reason: ["ql_checker","cancel_billing","cancel_tracking"],
       languages: [],
       isCheckAll: false,
     };
@@ -111,13 +111,24 @@ export default {
             this.data=[];
           } else {
             var result = response.data;
-            console.log(response);
-            if(this.languages.length > 1){
+            if(this.languages.length > 2){
                 this.data = result;
-            }else{
+            }else if(this.languages.length == 2){
               for(var i=0; i< result.length; i++){
               if(this.languages[0] == result[i].module_name){
                 this.data.push(result[i]);
+              }
+              if(this.languages[1] == result[i].module_name){
+                this.data.push(result[i]);
+              }
+            }
+            }else{
+              for(var j=0; j< result.length; j++){
+              if(this.languages[0] == result[j].module_name){
+                this.data.push(result[j]);
+              }
+              if(this.languages[1] == result[j].module_name){
+                this.data.push(result[j]);
               }
             }
             }
