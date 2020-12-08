@@ -84,7 +84,7 @@
           </div>
           <div
             class="radio-inline"
-            v-for="item in listModuleName"
+            v-for="item in listModule"
             v-bind:key="item.id"
           >
             <label>
@@ -92,7 +92,7 @@
                 type="checkbox"
                 style="margin-right: 0px; margin-left: 0px; width: 30px"
                 v-bind:value="item"
-                v-model='languages' @change='updateCheckall()'
+                v-model='listCheckbox' @change='updateCheckall()'
               />
               {{ item }}
             </label>
@@ -155,11 +155,9 @@ export default {
       date: new Date(),
       datePick: moment().tz("Asia/Bangkok").format("YYYY-MM-DD"),
       sorting: -1,
-      reason: ["ql_checker","relabeling_tracking","change_member","move_member","cancel_tracking","cancel_billing"],
-      languages: [],
+      listCheckbox: [],
       isCheckAll: false,
-      listModuleName: ["ql_checker","relabeling_tracking","change_member","move_member","cancel_tracking","cancel_billing"],
-      radioValue: ""
+      listModule: [],
     };
   },
   mounted() {
@@ -175,83 +173,41 @@ export default {
       axios
         .get(
           "https://tool.945parcel.com/log-daily-tool?date_check=" + this.datePick
-          // "2020-12-01" this.datePick
         )
         .then(response => {
           if (response.data.length === 0) {
             this.$dialogs.alert("ไม่พบข้อมูล", options);
             this.data = [];
+            this.listModule = [];
           } else {
             var result = response.data;
-            if(this.languages.length == 6){
+            this.listModule = [];
+            var moduleInfo = {};
+            for (let item of result) {
+                if (!(item.module_name in moduleInfo)) {
+                  moduleInfo[String(item.module_name)] = [];
+                }
+                moduleInfo[String(item.module_name)].push(item);
+              }
+              var arr = this.listModule;
+              for (const [key] of Object.entries(moduleInfo)) {
+                this.listModule.push(key);
+              }
+              var clean = arr.filter((arr, index, self) =>
+              index === self.findIndex((t) => (t === arr)))
+              this.listModule = clean;
+              if(this.listCheckbox.length == this.listModule.length){
                 this.data = result;
-            }else if(this.languages.length == 5){
-              for(var i=0; i< result.length; i++){
-              if(this.languages[0] == result[i].module_name){
-                this.data.push(result[i]);
+              }else{
+                for(var i=0; i < this.listCheckbox.length; i++){
+                  for(var j=0; j < result.length;j++){
+                      if(this.listCheckbox[i] == result[j].module_name){
+                         this.data.push(result[j]);
+                      }
+                  }
+                }
               }
-              if(this.languages[1] == result[i].module_name){
-                this.data.push(result[i]);
-              }
-                if(this.languages[2] == result[i].module_name){
-                this.data.push(result[i]);
-              }
-                if(this.languages[3] == result[i].module_name){
-                this.data.push(result[i]);
-              }
-               if(this.languages[4] == result[i].module_name){
-                this.data.push(result[i]);
-              }
-            }
-            }
-            else if(this.languages.length == 4){
-              for(var x=0; x< result.length; x++){
-              if(this.languages[0] == result[x].module_name){
-                this.data.push(result[x]);
-              }
-              if(this.languages[1] == result[x].module_name){
-                this.data.push(result[x]);
-              }
-                if(this.languages[2] == result[x].module_name){
-                this.data.push(result[x]);
-              }
-                if(this.languages[3] == result[x].module_name){
-                this.data.push(result[x]);
-              }
-            }
-            }
-            else if(this.languages.length == 3){
-              for(var k=0; i< result.length; k++){
-              if(this.languages[0] == result[k].module_name){
-                this.data.push(result[k]);
-              }
-              if(this.languages[1] == result[k].module_name){
-                this.data.push(result[k]);
-              }
-                if(this.languages[2] == result[k].module_name){
-                this.data.push(result[k]);
-              }
-            }
-            }
-            else if(this.languages.length == 2){
-              for(var n=0; i< result.length; n++){
-              if(this.languages[0] == result[n].module_name){
-                this.data.push(result[n]);
-              }
-              if(this.languages[1] == result[n].module_name){
-                this.data.push(result[n]);
-              }
-            }
-            }
-            else{
-              for(var j=0; j< result.length; j++){
-              if(this.languages[0] == result[j].module_name){
-                this.data.push(result[j]);
-              }
-            }
-            }
           }
-          
         })
         .catch(function(error) {
           console.log(error);
@@ -259,18 +215,18 @@ export default {
     },
     checkAll: function() {
       this.isCheckAll = !this.isCheckAll;
-      this.languages = [];
+      this.listCheckbox = [];
       if (this.isCheckAll) {
         // Check all
-        for (var key in this.reason) {
-          this.languages.push(this.reason[key]);
+        for (var key in this.listModule) {
+          this.listCheckbox.push(this.listModule[key]);
         }
       }
       this.data = [];
       this.getReportBranch();
     },
     updateCheckall: function() {
-      if (this.languages.length == this.reason.length) {
+      if (this.listCheckbox.length == this.listModule.length) {
         this.isCheckAll = true;
       } else {
         this.isCheckAll = false;
@@ -345,8 +301,6 @@ input {
 .button-re {
   padding: 5px 20px;
   background-color: #fff;
-  // border: 2px solid rgb(169, 170, 170);
-  // border-radius: 70px;
   cursor: pointer;
   color: rgb(169, 170, 170);
   font-weight: bold;
