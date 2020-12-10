@@ -172,6 +172,7 @@ export default {
       menu: 1,
       tracking: "",
       billingInfo: [],
+      branch_id: 0,
       billing_no: "",
       bi_parcel_type: "",
       alias_size: "",
@@ -251,9 +252,9 @@ export default {
         .get("/check/info/tracking?tracking=" + this.trackingIn.toUpperCase())
         .then(response => {
           if (response.data.status == "SUCCESS") {
-            // console.log(response.data.billingInfo);
             this.billingInfo = response.data.billingInfo;
             this.billing_no = this.billingInfo[0].billing_no;
+            this.branch_id= this.billingInfo[0].branch_id;
             this.tracking = this.billingInfo[0].tracking;
             this.bi_parcel_type = this.billingInfo[0].bi_parcel_type;
             this.district_code = this.billingInfo[0].DISTRICT_CODE;
@@ -269,7 +270,7 @@ export default {
             var receiver_name = this.billingInfo[0].receiver_name;
             var res = receiver_name.split(" ");
             this.receiver_first_name = res[0];
-            this.receiver_last_name = res[1];
+            this.receiver_last_name = (res[1]==""||res[1] == undefined) ? "": res[1];
 
             this.phone = this.billingInfo[0].phone;
             this.receiver_address = this.billingInfo[0].receiver_address;
@@ -325,10 +326,7 @@ export default {
       $event.preventDefault();
     },
     parcelAddressList(zipcode) {
-      axios
-        .get(
-          "https://pos.945.report/billingPos/checkZipcode/?zipcode=" + zipcode
-        )
+      axios.get("https://pos.945.report/billingPos/checkZipcode/?zipcode=" + zipcode)
         .then(resultsZipCode => {
           this.listZipcode = resultsZipCode.data;
         })
@@ -360,10 +358,11 @@ export default {
     selectSize() {
       var dataSize = {
         zipcode: this.br_zipcode,
-        size_name: this.alias_size
+        size_name: this.alias_size,
+        zone: (this.branch_id !== 50 && this.branch_id !== 70)?2:1
       };
       axios
-        .post("https://pos.945.report/genBillNo/parcelPrice", dataSize)
+        .post("/parcelPrice", dataSize)
         .then(response => {
           let parcelSizeSelect = response.data;
           if (response.data != undefined) {
@@ -383,6 +382,8 @@ export default {
       var phone = this.phone;
       if (this.receiver_first_name == "") {
         this.$dialogs.alert("กรุณากรอก ชื่อผู้รับ ให้ถูกต้อง", options);
+      } else if(this.receiver_last_name == ""){
+        this.$dialogs.alert("กรุณากรอก นามสกุลผู้รับ ให้ถูกต้อง", options);
       } else if (
         phone[0] + phone[1] != "06" &&
         phone[0] + phone[1] != "08" &&
@@ -450,14 +451,7 @@ export default {
       this.openZipcode = true;
     },
     selectItem(item) {
-      this.displayAddress =
-        item.zipcode +
-        " " +
-        item.DISTRICT_NAME +
-        "  " +
-        item.AMPHUR_NAME +
-        "  " +
-        item.PROVINCE_NAME;
+      this.displayAddress = item.zipcode + " " + item.DISTRICT_NAME + "  " + item.AMPHUR_NAME + "  " + item.PROVINCE_NAME;
       this.openZipcode = false;
       this.bi_zipcode = item.zipcode;
       this.br_zipcode = item.zipcode;

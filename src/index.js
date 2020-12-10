@@ -92,6 +92,31 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
     });
   });
 
+  app.post("/parcelPrice", (req, res) => {
+    let zipcode = req.body.zipcode;
+    let size_name = req.body.size_name;
+    let zone = req.body.zone;
+    parcelServices.checkDistrict(db,zipcode).then(function(data) {
+      if (data == false) {
+        return res.json({ results: false });
+      } else {
+        let district = data[0].district_code;
+        let code;
+        let districtConvert = parseInt(district[0] + district[1]);
+        if (zipcode == "13180") {
+          code = "upc";
+        } else if (districtConvert >= 10 && districtConvert < 14) {
+          code = "bkk";
+        } else {
+          code = "upc";
+        }
+        parcelServices.checkPrice(db,code, size_name, zone).then(function(data) {
+          return res.json(data);
+        });
+      }
+    });
+  });
+
   app.get("/check-availabel-tracking", (req, res) => {
     let tracking = req.query.tracking;
 
@@ -897,7 +922,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
           let operation_key = (data.length <= 0) ? "" : data[0].operator_id;
 
           parcelServices.selectBillingInfo(db, billing_no).then(function(previous_total) {
-              parcelServices.updateCheckerInfo(db,billing_no,tracking,size_id,size_price,cod_value,receiver_name,phone,address,parcel_type,district_id,district_name,amphur_id,amphur_name,province_id,province_name,zipcode).then(function(current_total) {
+              parcelServices.updateCheckerInfo(db, billing_no, tracking, size_id, size_price, cod_value, receiver_name, phone, address, parcel_type, district_id, district_name, amphur_id, amphur_name, province_id, province_name, zipcode).then(function(current_total) {
                   if (current_total !== false) {
                     parcelServices.updateBilling(db, billing_no, current_total).then(function(data) {});
                     parcelServices.saveLogQlChecker(db, branch_id, user_id, billing_no, error_code, error_maker, cs_name, tracking, operation_key).then(function(data) {});

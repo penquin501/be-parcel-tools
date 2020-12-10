@@ -7,7 +7,7 @@ moment.locale("th");
 
 module.exports = {
   getBillingItemTracking: (db, tracking) => {
-    let sql = `SELECT b.status as billing_status, bi.billing_no,bi.tracking,bi.size_id,s.alias_size,bi.size_price,bi.parcel_type as bi_parcel_type, bi.cod_value,bi.zipcode as bi_zipcode,
+    let sql = `SELECT b.status as billing_status, b.branch_id, bi.billing_no,bi.tracking, bi.size_id,s.alias_size,bi.size_price,bi.parcel_type as bi_parcel_type, bi.cod_value,bi.zipcode as bi_zipcode,
       br.parcel_type as br_parcel_type,br.sender_name,br.sender_phone,br.sender_address,br.receiver_name,br.phone,br.receiver_address,
       d.DISTRICT_CODE,br.district_id,br.district_name,br.amphur_id,br.amphur_name,br.province_id,br.province_name,br.zipcode as br_zipcode,
       br.booking_status, br.status 
@@ -250,6 +250,32 @@ module.exports = {
       });
     });
   },
+  checkDistrict: (db,zipcode) => {
+    var sql = "SELECT district_code FROM postinfo_zipcodes WHERE zipcode = ?";
+    var data = [zipcode];
+
+    return new Promise(function(resolve, reject) {
+      db.query(sql, data, (err, results) => {
+        if (err === null) {
+          if (results.length == 0) {
+            resolve(false);
+          } else {
+            resolve(results);
+          }
+        }
+      });
+    });
+  },
+  checkPrice: (db,code, size_name, zone) => {
+    var sql = "SELECT size_id,parcel_price FROM size_info where location_zone=? and alias_size= ? and zone=?";
+    var data = [code, size_name, zone];
+
+    return new Promise(function(resolve, reject) {
+      db.query(sql, data, (err, results) => {
+        resolve(results);
+      });
+    });
+  },
   updateStatusBilling: (db, billing_no) => {
     let updateBilling = "UPDATE billing SET status='cancel' WHERE billing_no=?";
 
@@ -366,7 +392,7 @@ module.exports = {
               db.query(sqlReceiver, dataReceiver, (error2, resultsReceiver, fields) => {
                   if (error2 === null) {
                     if (resultsReceiver.affectedRows > 0) {
-                      db.query(sqlSizeItem,dataSizeItem,(error, resultsSizeItem, fields) => {
+                      db.query(sqlSizeItem, dataSizeItem,(error, resultsSizeItem, fields) => {
                           for (i = 0; i < resultsSizeItem.length; i++) {
                             total += resultsSizeItem[i].size_price;
                           }
@@ -840,7 +866,7 @@ module.exports = {
     let sqlBillingItem = `SELECT bItem.tracking,bItem.size_price,bItem.parcel_type as bi_parcel_type,bItem.cod_value,s.alias_size,gSize.product_id,gSize.product_name
         FROM billing_item bItem 
         JOIN size_info s ON bItem.size_id=s.size_id 
-        JOIN global_parcel_size gSize ON s.location_zone = gSize.area AND s.alias_size =gSize.alias_name AND bItem.parcel_type= gSize.type 
+        JOIN global_parcel_size gSize ON s.location_zone = gSize.area AND s.alias_size =gSize.alias_name AND bItem.parcel_type= gSize.type AND s.zone=gSize.zone 
         WHERE bItem.billing_no=?`;
     var dataBillItem = [billing_no];
 
@@ -933,7 +959,7 @@ module.exports = {
     let sqlBillingItem = `SELECT bItem.tracking, bItem.size_price,bItem.parcel_type as bi_parcel_type,bItem.cod_value,s.alias_size,gSize.product_id,gSize.product_name
       FROM billing_item bItem 
       JOIN size_info s ON bItem.size_id=s.size_id 
-      JOIN global_parcel_size gSize ON s.location_zone = gSize.area AND s.alias_size =gSize.alias_name AND bItem.parcel_type= gSize.type 
+      JOIN global_parcel_size gSize ON s.location_zone = gSize.area AND s.alias_size =gSize.alias_name AND bItem.parcel_type= gSize.type AND s.zone=gSize.zone 
       WHERE bItem.billing_no=? AND bItem.tracking=?`;
     var dataBillItem = [billing_no, tracking];
 
@@ -1178,7 +1204,7 @@ module.exports = {
     FROM billing_item bItem 
     JOIN billing b ON bItem.billing_no=b.billing_no
     JOIN size_info s ON bItem.size_id=s.size_id 
-    JOIN global_parcel_size gSize ON s.location_zone = gSize.area AND s.alias_size =gSize.alias_name AND bItem.parcel_type= gSize.type 
+    JOIN global_parcel_size gSize ON s.location_zone = gSize.area AND s.alias_size =gSize.alias_name AND bItem.parcel_type= gSize.type AND s.zone=gSize.zone 
     WHERE bItem.tracking=?`;
     var dataItem = [tracking];
 
