@@ -1400,15 +1400,15 @@ function isGenericValid(data, key, defaultValue, resultList = null, check_tracki
     out = resultList;
   }
   if (data[key] == "") {
-    console.log(key + " empty");
+    // console.log(key + " empty");
     return false;
   }
   if (data[key] == null) {
-    console.log(key + " null");
+    // console.log(key + " null");
     return false;
   }
   if (data[key] == undefined) {
-    console.log(key + " undefined");
+    // console.log(key + " undefined");
     return false;
   }
   // console.log(out);
