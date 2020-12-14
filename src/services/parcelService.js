@@ -631,9 +631,10 @@ module.exports = {
     });
   },
   dailyListTracking: (db, billing_no) => {
-    var sql = `SELECT bi.tracking,s.alias_size,bi.size_price,bi.parcel_type as bi_parcel_type,bi.zipcode as bi_zipcode,bi.cod_value,
+    var sql = `SELECT bi.tracking,s.alias_size,bi.size_price,bi.parcel_type as bi_parcel_type,bi.zipcode as bi_zipcode,bi.cod_value,bi.source, 
     br.parcel_type as br_parcel_type,br.sender_name,br.sender_phone,br.sender_address,br.receiver_name,br.phone,br.receiver_address,
-    br.district_name,br.amphur_name,br.province_name,br.zipcode as br_zipcode,br.status,br.sending_date,br.booking_status,br.booking_date,bi.source 
+    br.district_name,br.amphur_name,br.province_name,br.zipcode as br_zipcode,br.status,br.sending_date,
+    br.booking_status,br.booking_date,br.booking_flash_status,br.booking_flash_date 
     FROM billing_item bi 
     JOIN billing_receiver_info br ON bi.tracking = br.tracking 
     JOIN size_info s ON bi.size_id = s.size_id
@@ -732,7 +733,8 @@ module.exports = {
     var currentDay = moment(dateCheck+" 00:00:00").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
     var nextDay = moment(currentDay).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
-    var sql = "SELECT * FROM log_ql_checker WHERE record_date >= ? AND record_date < ?";
+    var sql = `SELECT log_ql.*, b_info.branch_name FROM log_ql_checker log_ql JOIN branch_info b_info ON log_ql.branch_id=b_info.branch_id 
+    WHERE record_date >= ? AND record_date < ?`;
     var data = [currentDay, nextDay];
 
     return new Promise(function(resolve, reject) {
@@ -753,7 +755,11 @@ module.exports = {
     var currentDay = moment(dateCheck+" 00:00:00").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
     var nextDay = moment(currentDay).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
-    var sql = "SELECT * FROM log_parcel_tool WHERE (time_to_system>=? AND time_to_system<?)";
+    var sql = `SELECT log_tool.*, b_info.branch_name
+    FROM log_parcel_tool log_tool
+    JOIN billing b ON log_tool.billing_no = b.billing_no
+    JOIN branch_info b_info ON b.branch_id=b_info.branch_id
+    WHERE (time_to_system>=? AND time_to_system< ?)`;
     var data = [currentDay, nextDay];
 
     return new Promise(function(resolve, reject) {
@@ -863,10 +869,13 @@ module.exports = {
     var sqlBilling = `SELECT user_id,mer_authen_level,member_code,carrier_id,billing_no,branch_id,img_url FROM billing WHERE billing_no= ? AND status='complete'`;
     var dataBilling = [billing_no];
 
-    let sqlBillingItem = `SELECT bItem.tracking,bItem.size_price,bItem.parcel_type as bi_parcel_type,bItem.cod_value,s.alias_size,gSize.product_id,gSize.product_name
+    // let sqlBillingItem = `SELECT bItem.tracking,bItem.size_price,bItem.parcel_type as bi_parcel_type,bItem.cod_value,s.alias_size,gSize.product_id,gSize.product_name
+    //     FROM billing_item bItem 
+    //     JOIN size_info s ON bItem.size_id=s.size_id 
+    //     JOIN global_parcel_size gSize ON s.location_zone = gSize.area AND s.alias_size =gSize.alias_name AND bItem.parcel_type= gSize.type AND s.zone=gSize.zone 
+    //     WHERE bItem.billing_no=?`;
+    let sqlBillingItem = `SELECT bItem.tracking, bItem.size_id, bItem.size_price, bItem.parcel_type, bItem.cod_value
         FROM billing_item bItem 
-        JOIN size_info s ON bItem.size_id=s.size_id 
-        JOIN global_parcel_size gSize ON s.location_zone = gSize.area AND s.alias_size =gSize.alias_name AND bItem.parcel_type= gSize.type AND s.zone=gSize.zone 
         WHERE bItem.billing_no=?`;
     var dataBillItem = [billing_no];
 
@@ -879,16 +888,17 @@ module.exports = {
                     if (result_items.length > 0) {
                       var orderlist = [];
                       for (let item of result_items) {
+                        let sizeItem = await getSizeInfo(db, item);
                         let dataItem = await selectReceiverData(db, item);
 
                         var dataReceiver = dataItem.dataReceiver;
 
                         var data_json_item = {
                           productinfo: {
-                            globalproductid: dataItem.product_id,
-                            productname: dataItem.product_name,
-                            methodtype: dataItem.bi_parcel_type.toUpperCase(),
-                            paymenttype: dataItem.bi_parcel_type.toUpperCase() == "NORMAL"? "99": "60",
+                            globalproductid: sizeItem.product_id,
+                            productname: sizeItem.product_name,
+                            methodtype: dataItem.parcel_type.toUpperCase(),
+                            paymenttype: dataItem.parcel_type.toUpperCase() == "NORMAL"? "99": "60",
                             price: dataItem.size_price.toString(),
                             codvalue: dataItem.cod_value.toString()
                           },
@@ -956,36 +966,41 @@ module.exports = {
     var sqlBilling = `SELECT user_id,mer_authen_level,member_code,carrier_id,billing_no,branch_id,img_url FROM billing WHERE billing_no= ? AND status='complete'`;
     var dataBilling = [billing_no];
 
-    let sqlBillingItem = `SELECT bItem.tracking, bItem.size_price,bItem.parcel_type as bi_parcel_type,bItem.cod_value,s.alias_size,gSize.product_id,gSize.product_name
-      FROM billing_item bItem 
-      JOIN size_info s ON bItem.size_id=s.size_id 
-      JOIN global_parcel_size gSize ON s.location_zone = gSize.area AND s.alias_size =gSize.alias_name AND bItem.parcel_type= gSize.type AND s.zone=gSize.zone 
-      WHERE bItem.billing_no=? AND bItem.tracking=?`;
+    // let sqlBillingItem = `SELECT bItem.tracking, bItem.size_price,bItem.parcel_type as bi_parcel_type,bItem.cod_value,s.alias_size,gSize.product_id,gSize.product_name
+    //   FROM billing_item bItem 
+    //   JOIN size_info s ON bItem.size_id=s.size_id 
+    //   JOIN global_parcel_size gSize ON s.location_zone = gSize.area AND s.alias_size =gSize.alias_name AND bItem.parcel_type= gSize.type AND s.zone=gSize.zone 
+    //   WHERE bItem.billing_no=? AND bItem.tracking=?`;
+    let sqlBillingItem = `SELECT bItem.tracking, bItem.size_id, bItem.size_price, bItem.parcel_type, bItem.cod_value
+    FROM billing_item bItem 
+    WHERE bItem.billing_no=?`;
     var dataBillItem = [billing_no, tracking];
 
     return new Promise(function(resolve, reject) {
       db.query(sqlBilling, dataBilling, (error_billing, result_billing, fields) => {
           if (error_billing == null) {
             if (result_billing.length > 0) {
-              db.query(sqlBillingItem, dataBillItem, (error_item, result_item, fields) => {
+              db.query(sqlBillingItem, dataBillItem, async (error_item, result_item, fields) => {
                   if (error_item == null) {
                     if (result_item.length > 0) {
                       var orderlist = [];
 
-                      result_item.forEach(value => {
+                      for (let item of result_items) {
+                        let sizeItem = await getSizeInfo(db, item);
+
                         var data_item = {
                           productinfo: {
-                            globalproductid: value.product_id,
-                            productname: value.product_name,
-                            methodtype: value.bi_parcel_type.toUpperCase(),
-                            paymenttype: value.bi_parcel_type.toUpperCase() == "NORMAL" ? "99" : "60",
+                            globalproductid: sizeItem.product_id,
+                            productname: sizeItem.product_name,
+                            methodtype: value.parcel_type.toUpperCase(),
+                            paymenttype: value.parcel_type.toUpperCase() == "NORMAL" ? "99" : "60",
                             price: value.size_price.toString(),
                             codvalue: value.cod_value.toString()
                           },
                           consignmentno: value.tracking
                         };
                         orderlist.push(data_item);
-                      });
+                      }
 
                       var data = {
                         authen: {
@@ -1003,7 +1018,6 @@ module.exports = {
                           orderlist: orderlist
                         }
                       };
-                      // console.log(JSON.stringify(data));
                       resolve(data);
                     } else {
                       resolve(false);
@@ -1120,8 +1134,6 @@ module.exports = {
     });
   },
   updateBillingNoItem: (db, newBillingNo, item, currentMember) => {
-    // var sqlUpdateItem = `UPDATE billing_item SET billing_no=? WHERE tracking=?`;
-    // var dataItem=[newBillingNo,item.tracking];
     var sqlSaveItem = `INSERT INTO billing_item(billing_no, tracking, zipcode, size_id, size_price, parcel_type, cod_value, source,created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)`;
     var data = [newBillingNo, item.tracking, item.zipcode, item.size_id, item.size_price, item.parcel_type.toUpperCase(), item.cod_value, item.source, new Date()];
 
@@ -1204,7 +1216,7 @@ module.exports = {
     FROM billing_item bItem 
     JOIN billing b ON bItem.billing_no=b.billing_no
     JOIN size_info s ON bItem.size_id=s.size_id 
-    JOIN global_parcel_size gSize ON s.location_zone = gSize.area AND s.alias_size =gSize.alias_name AND bItem.parcel_type= gSize.type AND s.zone=gSize.zone 
+    JOIN global_parcel_size gSize ON s.location_zone = gSize.area AND s.alias_size =gSize.alias_name AND bItem.parcel_type= gSize.type
     WHERE bItem.tracking=?`;
     var dataItem = [tracking];
 
@@ -1335,6 +1347,49 @@ function selectReceiverData(db, dataItem) {
         }
       }
     );
+  });
+}
+
+function getSizeInfo(db, data) {
+  var sqlSizeInfo = `SELECT * FROM size_info WHERE size_id=?`;
+  var sqlGlobalSize = `SELECT * FROM global_parcel_size WHERE alias_name=? AND area=? AND type=?`;
+
+  return new Promise(function(resolve, reject) {
+    db.query(sqlSizeInfo, [data.size_id], (errSizeInfo, resultSizeInfo) => {
+      if (errSizeInfo == null) {
+        if (resultSizeInfo.length > 0) {
+          let sizeInfo = resultSizeInfo[0];
+          let zone = sizeInfo.zone;
+          let dataGlobalSize = [sizeInfo.alias_size.toUpperCase(), sizeInfo.location_zone.toUpperCase(), data.parcel_type];
+          db.query(sqlGlobalSize, dataGlobalSize, (errGlobalSize, resultGlobalSize) => {
+              if (errGlobalSize == null) {
+                if (resultGlobalSize.length > 0) {
+                  resultGlobalSize.forEach(e => {
+                    if (zone == e.zone) {
+                      item = e;
+                    } else {
+                      item = resultGlobalSize[0];
+                    }
+                  });
+                  data.alias_size = sizeInfo.alias_size.toUpperCase();
+                  data.product_id = item.product_id;
+                  data.product_name = item.product_name;
+
+                  resolve(data);
+                } else {
+                  resolve(false);
+                }
+              } else {
+                resolve(false);
+              }
+            });
+        } else {
+          resolve(false);
+        }
+      } else {
+        resolve(false);
+      }
+    });
   });
 }
 

@@ -4,52 +4,31 @@
       <div class="row">
         <div class="col-ms-1 col-sm-1 col-xs-1"></div>
         <div class="col-ms-10 col-sm-10 col-xs-10" style="text-align: center">
-          <h2 style="margin-top: 10px">
-            รายการเครื่องมือที่ใช้ {{ date | moment("LL") }}
-          </h2>
+          <h2 style="margin-top: 10px">รายการเครื่องมือที่ใช้ {{ date | moment("LL") }}</h2>
         </div>
         <div class="col-ms-1 col-sm-1 col-xs-1"></div>
       </div>
       <div class="row">
         <div
           class="col-ms-4 col-sm-4 col-xs-4"
-          style="
-            text-align: center;
-            margin-top: 5px;
-            padding-left: 0px;
-            padding-right: 0px;
-          "
+          style="text-align: center; margin-top: 5px; padding-left: 0px; padding-right: 0px;"
         >
           <div>
-            <input
-              type="date"
-              id="datePick"
-              v-model="datePick"
-              name="datePick"
-            />
-            <span
-              ><button class="button-re" v-on:click="getReportBranch()">
-                <i class="fa fa-search" aria-hidden="true"></i></button
-            ></span>
+            <input type="date" id="datePick" v-model="datePick" name="datePick" />
+            <span>
+              <button class="button-re" v-on:click="getReportBranch()">
+                <i class="fa fa-search" aria-hidden="true"></i>
+              </button>
+            </span>
           </div>
         </div>
         <div
           class="col-ms-6 col-sm-6 col-xs-6"
-          style="
-            text-align: center;
-            margin-top: 5px;
-            padding-left: 0px;
-            padding-right: 0px;
-          "
+          style="text-align: center; margin-top: 5px; padding-left: 0px; padding-right: 0px;"
         ></div>
         <div
           class="col-ms-2 col-sm-2 col-xs-2"
-          style="
-            text-align: center;
-            margin-top: 5px;
-            padding-left: 0px;
-            padding-right: 0px;
-          "
+          style="text-align: center; margin-top: 5px; padding-left: 0px; padding-right: 0px;"
         >
           <label style="margin-top: 5px; margin-right: 13px">Refresh</label>
           <button class="button-re" v-on:click="getReportBranch()">
@@ -58,41 +37,30 @@
         </div>
       </div>
       <div class="row">
-        <div
-          style="
-            height: 50px;
-            margin-top: 20px;
-            margin-left: 20px;
-            text-align: center;
-          "
-        >
-          <label><b>เลือก Tools : </b></label>
+        <div style="height: 50px; margin-top: 20px; margin-left: 20px; text-align: center;">
+          <label>
+            <b>เลือก Tools :</b>
+          </label>
         </div>
-        <div
-          class="controls"
-          style="overflow-x: auto; width: 90%; margin: 10px auto"
-        >
+        <div class="controls" style="overflow-x: auto; width: 90%; margin: 10px auto">
           <div class="radio-inline">
-             <label>
+            <label>
               <input
                 type="checkbox"
                 style="margin-right: 0px; margin-left: 0px; width: 30px"
-               @click='checkAll()' v-model='isCheckAll'
-              />
-              ทั้งหมด
+                @click="checkAll()"
+                v-model="isCheckAll"
+              />ทั้งหมด
             </label>
           </div>
-          <div
-            class="radio-inline"
-            v-for="item in listModule"
-            v-bind:key="item.id"
-          >
+          <div class="radio-inline" v-for="item in listModule" v-bind:key="item.id">
             <label>
               <input
                 type="checkbox"
                 style="margin-right: 0px; margin-left: 0px; width: 30px"
                 v-bind:value="item"
-                v-model='listCheckbox' @change='updateCheckall()'
+                v-model="listCheckbox"
+                @change="updateCheckall()"
               />
               {{ item }}
             </label>
@@ -104,37 +72,26 @@
           <tr>
             <th style="text-align: center; width: 5%">เวลา</th>
             <th style="text-align: center; width: 5%">สาขา</th>
-            <th style="text-align: center; width: 5%">เลขที่บิล</th>
+            <th style="text-align: center; width: 15%">เลขที่บิล</th>
             <th style="text-align: center; width: 5%">tracking</th>
             <th style="text-align: center; width: 5%">ค่าปัจจุบัน</th>
-            <th style="text-align: center; width: 5%">เหตุผล</th>
-            <th style="text-align: center; width: 5%">รายละเอียดเพิ่มเติม</th>
+            <th style="text-align: center; width: 15%">เหตุผล</th>
+            <th style="text-align: center; width: 15%">รายละเอียดเพิ่มเติม</th>
             <th style="text-align: center; width: 5%">เครื่องมือที่ใช้</th>
           </tr>
           <tr v-for="item in data" v-bind:key="item.id">
-            <td style="text-align: center">
-              {{ item.time_to_system | moment("HH:mm:ss") }}
-            </td>
-            <td style="text-align: center">1</td>
+            <td style="text-align: center">{{ item.time_to_system | moment("HH:mm:ss") }}</td>
+            <td style="text-align: center">{{ item.branch_name }}</td>
             <td style="text-align: center">{{ item.billing_no }}</td>
             <td style="text-align: center">{{ item.ref }}</td>
             <td style="text-align: center">{{ item.current_value }}</td>
-            <td style="text-align: center">
-              <p v-if="item.reason == 'error_parcel_type'">
-                ประเภทการจัดส่งไม่ตรงกัน
-              </p>
-              <p v-else-if="item.reason == 'error_zipcode'">
-                รหัสไปรษณีย์ไม่ตรงกัน
-              </p>
+            <td style="text-align: center">{{ item.reason }}</td>
+              <!-- <p v-if="item.reason == 'error_parcel_type'">ประเภทการจัดส่งไม่ตรงกัน</p>
+              <p v-else-if="item.reason == 'error_zipcode'">รหัสไปรษณีย์ไม่ตรงกัน</p>
               <p v-else-if="item.reason == 'both'">ทั้ง2ฝั่งไม่ตรงกัน</p>
-              <p v-else-if="item.reason == 'wrong_member'">
-                ทำรายการผิด member
-              </p>
-              <p v-else-if="item.reason == 'data_not_reach'">
-                ฝั่งserver ไม่ได้รับข้อมูล
-              </p>
-              <p v-else>{{ item.reason }}</p>
-            </td>
+              <p v-else-if="item.reason == 'wrong_member'">ทำรายการผิด member</p>
+              <p v-else-if="item.reason == 'data_not_reach'">ฝั่งserver ไม่ได้รับข้อมูล</p>
+              <p v-else>{{ item.reason }}</p>-->
             <td style="text-align: center">{{ item.remark }}</td>
             <td style="text-align: center">{{ item.module_name }}</td>
           </tr>
@@ -158,6 +115,7 @@ export default {
       listCheckbox: [],
       isCheckAll: false,
       listModule: [],
+      url: ""
     };
   },
   mounted() {
@@ -171,9 +129,7 @@ export default {
     getReportBranch() {
       const options = { okLabel: "ตกลง" };
       axios
-        .get(
-          "https://tool.945parcel.com/log-daily-tool?date_check=" + this.datePick
-        )
+        .get(this.url + "/log-daily-tool?date_check=" + this.datePick)
         .then(response => {
           if (response.data.length === 0) {
             this.$dialogs.alert("ไม่พบข้อมูล", options);
@@ -184,29 +140,28 @@ export default {
             this.listModule = [];
             var moduleInfo = {};
             for (let item of result) {
-                if (!(item.module_name in moduleInfo)) {
-                  moduleInfo[String(item.module_name)] = [];
-                }
-                moduleInfo[String(item.module_name)].push(item);
+              if (!(item.module_name in moduleInfo)) {
+                moduleInfo[String(item.module_name)] = [];
               }
-              var arr = this.listModule;
-              for (const [key] of Object.entries(moduleInfo)) {
-                this.listModule.push(key);
-              }
-              var clean = arr.filter((arr, index, self) =>
-              index === self.findIndex((t) => (t === arr)))
-              this.listModule = clean;
-              if(this.listCheckbox.length == this.listModule.length){
-                this.data = result;
-              }else{
-                for(var i=0; i < this.listCheckbox.length; i++){
-                  for(var j=0; j < result.length;j++){
-                      if(this.listCheckbox[i] == result[j].module_name){
-                         this.data.push(result[j]);
-                      }
+              moduleInfo[String(item.module_name)].push(item);
+            }
+            var arr = this.listModule;
+            for (const [key] of Object.entries(moduleInfo)) {
+              this.listModule.push(key);
+            }
+            var clean = arr.filter((arr, index, self) => index === self.findIndex(t => t === arr));
+            this.listModule = clean;
+            if (this.isCheckAll || (this.listCheckbox.length == this.listModule.length)) {
+              this.data = result;
+            } else {
+              for (var i = 0; i < this.listCheckbox.length; i++) {
+                for (var j = 0; j < result.length; j++) {
+                  if (this.listCheckbox[i] == result[j].module_name) {
+                    this.data.push(result[j]);
                   }
                 }
               }
+            }
           }
         })
         .catch(function(error) {
@@ -215,15 +170,6 @@ export default {
     },
     checkAll: function() {
       this.isCheckAll = !this.isCheckAll;
-      this.listCheckbox = [];
-      if (this.isCheckAll) {
-        // Check all
-        for (var key in this.listModule) {
-          this.listCheckbox.push(this.listModule[key]);
-        }
-      }
-      this.data = [];
-      this.getReportBranch();
     },
     updateCheckall: function() {
       if (this.listCheckbox.length == this.listModule.length) {
@@ -237,9 +183,7 @@ export default {
   },
   computed: {
     filteredResourcesBilling() {
-      return this.data
-        .slice(0)
-        .sort((a, b) => (a.id < b.id ? this.sorting : -this.sorting));
+      return this.data.slice(0).sort((a, b) => (a.id < b.id ? this.sorting : -this.sorting));
     }
   }
 };

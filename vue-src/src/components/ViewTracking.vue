@@ -36,8 +36,8 @@
           <th style="text-align:center; width: 5%;">เบอร์ผู้รับ</th>
           <th style="text-align:center;">ที่อยู่ผู้รับ</th>
           <th style="text-align:center; width: 5%;">สถานะ</th>
-          <th style="text-align:center; width: 5%;">วัน/เวลา ส่งข้อมูล</th>
-          <th style="text-align:center; width: 5%;">วัน/เวลา booking</th>
+          <th style="text-align:center; width: 5%;">วัน/เวลา Flash booking</th>
+          <th style="text-align:center; width: 5%;">วัน/เวลา DHL booking</th>
         </tr>
         <tr v-bind:key="item.id" v-for="item in filteredResources">
           <!-- <div v-if="item.booking_status != 100" style="text-align: center;">
@@ -60,7 +60,7 @@
           <td style="text-align: center;">{{ item.phone }}</td>
           <td style="text-align: center;">{{ item.receiver_address }} {{ item.district_name }} {{ item.amphur_name }} {{ item.province_name }}</td>
           <td style="text-align: center;">{{ item.status }}</td>
-          <td style="text-align: center;">{{ item.sending_date | moment("YYYY-MM-DD HH:mm:ss") }}</td>
+          <td style="text-align: center;">{{ item.booking_flash_date | moment("YYYY-MM-DD HH:mm:ss") }}</td>
           <td style="text-align: center;">{{ item.booking_date | moment("YYYY-MM-DD HH:mm:ss") }}</td>
         </tr>
       </table>
@@ -82,7 +82,8 @@ export default {
       dataBilling: [],
       billing_no: "",
       str_billing_no: "",
-      billingSearch: ""
+      billingSearch: "",
+      url: ""
     };
   },
   mounted() {
@@ -103,7 +104,7 @@ export default {
     getData() {
       const options = { okLabel: "ตกลง" };
       axios
-        .get("/list-tracking-bill?billing_no=" + this.billing_no)
+        .get(this.url+"/list-tracking-bill?billing_no=" + this.billing_no)
         .then(response => {
           if (response.data.length === 0) {
             this.$dialogs.alert("ไม่พบข้อมูล", options);

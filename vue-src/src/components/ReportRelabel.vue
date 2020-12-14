@@ -36,14 +36,17 @@
         </tr>
         <tr v-for="(item) in data" v-bind:key="item.id">
             <td style="text-align: center;">{{ item.time_to_system | moment("HH:mm:ss") }}</td>
-            <td style="text-align: center;">1</td>
+            <td style="text-align: center;">{{ item.branch_name }}</td>
             <td style="text-align: center;">{{ item.billing_no }}</td>
             <td style="text-align: center;">{{ item.ref }}</td>
             <td style="text-align: center;">{{ item.current_value }}</td>
             <!-- <td style="text-align: center;width: 200px;"> -->
-            <td v-if="item.reason == 'error_parcel_type'">ประเภทการจัดส่งไม่ตรงกัน</td>
-            <td v-else-if="item.reason == 'error_zipcode'">รหัสไปรษณีย์ไม่ตรงกัน</td>
-            <td v-else>ทั้ง2ฝั่งไม่ตรงกัน</td>
+            <td v-if="item.reason == 'change_cod_to_normal'">เปลี่ยนประเภท COD เป็น NORMAL</td>
+            <td v-else-if="item.reason == 'change_normal_to_cod'">เปลี่ยนประเภท NORMAL เป็น COD</td>
+            <td v-else-if="item.reason == 'change_codvalue'">เปลี่ยนมูลค่า COD</td>
+            <td v-else-if="item.reason == 'change_address'">เปลี่ยนที่อยู่</td>
+            <td v-else-if="item.reason == 'close_status_early_due'">ปิดสถานะก่อนกำหนด</td>
+            <td v-else>ไม่ได้ระบุ เหตุผล</td>
             <td style="text-align: center;">{{ item.remark }}</td>
             <!-- <td style="text-align: center;">{{ item.module_name }}</td> -->
         </tr>
@@ -62,7 +65,8 @@ export default {
       data: [],
       date: new Date(),
       datePick: moment().tz("Asia/Bangkok").format("YYYY-MM-DD"),
-      sorting: -1
+      sorting: -1,
+      url: ""
     };
   },
   mounted() {
@@ -75,7 +79,7 @@ export default {
     getReportBranch() {
       const options = { okLabel: "ตกลง" };
       axios
-        .get("https://tool.945parcel.com/log-daily-tool?date_check=" +this.datePick)
+        .get(this.url+"/log-daily-tool?date_check=" +this.datePick)
         .then(response => {
           if (response.data.length === 0) {
             this.$dialogs.alert("ไม่พบข้อมูล", options);

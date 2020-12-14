@@ -230,6 +230,7 @@ export default {
       billingInfo: [],
       trackingInput: "",
       billing_no: "",
+      branch_id: "",
       tracking: "",
       bi_parcel_type: "",
       size_id: "",
@@ -286,6 +287,7 @@ export default {
         { code: "01", name: "945 เป็นฝ่ายผิด", value: 1 },
         { code: "02", name: "ลูกค้า/shop เป็นฝ่ายผิด", value: 2 }
       ],
+      url: ""
     };
   },
   mounted() {
@@ -300,13 +302,14 @@ export default {
           this.$dialogs.alert("กรุณาใส่เลข Tracking ให้ถูกต้อง",options);
       } else {
 
-      axios.get("/check/info/tracking?tracking=" + this.trackingInput.toUpperCase())
+      axios.get(this.url+"/check/info/tracking?tracking=" + this.trackingInput.toUpperCase())
         .then(response => {
           if (response.data.status == "SUCCESS") {
             var responseData = response.data.billingInfo;
             this.billingInfo = responseData[0];
 
             this.billing_no = this.billingInfo.billing_no;
+            this.branch_id = this.billingInfo.branch_id;
             this.tracking = this.billingInfo.tracking;
             this.bi_parcel_type = this.billingInfo.bi_parcel_type.toUpperCase();
             this.district_code = this.billingInfo.DISTRICT_CODE;
@@ -325,12 +328,7 @@ export default {
             this.phone = this.billingInfo.phone;
             this.receiver_address = this.billingInfo.receiver_address;
 
-            this.location =
-              this.billingInfo.district_name +
-              " " +
-              this.billingInfo.amphur_name +
-              " " +
-              this.billingInfo.province_name;
+            this.location = this.billingInfo.district_name + " " + this.billingInfo.amphur_name + " " + this.billingInfo.province_name;
             this.br_zipcode = this.billingInfo.br_zipcode;
             this.displayAddress = this.br_zipcode + " " + this.location;
             this.parcelAddressList(this.br_zipcode);
@@ -432,14 +430,7 @@ export default {
     },
     selectItem(item) {
       this.keyAddress = item;
-      this.displayAddress =
-        item.zipcode +
-        " " +
-        item.DISTRICT_NAME +
-        "  " +
-        item.AMPHUR_NAME +
-        "  " +
-        item.PROVINCE_NAME;
+      this.displayAddress = item.zipcode + " " + item.DISTRICT_NAME + "  " + item.AMPHUR_NAME + "  " + item.PROVINCE_NAME;
       this.openZipcode = false;
       this.bi_zipcode = item.zipcode;
       this.br_zipcode = item.zipcode;
@@ -449,10 +440,12 @@ export default {
     selectSize() {
       var dataSize = {
         zipcode: this.br_zipcode,
-        size_name: this.alias_size
+        size_name: this.alias_size,
+        zone: (this.branch_id !== 50 && this.branch_id !== 70)?2:1
       };
       axios
-        .post("https://pos.945.report/genBillNo/parcelPrice", dataSize)
+        // .post("https://pos.945.report/genBillNo/parcelPrice", dataSize)
+        .post(this.url+"/parcelPrice", dataSize)
         .then(response => {
           let parcelSizeSelect = response.data;
           if (response.data != undefined) {
@@ -516,7 +509,7 @@ export default {
       this.causeType = causeType;
     },
     getNewTracking() {
-      axios.get("/get-new-tracking")
+      axios.get(this.url+"/get-new-tracking")
         .then(response => {
           this.newTrackingInput=response.data.toUpperCase();
         });
@@ -532,10 +525,7 @@ export default {
         this.emptyBox();
         this.$dialogs.alert("กรุณาระบุ Tracking เพื่อทำรายการ", options);
       } else if (this.billing_no == "") {
-        this.$dialogs.alert(
-          "ไม่สามารถยกเลิกได้ เนื่องจากทางร้านยังไม่ได้ทำรายการ",
-          options
-        );
+        this.$dialogs.alert("ไม่สามารถยกเลิกได้ เนื่องจากทางร้านยังไม่ได้ทำรายการ", options);
       } else if (
         this.receiver_first_name == "" ||
         this.receiver_first_name == undefined
@@ -586,7 +576,7 @@ export default {
       } else if (this.bi_parcel_type == "NORMAL" && this.cod_value !== 0) {
         this.$dialogs.alert("กรุณากรอก ค่าเก็บเงินปลายทาง ให้ถูกต้อง", options);
       } else {
-        axios.get("/check-availabel-tracking?tracking=" + this.newTrackingInput.toUpperCase()).then(response => {
+        axios.get("/check-available-tracking?tracking=" + this.newTrackingInput.toUpperCase()).then(response => {
             this.resultDuplicatedTracking = response.data;
 
             if (!this.resultDuplicatedTracking) {
@@ -611,8 +601,7 @@ export default {
                     sizePrice: (this.causeType == 1)? 0 : this.size_price
                   },
                   receiverInfo: {
-                    receiverName:
-                      this.receiver_first_name + " " + this.receiver_last_name,
+                    receiverName: this.receiver_first_name + " " + this.receiver_last_name,
                     phone: this.phone,
                     receiverAddress: this.receiver_address,
                     keyAddress: this.keyAddress
@@ -624,8 +613,8 @@ export default {
                 user: this.$session.get("session_username"),
                 moduleName: moduleName
               };
-              // console.log(JSON.stringify(dataConfirm));
-              axios.post("/tools/relabel-tracking", dataConfirm)
+              
+              axios.post(this.url+"/tools/relabel-tracking", dataConfirm)
                 .then(response => {
                   if (response.data.status == "SUCCESS") {
                     let billingNo = response.data.billingNo;

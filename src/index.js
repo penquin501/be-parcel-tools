@@ -79,14 +79,9 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
   
     parcelServices.getBillingInfo(db,billing).then(function(data) {
       if(data==false){
-        res.json({
-          status: "data_not_found"
-        });
+        res.json({ status: "data_not_found" });
       } else {
-        res.json({
-          status: "SUCCESS",
-          data
-        });
+        res.json({ status: "SUCCESS", data });
       }
       
     });
@@ -117,7 +112,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
     });
   });
 
-  app.get("/check-availabel-tracking", (req, res) => {
+  app.get("/check-available-tracking", (req, res) => {
     let tracking = req.query.tracking;
 
     checkAvailableTracking(tracking.toUpperCase()).then(result=>{
@@ -392,7 +387,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
                 parcelServices.updateStatusReceiver(db,'relabel',billingInfo.tracking).then(resultUpdateStatus => {
                   if(resultUpdateStatus !== false){
                     parcelServices.selectBillingInfo(db, billingInfo.billing_no).then(resultBilling => {
-                        createBillingRelabel(resultBilling, billingInfo, currentValue, causeType).then(resultCreateBilling => {
+                        createBillingRelabel(resultBilling, billingInfo, currentValue, causeType, reason, remark).then(resultCreateBilling => {
                           if (resultCreateBilling !== false) {
 
                             var dataToPrepareBooking = {
@@ -518,244 +513,6 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
     );
   });
   
-  app.post("/save/cancel/tracking", function(req, res) {
-    console.log("save_cancel_tracking", req.body.tracking);
-    let tracking = req.body.tracking;
-    let billing_no = req.body.billing_no;
-    let previous_value = req.body.previous_value;
-    let reason = req.body.reason;
-    let remark = req.body.remark;
-    let module_name = "cancel_tracking";
-    let user = req.body.user;
-  
-    let status = "";
-    if (
-      previous_value[0].status === null ||
-      previous_value[0].status === undefined ||
-      previous_value[0].status === ""
-    ) {
-      status = "";
-    } else {
-      status = previous_value[0].status;
-    }
-
-    var currentDate = moment().tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
-    var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD");
-    var flagDate = moment(today+" 18:00:00").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
-
-    var startDate = moment(today+" 18:00:00").add(-1,'day').tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
-    var endDate = moment(today+" 18:00:00").add(1,'day').tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
-
-    parcelServices.selectBillingInfo(db,billing_no).then(function(previous_total) {
-
-      if (status == "cancel") {
-        return res.json({ status: "ERROR", reason: "data_cancelled" });
-      } else if (status == "success") {
-        return res.json({ status: "ERROR", reason: "data_sending_to_server" });
-      } else {
-        var billingDate=moment(previous_total[0].billing_date).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss", true)
-        var checkDateTime=true;
-
-        if(billingDate > flagDate){
-          //วัน/เวลาของบิล ที่ทำรายการหลัง 18.00 น.
-          if(currentDate > flagDate && currentDate <= endDate) {
-            checkDateTime=true;
-          } else {
-            checkDateTime=false;
-          }
-        } else {
-          //วัน/เวลาของบิล ที่ทำรายการก่อน 18.00 น.
-
-          if(currentDate > startDate && currentDate <= flagDate) {
-            checkDateTime=true;
-          } else {
-            checkDateTime=false;
-          }
-        }
-
-        if(!checkDateTime){
-          return res.json({ status: "ERROR", reason: "data_overtime" });
-        } else {
-          parcelServices.updateStatusReceiver(db,'cancel',val.tracking).then(function(res_update_status) {
-            if (res_update_status !== false) {
-              parcelServices.selectParcelSize(db,billing_no).then(function(dataListPrice) {
-                let current_total = 0;  
-                if(dataListPrice==0){
-                  current_total = 0; 
-                } else {
-                  for (i = 0; i < dataListPrice.length; i++) {
-                    current_total += dataListPrice[i].size_price;
-                  }
-                }
-                  parcelServices.updateBillingInfo(db,current_total, billing_no).then(function(data) {});
-                  var previous_value =status + "/total=" + previous_total[0].total;
-                  var current_value = "cancel/total=" + current_total;
-                  parcelServices.insertLog(db,billing_no,previous_value,current_value,reason,module_name,user,tracking,remark).then(function(data) {});
-
-                  var dataTo945 = {
-                    billNo: previous_value[0].billing_no,
-                    trackingNo: previous_value[0].tracking,
-                    orderDateTime: m(previous_total[0].billing_date).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss", true),
-                    orderPrice: previous_value[0].size_price,
-                    orderPhoneNo: previous_value[0].phone,
-                    parcelMethod: previous_value[0].bi_parcel_type
-                  };
-                  amqpChannel.publish(MY_AMQP_PREFIX+".exchange.cancel-task","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
-                  amqpChannel.publish("share.exchange.cancel-task","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
-  
-                  return res.json({ status: "SUCCESS" });
-                });
-            } else {
-              return res.json({ status: "ERROR", reason: "No_data" });
-            }
-          });
-        }
-      }
-    });
-  });
-  
-  app.post("/save/cancel/billing", function(req, res) {
-    let billing_no = req.body.billing_no;
-    let billing_status=req.body.billing_status;
-    let select_item=req.body.select_item;//ส่งค่าเก่าอยู่แล้ว
-    let reason = req.body.reason;
-    let remark = req.body.remark;
-    let module_name = "cancel_billing";
-    let user = req.body.user;
-    
-    if(select_item.length<=0) {
-      res.json({ status: "ERROR", reason: "no_select_data" });
-    } else if(billing_no == '') {
-      res.json({ status: "ERROR", reason: "no_billing_to_cancel" });
-    } else if(billing_status == 'cancel') {
-      res.json({ status: "ERROR", reason: "billing_cancelled" });
-    } else if(billing_status == 'pass') {
-      res.json({ status: "ERROR", reason: "data_sending_to_server" });
-    } else {
-      var currentDate = moment().tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
-    var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD");
-    var flagDate = moment(today+" 18:00:00").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
-
-    var startDate = moment(today+" 18:00:00").add(-1,'day').tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
-    var endDate = moment(today+" 18:00:00").add(1,'day').tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
-    parcelServices.selectBillingInfo(db,billing_no).then(function(previous_total) {
-      var billingDate=moment(previous_total[0].billing_date).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss", true)
-      var checkDateTime=true;
-
-      if(billingDate > flagDate){
-        //วัน/เวลาของบิล ที่ทำรายการหลัง 18.00 น.
-        if(currentDate > flagDate && currentDate <= endDate) {
-          checkDateTime=true;
-        } else {
-          checkDateTime=false;
-        }
-      } else {
-        //วัน/เวลาของบิล ที่ทำรายการก่อน 18.00 น.
-
-        if(currentDate > startDate && currentDate <= flagDate) {
-          checkDateTime=true;
-        } else {
-          checkDateTime=false;
-        }
-      }
-
-      if(!checkDateTime){
-        return res.json({ status: "ERROR", reason: "data_overtime" });
-      } else {
-        async function item() {
-          var listTracking = [];
-          await select_item.forEach(async (val,index) => {
-            listTracking.push(send_api(val,billing_no,reason,remark,user));
-          })
-          var resultArr = await Promise.all(listTracking);
-          return resultArr;
-        }
-        item().then(function(result) {
-  
-          res.json({status:"SUCCESS",result:result});
-        })
-      }
-    });
-    }
-  });
-  function send_api(data,billing_no,reason,remark,user){
-  
-    return new Promise(function(resolve, reject) {
-      let tracking = data.tracking;
-      let pre_status=data.status;
-      let module_name = "cancel_billing";
-  
-      let status = "";
-      if (
-        pre_status === null ||
-        pre_status === undefined ||
-        pre_status === ""
-      ) {
-        status = "";
-      } else {
-        status = pre_status;
-      }
-    
-      parcelServices.selectBillingInfo(db,billing_no).then(function(previous_total) {
-
-        if (status == "cancel") {
-          res.json({ status: "ERROR", reason: "data_cancelled" });
-        } else if (status == "success") {
-          res.json({ status: "ERROR", reason: "data_sending_to_server" });
-        } else {
-          parcelServices.updateStatusReceiver(db,'cancel',val.tracking).then(function(res_update_status) {
-              if (res_update_status !== false) {
-                parcelServices.selectParcelSize(db,billing_no).then(function(dataListPrice) {
-                  let current_total = 0;  
-                  if(dataListPrice==0){
-                    current_total = 0; 
-                  } else {
-                    for (i = 0; i < dataListPrice.length; i++) {
-                      current_total += dataListPrice[i].size_price;
-                    }
-                  }
-                    parcelServices.updateBillingInfo(db,current_total, billing_no).then(function(data) {});
-                    var previous_value =status + "/total=" + previous_total[0].total;
-                    var current_value = "cancel/total=" + current_total;
-                    parcelServices.insertLog(db,billing_no,previous_value,current_value,reason,module_name,user,tracking,remark).then(function(data) {});
-                    var dataTo945 = {
-                      billNo: previous_value[0].billing_no,
-                      trackingNo: previous_value[0].tracking,
-                      orderDateTime: m(previous_total[0].billing_date).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss", true),
-                      orderPrice: previous_value[0].size_price,
-                      orderPhoneNo: previous_value[0].phone,
-                      parcelMethod: previous_value[0].bi_parcel_type
-                    };
-                    amqpChannel.publish(MY_AMQP_PREFIX+".exchange.cancel-task","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
-                    amqpChannel.publish("share.exchange.cancel-task","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
-
-                    resolve({tracking:data.tracking,status:"SUCCESS",reason: ""});
-                  });
-              } else {
-                resolve({tracking:data.tracking, status: "ERROR", reason: "No_data" });
-              }
-            });
-        }
-      });
-    })
-  }
-  
-  app.post("/update/receiver/info", function(req, res) {
-    let tracking = req.body.tracking;
-    let billing_no = req.body.billing_no;
-    let previous_value = req.body.previous_value;
-    let current_value = req.body.current_value;
-    let receiver_name = current_value.first_name + " " + current_value.last_name;
-    let phone = current_value.phone;
-    let address = current_value.address;
-    let log_current_value = receiver_name + "/" + phone + "/" + address;
-    let module_name = "change_receiver_info";
-    let user = req.body.user;
-    parcelServices.updateReceiverInfo(db,tracking, receiver_name, phone, address).then(function(data) {});
-    parcelServices.insertLog(db,billing_no,previous_value,log_current_value,module_name,user,tracking).then(function(data) {});
-    res.json({ status: "SUCCESS" });
-  });
-  
   app.get("/tools/list/tracking", function(req, res) {
     parcelServices.getListTrackingNotMatch(db).then(function(data) {
 
@@ -801,25 +558,6 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
           listTracking: result
         });
       }
-    });
-  });
-  
-  // app.get("/tools/parcel/size/list", function(req, res) {
-  //   parcelServices.parcelSizeList().then(function(data) {
-  //     res.json({
-  //       status: "SUCCESS",
-  //       parcelSizeList: data
-  //     });
-  //   });
-  // });
-  
-  app.get("/select/tracking/check", function(req, res) {
-    let branch_id = req.query.branch_id;
-    parcelServices.selectTrackingToCheck(db,branch_id).then(function(data) {
-      res.json({
-        status: "SUCCESS",
-        tracking: data
-      });
     });
   });
 
@@ -949,79 +687,6 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
     }
   });
 
-  app.post("/confirm-member-code", function(req, res) {
-    let billing_no = req.body.billing_no;
-    let previous_value = req.body.previous_value;
-    let current_value = req.body.current_value;
-    let billing_items=previous_value.billingItem;
-    let log_previous_value = previous_value.billingNo.member_code + "/" + previous_value.billingNo.status;
-    let log_current_value = current_value.current_member_code;
-    let module_name = "change_member_code";
-    let reason = req.body.reason;
-    let remark = req.body.remark;
-    let user = req.body.user;
-
-    var currentDate = moment().tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
-    var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD");
-    var flagDate = moment(today+" 18:00:00").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
-
-    var startDate = moment(today+" 18:00:00").add(-1,'day').tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
-    var endDate = moment(today+" 18:00:00").add(1,'day').tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
-
-    var billingDate=moment(previous_value.billingNo.billing_date).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss", true)
-        var checkDateTime=true;
-
-        if(billingDate > flagDate){
-          //วัน/เวลาของบิล ที่ทำรายการหลัง 18.00 น.
-          if(currentDate > flagDate && currentDate <= endDate) {
-            checkDateTime=true;
-          } else {
-            checkDateTime=false;
-          }
-        } else {
-          //วัน/เวลาของบิล ที่ทำรายการก่อน 18.00 น.
-
-          if(currentDate > startDate && currentDate <= flagDate) {
-            checkDateTime=true;
-          } else {
-            checkDateTime=false;
-          }
-        }
-
-        if(!checkDateTime){
-          return res.json({ status: "ERROR", reason: "data_overtime" });
-        } else {
-          parcelServices.updateMemberBilling(db, billing_no, current_value.current_member_code).then(function(result_billing) {
-            if(result_billing){
-              async function item() {
-                var listTracking = [];
-                await billing_items.forEach(async (val, index) => {
-                  listTracking.push(parcelServices.updateSenderInfo(db,current_value.current_sender_name,current_value.current_sender_phone,current_value.current_sender_address,val.tracking));
-                });
-                var resultArr = await Promise.all(listTracking);
-                return resultArr;
-              }
-              item().then(function(result) {
-                parcelServices.insertLog(db,billing_no,log_previous_value,log_current_value,reason,module_name,user,billing_no,remark).then(function(data) {});
-
-                var dataTo945 = {
-                  billNo: billing_no,
-                  orderDateTime: moment(previous_value.billingNo.billing_date).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss", true),
-                  previousMemberCode: previous_value.billingNo.member_code,
-                  currentMemberCode: current_value.current_member_code
-                };
-                amqpChannel.publish(MY_AMQP_PREFIX+".exchange.update-member","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
-                amqpChannel.publish("share.exchange.update-member","",Buffer.from(JSON.stringify(dataTo945)),{persistent: true});
-                res.json({ status: "SUCCESS" });
-              });
-            } else {
-              res.json({ status: "error_data_not_found" });
-            }
-            
-          });
-        }
-  });
-
   app.get("/report-branch", (req, res) => {
     let date_check = req.query.date_check;
     parcelServices.reportBranch(db,date_check).then(function(data) {
@@ -1138,6 +803,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
       }
     });
   });
+
   app.get("/summary-booking", (req, res) => {
     let date_check = req.query.date_check;
     parcelServices.summaryBooking(db,date_check).then(function(data) {
@@ -1162,10 +828,11 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
       }
     });
   });
+
   app.get("/list-tracking-bill", (req, res) => {
     let billing_no = req.query.billing_no;
   
-    parcelServices.dailyListTracking(db,billing_no).then(function(data) {
+    parcelServices.dailyListTracking(db, billing_no).then(function(data) {
       if (data == false) {
         res.json([]);
       } else {
@@ -1392,6 +1059,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
       });
     }
   });
+
   app.get("/get-new-tracking", (req, res) => {
     var qs = queryString.stringify({
       prefix: "TDZ"
@@ -1777,7 +1445,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
     });
   }
 
-  function createBillingRelabel(billingInfo, billingItemInfo, currentValue, causeType) {
+  function createBillingRelabel(billingInfo, billingItemInfo, currentValue, causeType, reason, remark) {
     return new Promise(function(resolve, reject) {
       var dataCreateBillingNo = {
         user_id: billingInfo[0].user_id,
@@ -1830,11 +1498,31 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
                       return resultArr;
                     }
                     setFormatToServer().then(function(result) {
+                      let strReason ="";
+                      if(reason=="change_cod_to_normal"){
+                        strReason='เปลี่ยนประเภท COD เป็น NORMAL';
+                      }
+                      if(reason=="change_normal_to_cod"){
+                        strReason='เปลี่ยนประเภท NORMAL เป็น COD';
+                      }
+                      if(reason=="change_codvalue"){
+                        strReason='เปลี่ยนมูลค่า COD';
+                      }
+                      if(reason=="change_address"){
+                        strReason='เปลี่ยนที่อยู่';
+                      }
+                      if(reason=="close_status_early_due"){
+                        strReason='ปิดสถานะก่อนกำหนด';
+                      }
+
                       var dataTo945={
                         relabelBilling:result[0],
-                        restructureBilling: result[1]
+                        restructureBilling: result[1],
+                        causeType: (causeType==1)? "945 เป็นฝ่ายผิด":"ลูกค้า/shop เป็นฝ่ายผิด",
+                        reason: strReason,
+                        remark: remark
                       };
-                      // console.log("dataTo945", JSON.stringify(dataTo945));
+
                       amqpChannel.publish(MY_AMQP_PREFIX+".exchange.event","",Buffer.from(JSON.stringify(result[1])),{persistent: true});
                       amqpChannel.publish("share.exchange.event","",Buffer.from(JSON.stringify(result[1])),{persistent: true});
 
@@ -1927,5 +1615,3 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
 // });
 
 app.listen(port, () => console.log(`listening on port ${port}!`));
-
-

@@ -41,14 +41,14 @@
           <tr>
             <th style="text-align:center; width: 5%;">รหัสสาขา</th>
             <th style="text-align:center; width: 5%;">เวลา</th>
-            <th style="text-align:center; width: 5%;">เลขที่บิล</th>
+            <th style="text-align:center; width: 15%;">เลขที่บิล</th>
             <th style="text-align:center; width: 5%;">tracking</th>
-            <th style="text-align:center; width: 5%;">ข้อมูลที่ผิด</th>
-            <th style="text-align:center; width: 5%;">สาเหตุ</th>
-            <th style="text-align:center; width: 5%;">รหัสผู้ใช้/เจ้าหน้าที่คีย์ข้อมูล</th>
+            <th style="text-align:center; width: 15%;">ข้อมูลที่ผิด</th>
+            <th style="text-align:center; width: 10%;">สาเหตุ</th>
+            <th style="text-align:center; width: 10%;">รหัสผู้ใช้/เจ้าหน้าที่คีย์ข้อมูล</th>
           </tr>
           <tr v-for="(item) in filteredResourcesBilling" v-bind:key="item.id">
-            <td style="text-align: center;">{{ item.branch_id }}</td>
+            <td style="text-align: center;">{{ item.branch_name }}</td>
             <td style="text-align: center;">{{ item.record_date | moment("HH:mm:ss") }}</td>
             <td style="text-align: center;">{{ item.billing_no }}</td>
             <td style="text-align: center;">{{ item.tracking }}</td>
@@ -75,7 +75,8 @@ export default {
       data: [],
       date: new Date(),
       datePick: moment().tz("Asia/Bangkok").format("YYYY-MM-DD"),
-      sorting: -1
+      sorting: -1,
+      url:""
     };
   },
   mounted() {
@@ -88,7 +89,7 @@ export default {
     getData() {
       const options = { okLabel: "ตกลง" };
       axios
-        .get("/log-daily-qlchecker?date_check=" + this.datePick)
+        .get(this.url+"/log-daily-qlchecker?date_check=" + this.datePick)
         .then(response => {
           if (response.data.length === 0) {
             this.$dialogs.alert("ไม่พบข้อมูล", options);
@@ -104,7 +105,7 @@ export default {
   },
   computed: {
     filteredResourcesBilling() {
-      return this.data.slice(0).sort((a, b) => (a.id < b.id ? this.sorting : -this.sorting));
+      return this.data.slice(0).sort((a, b) => (a.branch_id < b.branch_id ? this.sorting : -this.sorting));
     }
   }
 };

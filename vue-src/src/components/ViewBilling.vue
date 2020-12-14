@@ -80,7 +80,8 @@ export default {
       cNotBook:0,
       cBooked:0,
       total:0,
-      sorting: -1
+      sorting: -1,
+      url: ""
     };
   },
   mounted() {
@@ -93,17 +94,13 @@ export default {
     getBilingNo() {
       this.getSummary();
       const options = { okLabel: "ตกลง" };
-      axios.get("/daily-report?date_check="+this.datePick)
+      axios.get(this.url+"/daily-report?date_check="+this.datePick)
       .then(response => {
           if (response.data.length === 0) {
             this.$dialogs.alert("ไม่พบข้อมูล", options);
             this.dataBilling=[];
           } else {
             this.dataBilling = response.data.result;
-            // this.summaryBilling=response.data.summary;
-            // this.cNotBook = this.summaryBilling.sumNotBooked;
-            // this.cBooked = this.summaryBilling.sumBooked;
-            // this.total = this.summaryBilling.total;
           }
         })
         .catch(function(error) {

@@ -52,7 +52,7 @@
                   <router-link to="/relabeling"><a v-on:click="toView" class="dropdown-item">Re-Labeling</a></router-link>
                   <router-link to="/listtracking"><a v-on:click="toView" class="dropdown-item">QL Checker</a></router-link>
                   <router-link to="/movemember"><a v-on:click="toView" class="dropdown-item">ย้าย Member ไป Shop อื่น</a></router-link>
-                  <router-link to="/change-phoneregis"><a v-on:click="toView" class="dropdown-item">ย้าย Member ไป Shop อื่น</a></router-link>
+                  <router-link to="/change-phoneregis"><a v-on:click="toView" class="dropdown-item">เปลี่ยนเบอร์โทรศัพท์ Member</a></router-link>
 
                 </div>
               </li>
@@ -77,7 +77,7 @@
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-cog" aria-hidden="true"></i></a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                   <router-link to="/branch-info"><a v-on:click="toView"  class="dropdown-item" >Branch Info</a></router-link>
-                  <router-link to="/size-info"><a v-on:click="toView" class="dropdown-item">Size Info</a></router-link>
+                  <!-- <router-link to="/size-info"><a v-on:click="toView" class="dropdown-item">Size Info</a></router-link> -->
                 </div>
               </li>
             </ul>

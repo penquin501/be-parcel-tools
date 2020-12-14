@@ -137,7 +137,8 @@ export default {
       billing_no: "",
       billingStatus: "",
       status_lb: "",
-      allSelected: false
+      allSelected: false,
+      url: ""
     };
   },
   mounted() {
@@ -152,11 +153,7 @@ export default {
         this.$dialogs.alert("กรุณาใส่เลขที่บิลให้ถูกต้อง", options);
         this.resetData();
       } else {
-        axios
-          .get(
-            "/check/info/billing?billing=" +
-              this.billingInput
-          )
+        axios.get(this.url+"/check/info/billing?billing=" + this.billingInput)
           .then(response => {
             if (response.data.status == "SUCCESS") {
               this.responseData = response.data.data;
@@ -221,10 +218,7 @@ export default {
       } else if (this.billingStatus == "cancel") {
         this.$dialogs.alert("รายการนี้ได้ถูกยกเลิกไปแล้ว", options);
       } else if (this.billingStatus == "pass") {
-        this.$dialogs.alert(
-          "รายการนี้กำลังถูกส่งข้อมูลไปยัง server หลัก กรุณารอ 2-3 นาที",
-          options
-        );
+        this.$dialogs.alert("รายการนี้กำลังถูกส่งข้อมูลไปยัง server หลัก กรุณารอ 2-3 นาที", options);
       } else if (this.selectItem.length <= 0) {
         this.$dialogs.alert("กรุณาเลือกรายการที่ต้องการยกเลิก", options);
       } else if (this.reasonValue == "") {
@@ -257,9 +251,8 @@ export default {
           user: this.$session.get("session_username"),
           moduleName: moduleName
         };
-
         axios
-          .post("/tools/void-billing", dataConfirm)
+          .post(this.url+"/tools/void-billing", dataConfirm)
           .then(response => {
             if (response.data.status == "SUCCESS") {
               let billingNo = response.data.billingNo;

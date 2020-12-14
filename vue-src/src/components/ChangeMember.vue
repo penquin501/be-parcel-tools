@@ -139,7 +139,8 @@ export default {
       remark: "",
       billing_no: "",
       billingStatus: "",
-      status_lb: ""
+      status_lb: "",
+      url: ""
     };
   },
   mounted: function() {
@@ -155,7 +156,7 @@ export default {
         this.resetData();
       } else {
         axios
-          .get("/check/info/billing?billing=" + this.billingInput.trim())
+          .get(this.url+"/check/info/billing?billing=" + this.billingInput.trim())
           .then(response => {
             if (response.data.status == "SUCCESS") {
               this.resetData();
@@ -298,7 +299,7 @@ export default {
           moduleName: moduleName
         };
 
-        axios.post("/tools/void-billing", dataConfirm).then(response => {
+        axios.post(this.url+"/tools/void-billing", dataConfirm).then(response => {
             if (response.data.status == "SUCCESS") {
               let billingNo=response.data.billingNo;
               if(billingNo!==""){
