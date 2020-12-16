@@ -612,7 +612,7 @@ module.exports = {
     var current_date = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
     var nextDay = moment(current_date).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
-    var sql = `SELECT b.branch_id,bInfo.branch_name,b.billing_no,br.sender_name,b.status,b.billing_date,br.booking_status
+    var sql = `SELECT b.branch_id,bInfo.branch_name,b.billing_no,br.sender_name,b.status,b.billing_date,br.booking_status, br.booking_flash_status
     FROM billing b 
     JOIN billing_item bi ON b.billing_no=bi.billing_no 
     JOIN billing_receiver_info br ON bi.tracking=br.tracking 
@@ -658,7 +658,7 @@ module.exports = {
     var current_date = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
     var nextDay = moment(current_date).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
-    var sqlListTracking = `SELECT bi.tracking,br.booking_status FROM billing b
+    var sqlListTracking = `SELECT bi.tracking, br.booking_status, br.booking_flash_status FROM billing b
     LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
     LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
     WHERE (b.billing_date>=? AND b.billing_date<?) AND (br.status != 'cancel' OR br.status is null)`;
@@ -966,11 +966,6 @@ module.exports = {
     var sqlBilling = `SELECT user_id,mer_authen_level,member_code,carrier_id,billing_no,branch_id,img_url FROM billing WHERE billing_no= ? AND status='complete'`;
     var dataBilling = [billing_no];
 
-    // let sqlBillingItem = `SELECT bItem.tracking, bItem.size_price,bItem.parcel_type as bi_parcel_type,bItem.cod_value,s.alias_size,gSize.product_id,gSize.product_name
-    //   FROM billing_item bItem 
-    //   JOIN size_info s ON bItem.size_id=s.size_id 
-    //   JOIN global_parcel_size gSize ON s.location_zone = gSize.area AND s.alias_size =gSize.alias_name AND bItem.parcel_type= gSize.type AND s.zone=gSize.zone 
-    //   WHERE bItem.billing_no=? AND bItem.tracking=?`;
     let sqlBillingItem = `SELECT bItem.tracking, bItem.size_id, bItem.size_price, bItem.parcel_type, bItem.cod_value
     FROM billing_item bItem 
     WHERE bItem.billing_no=?`;
@@ -980,9 +975,9 @@ module.exports = {
       db.query(sqlBilling, dataBilling, (error_billing, result_billing, fields) => {
           if (error_billing == null) {
             if (result_billing.length > 0) {
-              db.query(sqlBillingItem, dataBillItem, async (error_item, result_item, fields) => {
+              db.query(sqlBillingItem, dataBillItem, async (error_item, result_items, fields) => {
                   if (error_item == null) {
-                    if (result_item.length > 0) {
+                    if (result_items.length > 0) {
                       var orderlist = [];
 
                       for (let item of result_items) {
@@ -992,12 +987,12 @@ module.exports = {
                           productinfo: {
                             globalproductid: sizeItem.product_id,
                             productname: sizeItem.product_name,
-                            methodtype: value.parcel_type.toUpperCase(),
-                            paymenttype: value.parcel_type.toUpperCase() == "NORMAL" ? "99" : "60",
-                            price: value.size_price.toString(),
-                            codvalue: value.cod_value.toString()
+                            methodtype: item.parcel_type.toUpperCase(),
+                            paymenttype: item.parcel_type.toUpperCase() == "NORMAL" ? "99" : "60",
+                            price: item.size_price.toString(),
+                            codvalue: item.cod_value.toString()
                           },
-                          consignmentno: value.tracking
+                          consignmentno: item.tracking
                         };
                         orderlist.push(data_item);
                       }

@@ -747,6 +747,8 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
         branch_info = {}
         var sumBooked=0;
         var sumNotBooked=0;
+        var sumFlashBooked=0;
+        var sumFlashNotBooked=0;
         data.forEach(value => {
   
           if(!(value.billing_no in branch_info)){
@@ -759,25 +761,38 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
             sender_name: value.sender_name,
             status: value.status,
             billing_date: value.billing_date,
-            booking_status: value.booking_status
+            booking_status: value.booking_status,
+            booking_flash_status: value.booking_flash_status,
           });
           if(value.booking_status == 100){
             sumBooked++;
           } else {
             sumNotBooked++;
           }
+          if(value.booking_flash_status == 100){
+            sumFlashBooked++;
+          } else {
+            sumFlashNotBooked++;
+          }
         });
   
         result=[];
         for (const [key, items] of Object.entries(branch_info)) {
   
-          var cBooked=0;
-          var cNotBook=0;
+          var c_dhlBooked=0;
+          var c_dhlNotBook=0;
+          var c_flashBooked=0;
+          var c_flashNotBook=0;
           items.forEach(item => {
               if(item.booking_status==100){
-                cBooked++;
+                c_dhlBooked++;
               } else {
-                cNotBook++;
+                c_dhlNotBook++;
+              }
+              if(item.booking_flash_status==100){
+                c_flashBooked++;
+              } else {
+                c_flashNotBook++;
               }
           })
           var dataBranch={
@@ -787,8 +802,10 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
             billing_no: key,
             sender_name: items[0].sender_name,
             status: items[0].status,
-            booked: cBooked,
-            cNotBook: cNotBook,
+            dhl_booked: c_dhlBooked,
+            dhl_cNotBook: c_dhlNotBook,
+            flash_booked: c_flashBooked,
+            flash_cNotBook: c_flashNotBook,
             total: items.length
           }
           result.push(dataBranch);
@@ -797,9 +814,11 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
         var summary={
           total:data.length,
           sumBooked:sumBooked,
-          sumNotBooked:sumNotBooked
+          sumNotBooked:sumNotBooked,
+          sumFlashBooked:sumFlashBooked,
+          sumFlashNotBooked:sumFlashNotBooked,
         }
-        res.json({result:result,summary:summary});
+        res.json({ result: result, summary: summary });
       }
     });
   });
@@ -810,20 +829,29 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
       if (data == false) {
         res.json([]);
       } else {
-        var cBooked=0;
-        var cNotBook=0;
+        var c_dhlBooked=0;
+        var c_dhlNotBook=0;
+        var c_flashBooked=0;
+        var c_flashNotBook=0;
         data.forEach((val)=>{
           if(val.booking_status == 100){
-            cBooked++;
+            c_dhlBooked++;
           } else {
-            cNotBook++;
+            c_dhlNotBook++;
+          }
+          if(val.booking_flash_status == 100){
+            c_flashBooked++;
+          } else {
+            c_flashNotBook++;
           }
         })
-        var output={
-          total:data.length,
-          cBooked:cBooked,
-          cNotBook:cNotBook
-        }
+        var output = {
+          total: data.length,
+          c_dhlBooked: c_dhlBooked,
+          c_dhlNotBook: c_dhlNotBook,
+          c_flashBooked: c_flashBooked,
+          c_flashNotBook: c_flashNotBook
+        };
         res.json(output);
       }
     });

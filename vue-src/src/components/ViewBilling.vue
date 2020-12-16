@@ -25,9 +25,14 @@
       </div>
       <div style="margin-top: 30px;"></div>
         <div class="row">
-          <div class="col-ms-9 col-sm-9 col-xs-9" style=" text-align: center; margin-top: 5px;">
-            <span>จำนวนที่ยังไม่ได้ book: {{ cNotBook }}</span>
-            <span style="margin-left: 100px;margin-right: 100px;">จำนวนที่ book แล้ว: {{ cBooked }}</span>
+          <div class="col-ms-9 col-sm-9 col-xs-9" style=" text-align: left; margin-top: 5px;">
+            <span>จำนวนที่ยังไม่ได้ book dhl: {{ c_dhlNotBook }}</span>
+            <span style="margin-left: 100px;margin-right: 100px;">จำนวนที่ book dhl แล้ว: {{ c_dhlBooked }}</span>
+            <span>จำนวนทั้งหมด: {{ total }}</span>
+          </div>
+          <div class="col-ms-9 col-sm-9 col-xs-9" style=" text-align: left; margin-top: 5px;">
+            <span>จำนวนที่ยังไม่ได้ book flash: {{ c_flashNotBook }}</span>
+            <span style="margin-left: 100px;margin-right: 100px;">จำนวนที่ book flash แล้ว: {{ c_flashBooked }}</span>
             <span>จำนวนทั้งหมด: {{ total }}</span>
           </div>
           <div class="col-ms-2 col-sm-2 col-xs-2" style="text-align:right;">
@@ -41,7 +46,8 @@
           <th style="text-align:center;">ชื่อสาขา</th>
           <th style="text-align:center;">เลขที่บิล</th>
           <th style="text-align:center;">ชื่อผู้ส่ง</th>
-          <th style="text-align:center;">จำนวน</th>
+          <th style="text-align:center;">จำนวน flash</th>
+          <th style="text-align:center;">จำนวน dhl</th>
           <th style="text-align:center;">สถานะ</th>
         </tr>
         <tr v-for="(item, index) in filteredResourcesBilling" v-bind:key="item.id">
@@ -52,7 +58,8 @@
             >{{ item.billing_no }}</router-link>&nbsp;&nbsp;<span style="font-size:10px; color: red;">{{ item.billing_date | moment("from", "now") }} </span>
           </td>
           <td style="text-align: center;">{{ item.sender_name }}</td>
-          <td style="text-align: center;">{{ (item.cNotBook == null) ? 0 : item.cNotBook }}/{{ item.total }}</td>
+          <td style="text-align: center;">{{ (item.flash_cNotBook == null) ? 0 : item.flash_cNotBook }}/{{ item.total }}</td>
+          <td style="text-align: center;">{{ (item.dhl_cNotBook == null) ? 0 : item.dhl_cNotBook }}/{{ item.total }}</td>
           <td style="text-align: center;">{{ item.status }}</td>
         </tr>
       </table>
@@ -77,8 +84,10 @@ export default {
       billingSearch: "",
       date: new Date(),
       datePick: moment().tz("Asia/Bangkok").format("YYYY-MM-DD"),
-      cNotBook:0,
-      cBooked:0,
+      c_dhlNotBook:0,
+      c_dhlBooked:0,
+      c_flashNotBook:0,
+      c_flashBooked:0,
       total:0,
       sorting: -1,
       url: ""
@@ -113,13 +122,16 @@ export default {
       .then(response => {
           if (response.data.length == 0) {
             this.$dialogs.alert("ไม่พบข้อมูล", options);
-            // this.dataSum=[];
-             this.cNotBook = 0;
+            this.c_dhlNotBook = 0;
+            this.c_dhlBooked = 0;
+            this.cNotBook = 0;
             this.cBooked = 0;
             this.total = 0;
           } else {
-            this.cNotBook = response.data.cNotBook;
-            this.cBooked = response.data.cBooked;
+            this.c_dhlNotBook = response.data.c_dhlNotBook;
+            this.c_dhlBooked = response.data.c_dhlBooked;
+            this.c_flashBooked = response.data.c_flashBooked;
+            this.c_flashNotBook = response.data.c_flashNotBook;
             this.total = response.data.total;
           }
         })
