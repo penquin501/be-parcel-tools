@@ -473,7 +473,8 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
     let user = req.body.user;
 
     var dataJson = currentValue;
-    var url945 = "https://admin-pc-tool.945.report";
+    // var url945 = "https://admin-pc-tool.945.report";
+    var url945 = "https://api-key-tool.945holding.com";
     request(
       {
         url: url945+"/update/phoneregis/api",

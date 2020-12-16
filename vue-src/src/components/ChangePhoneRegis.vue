@@ -80,7 +80,7 @@ export default {
         { code: "02", name: "inactive", value: "inactive" }
       ],
       url945: "https://api-key-tool.945holding.com",
-      url945Dev: "https://admin-pc-tool.945.report"
+      // url945Dev: "https://admin-pc-tool.945.report"
     };
   },
   mounted: function() {
@@ -97,7 +97,7 @@ export default {
       } else {
         axios
           .get(
-            this.url945Dev +
+            this.url945 +
               "/check/member-info?memberId=" +
               this.memberInput.trim()
           )
@@ -149,7 +149,7 @@ export default {
         this.changeZero2DoubleSix();
         axios
           .get(
-            this.url945Dev +
+            this.url945 +
               "/parcel/check-member/phoneregis?phoneregis=" +
               this.phoneRegis
           )
