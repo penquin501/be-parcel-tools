@@ -359,7 +359,8 @@ export default {
       var dataSize = {
         zipcode: this.br_zipcode,
         size_name: this.alias_size,
-        zone: (this.branch_id !== 50 && this.branch_id !== 70)?2:1
+        // zone: (this.branch_id !== 50 && this.branch_id !== 70)?2:1
+        zone: 2
       };
       axios
         .post("/parcelPrice", dataSize)
