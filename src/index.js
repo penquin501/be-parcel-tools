@@ -1502,7 +1502,6 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
           if(dataBilling){
             parcelServices.saveDataBillingItemRelabel(db, newBillingNo, billingItemInfo, currentValue).then((dataBillingItem)=>{
                 if(dataBillingItem){
-
                   parcelServices.updateStatusBilling(db, newBillingNo).then((resultUpdateBilling)=>{
                   if(resultUpdateBilling) {
                     /* start relabel to main server */
@@ -1516,11 +1515,10 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
                         tracking: currentValue.billingItem.tracking
                       }
                     ];
-
                     var listDataToServer=[];
 
                     async function setFormatToServer() {
-                      for(i=0;i<listBilling.length;i++){
+                      for(i=0; i<listBilling.length; i++) {
                         listDataToServer.push(parcelServices.sendRelabelDataToServer(db, listBilling[i].billingNo, listBilling[i].tracking));
                       }
                       var resultArr = await Promise.all(listDataToServer);
@@ -1545,7 +1543,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
                       }
 
                       var dataTo945={
-                        relabelBilling:result[0],
+                        relabelBilling: result[0],
                         restructureBilling: result[1],
                         causeType: (causeType==1)? "945 เป็นฝ่ายผิด":"ลูกค้า/shop เป็นฝ่ายผิด",
                         reason: strReason,

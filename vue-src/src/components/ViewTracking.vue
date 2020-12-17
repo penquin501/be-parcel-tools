@@ -20,9 +20,7 @@
           <label style="margin-top: 5px;">Refresh</label>
         </div>
         <div class="col-ms-1 col-sm-1 col-xs-1" style="margin-bottom: 5px;">
-          
           <button class="button-re"  v-on:click="getData()"><i class="fa fa-refresh" aria-hidden="true"></i></button>
-
         </div>
 
       <table class="table-detail">
@@ -40,18 +38,8 @@
           <th style="text-align:center; width: 5%;">วัน/เวลา DHL booking</th>
         </tr>
         <tr v-bind:key="item.id" v-for="item in filteredResources">
-          <!-- <div v-if="item.booking_status != 100" style="text-align: center;">
-            <td style="text-align: center;"><a href="#" v-on:click="getTracking(item.tracking)">{{ item.tracking }}</a></td>
-          </div>
-          <div v-else>
-            <td style="text-align: center;">{{ item.tracking }}</td>
-          </div> -->
-          <td v-if="item.booking_status != 100" style="text-align: center;">
-            <a href="#" v-on:click="getTracking(item.tracking)">{{ item.tracking }}</a>
-          </td>
-          <td v-else style="text-align: center;">
-            {{ item.tracking }}
-          </td>
+          <td v-if="item.booking_status != 100" style="text-align: center;"> <a href="#" v-on:click="getTracking(item.tracking)">{{ item.tracking }}</a></td>
+          <td v-else style="text-align: center;">{{ item.tracking }}</td>
           <td style="text-align: center;">{{ item.alias_size }}/{{ item.size_price }}</td>
           <td style="text-align: center;">{{ item.bi_parcel_type }}/{{ item.br_parcel_type }}</td>
           <td style="text-align: center;">{{ item.bi_zipcode }}/{{ item.br_zipcode }}</td>
@@ -96,10 +84,7 @@ export default {
   },
   methods: {
     getTracking(tracking) {
-      window.open(
-        "https://key.my945capture.com/v2/api/parcel-capture/tasks/manual/pick/" +
-          tracking
-      );
+      window.open("https://key.my945capture.com/v2/api/parcel-capture/tasks/manual/pick/" + tracking);
     },
     getData() {
       const options = { okLabel: "ตกลง" };

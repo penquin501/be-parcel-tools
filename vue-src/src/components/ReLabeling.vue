@@ -577,14 +577,10 @@ export default {
       } else if (this.bi_parcel_type == "NORMAL" && this.cod_value !== 0) {
         this.$dialogs.alert("กรุณากรอก ค่าเก็บเงินปลายทาง ให้ถูกต้อง", options);
       } else {
-        axios.get("/check-available-tracking?tracking=" + this.newTrackingInput.toUpperCase()).then(response => {
+        axios.get(this.url+"/check-available-tracking?tracking=" + this.newTrackingInput.toUpperCase()).then(response => {
             this.resultDuplicatedTracking = response.data;
 
             if (!this.resultDuplicatedTracking) {
-              // this.$dialogs.alert(
-              //   "กรุณาใส่ เลขจัดส่งใหม่ ให้ถูกต้อง เนื่องจากเลขจัดส่งมีในระบบแล้ว",
-              //   options
-              // );
               this.getNewTracking();
             } else {
               var moduleName = "relabeling_tracking";

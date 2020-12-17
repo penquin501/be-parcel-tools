@@ -73,7 +73,7 @@ module.exports = {
             db.query(sqlItemTemp, [tracking], (err_item_temp, results_item_temp) => {
                 if (err_item_temp == null) {
                   if (results_item_temp.length <= 0) {
-                    db.query(sqlCapture,[tracking], (err_capture, results_capture) => {
+                    db.query(sqlCapture, [tracking], (err_capture, results_capture) => {
                         if (err_capture == null) {
                           if (results_capture.length <= 0) {
                             resolve(true);
@@ -83,8 +83,7 @@ module.exports = {
                         } else {
                           resolve(false);
                         }
-                      }
-                    );
+                    });
                   } else {
                     resolve(false);
                   }
@@ -170,21 +169,20 @@ module.exports = {
           if (results.length <= 0) {
             resolve(false);
           } else {
-            var listTracking=[];
+            var listTracking = [];
             var resultList = [];
-            results.forEach((value)=>{
+            results.forEach(value => {
               var item_valid = true;
-              item_valid = true;
-              item_valid = isGenericValid(value,"branch_name",item_valid,resultList=null,value.tracking);
+              item_valid = isGenericValid(value, "branch_name", item_valid, (resultList = null), value.tracking);
               // item_valid = isGenericValid(value,"branch_id",item_valid,resultList,value.tracking);
-              item_valid = isGenericValid(value,"tracking",item_valid,resultList=null,value.tracking);
-              item_valid = isGenericValid(value,"bi_type",item_valid,resultList=null,value.tracking);
+              item_valid = isGenericValid(value, "tracking", item_valid, (resultList = null), value.tracking);
+              item_valid = isGenericValid(value, "bi_type", item_valid, (resultList = null), value.tracking);
               // item_valid = isGenericValid(value,"cod_value",item_valid,resultList,value.tracking);
-              item_valid = isGenericValid(value,"bi_zipcode",item_valid,resultList=null,value.tracking);
-              item_valid = isGenericValid(value,"br_type",item_valid,resultList=null,value.tracking);
-              item_valid = isGenericValid(value,"br_zipcode",item_valid,resultList=null,value.tracking);
-    
-              if(item_valid){
+              item_valid = isGenericValid(value, "bi_zipcode", item_valid, (resultList = null), value.tracking);
+              item_valid = isGenericValid(value, "br_type", item_valid, (resultList = null), value.tracking);
+              item_valid = isGenericValid(value, "br_zipcode", item_valid, (resultList = null), value.tracking);
+
+              if (item_valid) {
                 listTracking.push(value);
               }
             });
@@ -201,8 +199,7 @@ module.exports = {
     let sql = `SELECT bi.tracking FROM billing b 
       Left JOIN billing_item bi ON b.billing_no=bi.billing_no 
       LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking 
-      WHERE (bi.zipcode<>br.zipcode OR bi.parcel_type<>br.parcel_type OR 
-        (bi.parcel_type='COD' AND bi.cod_value=0) OR (bi.parcel_type='NORMAL' AND bi.cod_value > 0)) AND 
+      WHERE (bi.zipcode<>br.zipcode OR bi.parcel_type <> br.parcel_type OR (bi.parcel_type='COD' AND bi.cod_value=0) OR (bi.parcel_type='NORMAL' AND bi.cod_value > 0)) AND 
         (br.status not in ('cancel','SUCCESS','success') OR br.status is null) AND b.branch_id=? LIMIT 1`;
     let data = [branch_id];
 
@@ -234,7 +231,7 @@ module.exports = {
     });
   },
   parcelSizeList: (db, zone) => {
-    let sql = "SELECT alias_size FROM size_info GROUP BY alias_size ORDER BY min(parcel_price) ASC";
+    let sql = `SELECT alias_size FROM size_info GROUP BY alias_size ORDER BY min(parcel_price) ASC`;
     return new Promise(function(resolve, reject) {
       db.query(sql, (error, results, fields) => {
         if (error === null) {
@@ -250,8 +247,8 @@ module.exports = {
       });
     });
   },
-  checkDistrict: (db,zipcode) => {
-    var sql = "SELECT district_code FROM postinfo_zipcodes WHERE zipcode = ?";
+  checkDistrict: (db, zipcode) => {
+    var sql = `SELECT district_code FROM postinfo_zipcodes WHERE zipcode = ?`;
     var data = [zipcode];
 
     return new Promise(function(resolve, reject) {
@@ -266,8 +263,8 @@ module.exports = {
       });
     });
   },
-  checkPrice: (db,code, size_name, zone) => {
-    var sql = "SELECT size_id,parcel_price FROM size_info where location_zone=? and alias_size= ? and zone=?";
+  checkPrice: (db, code, size_name, zone) => {
+    var sql = `SELECT size_id,parcel_price FROM size_info where location_zone=? and alias_size= ? and zone=?`;
     var data = [code, size_name, zone];
 
     return new Promise(function(resolve, reject) {
@@ -277,28 +274,25 @@ module.exports = {
     });
   },
   updateStatusBilling: (db, billing_no) => {
-    let updateBilling = "UPDATE billing SET status='cancel' WHERE billing_no=?";
-
-    let selectBillingItem = "SELECT tracking FROM billing_item WHERE billing_no=?";
-
-    let updateStatusReceiver = "UPDATE billing_receiver_info SET status='cancel' WHERE tracking=?";
-
+    let updateBilling = `UPDATE billing SET status='cancel' WHERE billing_no=?`;
+    let selectBillingItem = `SELECT tracking FROM billing_item WHERE billing_no=?`;
+    let updateStatusReceiver = `UPDATE billing_receiver_info SET status='cancel' WHERE tracking=?`;
     let dataBilling = [billing_no];
 
     return new Promise(function(resolve, reject) {
       db.query(updateBilling, dataBilling, (error, results, fields) => {});
       db.query(selectBillingItem, dataBilling, (error, resListTracking, fields) => {
-        for (i = 0; i < resListTracking.length; i++) {
-          let dataTracking = [resListTracking[i].tracking];
-          db.query(updateStatusReceiver, dataTracking, (error, results2, fields) => {});
-        }
+          for (i = 0; i < resListTracking.length; i++) {
+            let dataTracking = [resListTracking[i].tracking];
+            db.query(updateStatusReceiver, dataTracking, (error, results2, fields) => {});
+          }
       });
     });
   },
   updateStatusReceiver: (db, status, tracking) => {
+    let sql = `UPDATE billing_receiver_info SET status=? WHERE tracking=?`;
+    let data = [status, tracking];
     return new Promise(function(resolve, reject) {
-      let sql = "UPDATE billing_receiver_info SET status=? WHERE tracking=?";
-      let data = [status, tracking];
       db.query(sql, data, (error, results, fields) => {
         if (error === null) {
           if (results.affectedRows > 0) {
@@ -313,11 +307,9 @@ module.exports = {
     });
   },
   selectParcelSize: (db, billingNo) => {
+    let sql = `SELECT b.size_price FROM billing_item b JOIN billing_receiver_info br ON b.tracking=br.tracking WHERE b.billing_no=? AND (br.status!='cancel' OR br.status is null)`;
+    let data = [billingNo];
     return new Promise(function(resolve, reject) {
-      let sql = `SELECT b.size_price FROM billing_item b 
-        JOIN billing_receiver_info br ON b.tracking=br.tracking
-        WHERE b.billing_no=? AND (br.status!='cancel' OR br.status is null)`;
-      let data = [billingNo];
       db.query(sql, data, (error, results, fields) => {
         if (results.length <= 0) {
           resolve(0);
@@ -328,10 +320,10 @@ module.exports = {
     });
   },
   updateBillingInfo: (db, current_total, billing_no) => {
-    let sqlTotal = "UPDATE billing SET total=? WHERE billing_no=?";
+    let sqlTotal = `UPDATE billing SET total=? WHERE billing_no=?`;
     let dataTotal = [current_total, billing_no];
 
-    let sqlStatus = "UPDATE billing SET status=? WHERE billing_no=?";
+    let sqlStatus = `UPDATE billing SET status=? WHERE billing_no=?`;
     let dataStatus = ["cancel", billing_no];
     return new Promise(function(resolve, reject) {
       if (current_total == 0) {
@@ -346,8 +338,7 @@ module.exports = {
     });
   },
   updateReceiverInfo: (db, tracking, receiver_name, phone, address) => {
-    let sql =
-      "UPDATE billing_receiver_info SET receiver_name=?,phone=?,receiver_address=? WHERE tracking=?";
+    let sql = `UPDATE billing_receiver_info SET receiver_name=?,phone=?,receiver_address=? WHERE tracking=?`;
     let data = [receiver_name, phone, address, tracking];
     return new Promise(function(resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
@@ -375,13 +366,13 @@ module.exports = {
     });
   },
   updateCheckerInfo: (db, billing_no, tracking, size_id, size_price, cod_value, receiver_name, phone, address, parcel_type, district_id, district_name, amphur_id, amphur_name, province_id, province_name, zipcode) => {
-    let sqlBillingItem = "UPDATE billing_item SET zipcode=?,size_id=?,size_price=?,parcel_type=?,cod_value=? WHERE tracking=?";
+    let sqlBillingItem = `UPDATE billing_item SET zipcode=?, size_id=?, size_price=?, parcel_type=?, cod_value=? WHERE tracking=?`;
     let dataBillingItem = [zipcode, size_id, size_price, parcel_type, cod_value, tracking];
 
-    let sqlReceiver = "UPDATE billing_receiver_info SET parcel_type=?,receiver_name=?,phone=?,receiver_address=?,district_id=?,district_name=?,amphur_id=?,amphur_name=?,province_id=?,province_name=?,zipcode=? WHERE tracking=?";
+    let sqlReceiver = `UPDATE billing_receiver_info SET parcel_type=?, receiver_name=?, phone=?, receiver_address=?, district_id=?, district_name=?, amphur_id=?, amphur_name=?, province_id=?, province_name=?, zipcode=? WHERE tracking=?`;
     let dataReceiver = [parcel_type, receiver_name, phone, address, district_id, district_name, amphur_id, amphur_name, province_id, province_name, zipcode, tracking];
 
-    let sqlSizeItem = "SELECT size_price FROM billing_item WHERE billing_no=?";
+    let sqlSizeItem = `SELECT size_price FROM billing_item WHERE billing_no=?`;
     let dataSizeItem = [billing_no];
 
     let total = 0;
@@ -392,13 +383,12 @@ module.exports = {
               db.query(sqlReceiver, dataReceiver, (error2, resultsReceiver, fields) => {
                   if (error2 === null) {
                     if (resultsReceiver.affectedRows > 0) {
-                      db.query(sqlSizeItem, dataSizeItem,(error, resultsSizeItem, fields) => {
+                      db.query(sqlSizeItem, dataSizeItem, (error, resultsSizeItem, fields) => {
                           for (i = 0; i < resultsSizeItem.length; i++) {
                             total += resultsSizeItem[i].size_price;
                           }
                           resolve(total);
-                        }
-                      );
+                      });
                     } else {
                       console.log("resultsReceiver", resultsReceiver);
                       resolve(false);
@@ -407,8 +397,7 @@ module.exports = {
                     console.log("error2", error2);
                     resolve(false);
                   }
-                }
-              );
+              });
             } else {
               console.log("resultsItem", resultsItem);
               resolve(false);
@@ -417,12 +406,11 @@ module.exports = {
             console.log("error1", error1);
             resolve(false);
           }
-        }
-      );
+      });
     });
   },
   updateBilling: (db, billing_no, current_total) => {
-    let sql = "UPDATE billing SET total=? WHERE billing_no=?";
+    let sql = `UPDATE billing SET total=? WHERE billing_no=?`;
     let data = [current_total, billing_no];
     return new Promise(function(resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
@@ -431,8 +419,7 @@ module.exports = {
     });
   },
   updateResendBilling: (db, billing_no, status) => {
-    let sql =
-      "UPDATE billing SET status='booked',prepare_raw_data=null WHERE billing_no=? AND status=?;";
+    let sql = `UPDATE billing SET status='booked',prepare_raw_data=null WHERE billing_no=? AND status=?`;
     let data = [billing_no, status];
     return new Promise(function(resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
@@ -445,7 +432,7 @@ module.exports = {
     });
   },
   updateMemberBilling: (db, billing_no, member_code) => {
-    let sql = "UPDATE billing SET member_code=? WHERE billing_no=?";
+    let sql = `UPDATE billing SET member_code=? WHERE billing_no=?`;
     let data = [member_code, billing_no];
     return new Promise(function(resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
@@ -462,7 +449,7 @@ module.exports = {
     });
   },
   updateSenderInfo: (db, sender_name, sender_phone, sender_address, tracking) => {
-    let sql = "UPDATE billing_receiver_info SET sender_name=?,sender_phone=?,sender_address=? WHERE tracking=?";
+    let sql = `UPDATE billing_receiver_info SET sender_name=?,sender_phone=?,sender_address=? WHERE tracking=?`;
     let data = [sender_name, sender_phone, sender_address, tracking];
     return new Promise(function(resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
@@ -493,7 +480,7 @@ module.exports = {
     });
   },
   findOperator: (db, tracking) => {
-    let sql = "SELECT operator_id FROM parcel_keyin_data_temp WHERE barcode=?";
+    let sql = `SELECT operator_id FROM parcel_keyin_data_temp WHERE barcode=?`;
     let data = [tracking];
     return new Promise(function(resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
@@ -504,7 +491,7 @@ module.exports = {
     });
   },
   insertLog: (db, billing_no, previous_value, current_value, reason, module_name, user, ref, remark) => {
-    let sql = "INSERT INTO log_parcel_tool(billing_no, time_to_system, previous_value, current_value,reason, module_name, user, ref,remark) VALUES (?,?,?,?,?,?,?,?,?)";
+    let sql = `INSERT INTO log_parcel_tool(billing_no, time_to_system, previous_value, current_value,reason, module_name, user, ref,remark) VALUES (?,?,?,?,?,?,?,?,?)`;
     let data = [billing_no, new Date(), previous_value, current_value, reason, module_name, user, ref, remark];
     return new Promise(function(resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
@@ -513,10 +500,10 @@ module.exports = {
     });
   },
   saveTracking: (db, tracking) => {
-    let sqlCheck = "SELECT tracking FROM test_dhl_response WHERE tracking=?";
+    let sqlCheck = `SELECT tracking FROM test_dhl_response WHERE tracking=?`;
     let dataCheck = [tracking];
 
-    let sql = "INSERT INTO test_dhl_response(tracking) VALUES (?)";
+    let sql = `INSERT INTO test_dhl_response(tracking) VALUES (?)`;
     let data = [tracking];
     return new Promise(function(resolve, reject) {
       db.query(sqlCheck, dataCheck, (error, results, fields) => {
@@ -678,7 +665,7 @@ module.exports = {
     var today = moment().tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
     var nextDay = moment(current_date).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
-    var sql = "SELECT branch_id, user_id, billing_no, error_code, error_maker, cs_name, tracking, operation_key, record_date FROM log_ql_checker WHERE (record_date >= ? AND record_date < ?)";
+    var sql = `SELECT branch_id, user_id, billing_no, error_code, error_maker, cs_name, tracking, operation_key, record_date FROM log_ql_checker WHERE (record_date >= ? AND record_date < ?)`;
     var data = [today, nextDay];
 
     return new Promise(function(resolve, reject) {
@@ -713,7 +700,7 @@ module.exports = {
     });
   },
   log_parcel_tool: (db, ref) => {
-    var sql = "SELECT billing_no, time_to_system, previous_value, current_value,reason, module_name, user, ref,remark FROM log_parcel_tool WHERE ref=?";
+    var sql = `SELECT billing_no, time_to_system, previous_value, current_value,reason, module_name, user, ref,remark FROM log_parcel_tool WHERE ref=?`;
     var data = [ref];
     return new Promise(function(resolve, reject) {
       db.query(sql, data, (err, results) => {
@@ -730,7 +717,7 @@ module.exports = {
     });
   },
   logDailyQlChecker: (db, dateCheck) => {
-    var currentDay = moment(dateCheck+" 00:00:00").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+    var currentDay = moment(dateCheck + " 00:00:00").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
     var nextDay = moment(currentDay).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
     var sql = `SELECT log_ql.*, b_info.branch_name FROM log_ql_checker log_ql JOIN branch_info b_info ON log_ql.branch_id=b_info.branch_id 
@@ -752,14 +739,14 @@ module.exports = {
     });
   },
   logDailyTool: (db, dateCheck) => {
-    var currentDay = moment(dateCheck+" 00:00:00").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+    var currentDay = moment(dateCheck + " 00:00:00").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
     var nextDay = moment(currentDay).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
     var sql = `SELECT log_tool.*, b_info.branch_name
     FROM log_parcel_tool log_tool
     JOIN billing b ON log_tool.billing_no = b.billing_no
-    JOIN branch_info b_info ON b.branch_id=b_info.branch_id
-    WHERE (time_to_system>=? AND time_to_system< ?)`;
+    JOIN branch_info b_info ON b.branch_id = b_info.branch_id
+    WHERE (time_to_system >=? AND time_to_system < ?)`;
     var data = [currentDay, nextDay];
 
     return new Promise(function(resolve, reject) {
@@ -790,11 +777,10 @@ module.exports = {
     var current_date = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
     var nextDay = moment(current_date).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
-    var sql = `select b.billing_no, bi.tracking, b.billing_date, b.status
-              from billing b
-              inner join billing_item bi on b.billing_no = bi.billing_no
-              where
-              b.billing_date >=? and b.billing_date <?`;
+    var sql = `SELECT b.billing_no, bi.tracking, b.billing_date, b.status
+              FROM billing b
+              INNER JOIN billing_item bi ON b.billing_no = bi.billing_no
+              WHERE b.billing_date >= ? AND b.billing_date < ?`;
     var data = [current_date, nextDay];
 
     return new Promise(function(resolve, reject) {
@@ -821,17 +807,17 @@ module.exports = {
     return new Promise(function(resolve, reject) {
       db.query(sqlItem, dataItem, (err_item, results_item) => {
         if (err_item == null) {
-            db.query(sqlItemTemp, dataItemTemp, (err_item_temp, results_item_temp) => {
-                if (err_item_temp == null) {
-                    var data = {
-                      billingItemTemp: results_item_temp,
-                      billingItem: results_item
-                    };
-                    resolve(data);
-                } else {
-                  resolve(false);
-                }
-            });
+          db.query(sqlItemTemp, dataItemTemp, (err_item_temp, results_item_temp) => {
+              if (err_item_temp == null) {
+                var data = {
+                  billingItemTemp: results_item_temp,
+                  billingItem: results_item
+                };
+                resolve(data);
+              } else {
+                resolve(false);
+              }
+          });
         } else {
           resolve(false);
         }
@@ -848,17 +834,17 @@ module.exports = {
     return new Promise(function(resolve, reject) {
       db.query(sqlReceiver, dataReceiver, (err_receiver, results_receiver) => {
         if (err_receiver == null) {
-            db.query(sqlReceiverTemp, dataReceiverTemp, (err_receiver_temp, results_receiver_temp) => {
-                if (err_receiver_temp == null) {
-                  var data = {
-                    receiverInfoTemp: results_receiver_temp,
-                    receiverInfo: results_receiver
-                  };
-                  resolve(data);
-                } else {
-                  resolve(false);
-                }
-            });
+          db.query(sqlReceiverTemp, dataReceiverTemp, (err_receiver_temp, results_receiver_temp) => {
+              if (err_receiver_temp == null) {
+                var data = {
+                  receiverInfoTemp: results_receiver_temp,
+                  receiverInfo: results_receiver
+                };
+                resolve(data);
+              } else {
+                resolve(false);
+              }
+          });
         } else {
           resolve(false);
         }
@@ -869,11 +855,6 @@ module.exports = {
     var sqlBilling = `SELECT user_id,mer_authen_level,member_code,carrier_id,billing_no,branch_id,img_url FROM billing WHERE billing_no= ? AND status='complete'`;
     var dataBilling = [billing_no];
 
-    // let sqlBillingItem = `SELECT bItem.tracking,bItem.size_price,bItem.parcel_type as bi_parcel_type,bItem.cod_value,s.alias_size,gSize.product_id,gSize.product_name
-    //     FROM billing_item bItem 
-    //     JOIN size_info s ON bItem.size_id=s.size_id 
-    //     JOIN global_parcel_size gSize ON s.location_zone = gSize.area AND s.alias_size =gSize.alias_name AND bItem.parcel_type= gSize.type AND s.zone=gSize.zone 
-    //     WHERE bItem.billing_no=?`;
     let sqlBillingItem = `SELECT bItem.tracking, bItem.size_id, bItem.size_price, bItem.parcel_type, bItem.cod_value
         FROM billing_item bItem 
         WHERE bItem.billing_no=?`;
@@ -898,7 +879,7 @@ module.exports = {
                             globalproductid: sizeItem.product_id,
                             productname: sizeItem.product_name,
                             methodtype: dataItem.parcel_type.toUpperCase(),
-                            paymenttype: dataItem.parcel_type.toUpperCase() == "NORMAL"? "99": "60",
+                            paymenttype: dataItem.parcel_type.toUpperCase() == "NORMAL" ? "99" : "60",
                             price: dataItem.size_price.toString(),
                             codvalue: dataItem.cod_value.toString()
                           },
@@ -958,26 +939,23 @@ module.exports = {
           } else {
             resolve(false);
           }
-        }
-      );
+      });
     });
   },
   sendRelabelDataToServer: (db, billing_no, tracking) => {
-    var sqlBilling = `SELECT user_id,mer_authen_level,member_code,carrier_id,billing_no,branch_id,img_url FROM billing WHERE billing_no= ? AND status='complete'`;
+    var sqlBilling = `SELECT user_id, mer_authen_level, member_code, carrier_id, billing_no, branch_id, img_url FROM billing WHERE billing_no= ? AND status='complete'`;
     var dataBilling = [billing_no];
 
-    let sqlBillingItem = `SELECT bItem.tracking, bItem.size_id, bItem.size_price, bItem.parcel_type, bItem.cod_value
-    FROM billing_item bItem 
-    WHERE bItem.billing_no=?`;
+    let sqlBillingItem = `SELECT bItem.tracking, bItem.size_id, bItem.size_price, bItem.parcel_type, bItem.cod_value FROM billing_item bItem WHERE bItem.billing_no=? AND bItem.tracking=?`;
     var dataBillItem = [billing_no, tracking];
 
     return new Promise(function(resolve, reject) {
-      db.query(sqlBilling, dataBilling, (error_billing, result_billing, fields) => {
-          if (error_billing == null) {
-            if (result_billing.length > 0) {
-              db.query(sqlBillingItem, dataBillItem, async (error_item, result_items, fields) => {
-                  if (error_item == null) {
-                    if (result_items.length > 0) {
+      db.query(sqlBillingItem, dataBillItem, (error_item, result_items, fields) => {
+          if (error_item == null) {
+            if (result_items.length > 0) {
+              db.query(sqlBilling, dataBilling, async (error_billing, result_billing, fields) => {
+                  if (error_billing == null) {
+                    if (result_billing.length > 0) {
                       var orderlist = [];
 
                       for (let item of result_items) {
@@ -1020,8 +998,7 @@ module.exports = {
                   } else {
                     resolve(false);
                   }
-                }
-              );
+              });
             } else {
               resolve(false);
             }
@@ -1064,8 +1041,7 @@ module.exports = {
           } else {
             resolve(false);
           }
-        }
-      );
+      });
     });
   },
   saveDataBillingRelabel: (db, billing, total, newBillingNo) => {
@@ -1088,8 +1064,7 @@ module.exports = {
           } else {
             resolve(false);
           }
-        }
-      );
+      });
     });
   },
   saveDataBillingItemRelabel: (db, billing_no, billingItemInfo, currentValue) => {
@@ -1108,7 +1083,7 @@ module.exports = {
       db.query(sqlSaveBillingItem, dataBillingItem, (error_item, results_item, fields) => {
           if (error_item == null) {
             if (results_item.affectedRows > 0) {
-              db.query(sqlReceiver,dataReceiver, (error_receiver, results_receiver, fields) => {
+              db.query(sqlReceiver, dataReceiver, (error_receiver, results_receiver, fields) => {
                   if (error_receiver == null) {
                     if (results_receiver.affectedRows > 0) {
                       resolve(true);
@@ -1160,7 +1135,7 @@ module.exports = {
     });
   },
   updateStatusBilling: (db, billingNo) => {
-    var updateStatusBilling = "UPDATE billing SET status=? WHERE billing_no=? AND status=?";
+    var updateStatusBilling = `UPDATE billing SET status=? WHERE billing_no=? AND status=?`;
     var dataStatusBilling = ["complete", billingNo, "drafting"];
 
     return new Promise(function(resolve, reject) {
@@ -1174,12 +1149,11 @@ module.exports = {
           } else {
             resolve(false);
           }
-        }
-      );
+      });
     });
   },
   updateCancelBilling: (db, billingNo) => {
-    var updateStatusBilling = "UPDATE billing SET status=? WHERE billing_no=? AND status=?";
+    var updateStatusBilling = `UPDATE billing SET status=? WHERE billing_no=? AND status=?`;
     var dataStatusBilling = ["cancel", billingNo, "complete"];
 
     return new Promise(function(resolve, reject) {
@@ -1207,7 +1181,7 @@ module.exports = {
     WHERE br.tracking=?`;
     let dataReceiver = [tracking];
 
-    var sqlBillingItem=`SELECT b.billing_date, bItem.billing_no, bItem.tracking, bItem.size_price, bItem.parcel_type as bi_parcel_type,bItem.cod_value,s.alias_size,gSize.product_id,gSize.product_name
+    var sqlBillingItem = `SELECT b.billing_date, bItem.billing_no, bItem.tracking, bItem.size_price, bItem.parcel_type as bi_parcel_type,bItem.cod_value,s.alias_size,gSize.product_id,gSize.product_name
     FROM billing_item bItem 
     JOIN billing b ON bItem.billing_no=b.billing_no
     JOIN size_info s ON bItem.size_id=s.size_id 
@@ -1288,7 +1262,7 @@ module.exports = {
                         senderaddr: data.sender_address == null ? "-" : data.sender_address
                       },
                       consignmentno: data.tracking,
-                      transporter_id: data.courirer_id == null  ? 7 : parseInt(data.courirer_id),
+                      transporter_id: data.courirer_id == null ? 7 : parseInt(data.courirer_id),
                       user_id: "0",
                       billing_no: results_item[0].billing_no,
                       billing_date: m(results_item[0].billing_date).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss", true)
@@ -1340,8 +1314,7 @@ function selectReceiverData(db, dataItem) {
         } else {
           resolve(dataItem);
         }
-      }
-    );
+    });
   });
 }
 
@@ -1377,7 +1350,7 @@ function getSizeInfo(db, data) {
               } else {
                 resolve(false);
               }
-            });
+          });
         } else {
           resolve(false);
         }
@@ -1390,22 +1363,17 @@ function getSizeInfo(db, data) {
 
 function isGenericValid(data, key, defaultValue, resultList = null, check_tracking) {
   var out = [];
-
   if (resultList != null) {
     out = resultList;
   }
   if (data[key] == "") {
-    // console.log(key + " empty");
     return false;
   }
   if (data[key] == null) {
-    // console.log(key + " null");
     return false;
   }
   if (data[key] == undefined) {
-    // console.log(key + " undefined");
     return false;
   }
-  // console.log(out);
   return defaultValue;
 }
