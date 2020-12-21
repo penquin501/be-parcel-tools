@@ -148,6 +148,18 @@ const routes = [
         component: () => import("../components/ReportQLChecker.vue"),
         hidden: true
     },
+    {
+        path: "/report-flash-booking",
+        name: 'ReportFlashbooking',
+        component: () => import("../components/ReportFlashbooking.vue"),
+        hidden: true
+    },
+    {
+        path: "/report-flash",
+        name: 'ReportFlash',
+        component: () => import("../components/ReportFlash.vue"),
+        hidden: true
+    },
 ];
 
 export default new Router({
