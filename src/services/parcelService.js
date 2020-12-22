@@ -7,14 +7,18 @@ moment.locale("th");
 
 module.exports = {
   getBillingItemTracking: (db, tracking) => {
-    let sql = `SELECT b.status as billing_status, b.branch_id, bi.billing_no,bi.tracking, bi.size_id,s.alias_size,bi.size_price,bi.parcel_type as bi_parcel_type, bi.cod_value,bi.zipcode as bi_zipcode,
-      br.parcel_type as br_parcel_type,br.sender_name,br.sender_phone,br.sender_address,br.receiver_name,br.phone,br.receiver_address,
-      d.DISTRICT_CODE,br.district_id,br.district_name,br.amphur_id,br.amphur_name,br.province_id,br.province_name,br.zipcode as br_zipcode,
-      br.booking_status, br.status 
+    let sql = `SELECT b.status as billing_status, b.branch_id, bi.billing_no, bi.tracking, bi.size_id, s.alias_size, bi.size_price, 
+      bi.parcel_type as bi_parcel_type, bi.cod_value,bi.zipcode as bi_zipcode, br.parcel_type as br_parcel_type, 
+      br.sender_name, br.sender_phone, br.sender_address, br.receiver_name, br.phone, br.receiver_address, 
+      br.district_id, br.district_name, br.amphur_id, br.amphur_name, br.province_id, br.province_name, br.zipcode as br_zipcode, 
+      br.booking_status, br.status, br.booking_flash_status, 
+      d.DISTRICT_CODE, d.GEO_ID, a.AMPHUR_CODE, p.PROVINCE_CODE
       FROM billing_item bi 
       JOIN billing b ON bi.billing_no=b.billing_no
       LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking 
       JOIN postinfo_district d ON br.district_id=d.DISTRICT_ID AND br.amphur_id=d.AMPHUR_ID AND br.province_id=d.PROVINCE_ID 
+      JOIN postinfo_amphur a ON br.amphur_id=a.AMPHUR_ID
+      JOIN postinfo_province p ON br.province_id=p.PROVINCE_ID 
       JOIN size_info s ON bi.size_id= s.size_id
       WHERE bi.tracking=?`;
     let data = [tracking];
@@ -337,12 +341,20 @@ module.exports = {
       }
     });
   },
-  updateReceiverInfo: (db, tracking, receiver_name, phone, address) => {
-    let sql = `UPDATE billing_receiver_info SET receiver_name=?,phone=?,receiver_address=? WHERE tracking=?`;
-    let data = [receiver_name, phone, address, tracking];
+  updateReceiverInfo: (db, tracking, newAddress) => {
+    let sql = `UPDATE billing_receiver_info SET receiver_name=?, phone=?, receiver_address=? WHERE tracking=?`;
+    let data = [newAddress.receiver_name, newAddress.receiver_phone, newAddress.receiver_address, tracking];
     return new Promise(function(resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
-        resolve(results);
+        if(error==null){
+          if(results.affectedRows > 0){
+            resolve(true);
+          } else {
+            resolve(false);
+          }
+        } else {
+          resolve(false);
+        }
       });
     });
   },
@@ -682,9 +694,9 @@ module.exports = {
       });
     });
   },
-  bookingReport: (db, tracking) => {
-    var sql = `SELECT tracking, status, send_record_at, prepare_json, response_record_at, res_json FROM booking_tracking_batch WHERE tracking=? ORDER BY id DESC LIMIT 10`;
-    var data = [tracking];
+  bookingFlashReport: (db) => {
+    var sql = `SELECT * FROM response_flash_log WHERE status != ?`;
+    var data = [100];
     return new Promise(function(resolve, reject) {
       db.query(sql, data, (err, results) => {
         if (err === null) {
@@ -692,6 +704,136 @@ module.exports = {
             resolve(false);
           } else {
             resolve(results);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
+  updateStatusReceiver: (db, tracking) => {
+    let updateReceiver = `UPDATE billing_receiver_info SET status=? WHERE tracking=? AND status is null`;
+    let dataReceiver = ["ready", tracking];
+
+    return new Promise(function(resolve, reject) {
+      db.query(updateReceiver, dataReceiver, (errorUpdateStatus, resultUpdateStatus) => {
+        if(errorUpdateStatus==null) {
+          if(resultUpdateStatus.affectedRows > 0) {
+            resolve(true);
+          } else {
+            console.log("cannot update receiver status to ready = %s",tracking);
+            resolve(false);
+          }
+        } else {
+          console.log("error update receiver status = %s (%s)", tracking, errorUpdateStatus);
+          resolve(false);
+        }
+      });
+    });
+  },
+  saveAddressFlash: (db, address, newAddress) => {
+    let district_id = address.district_id;
+    let district_code = address.DISTRICT_CODE;
+    let district_name = newAddress.district_name;
+    let amphur_id = address.amphur_id;
+    let amphur_code = address.AMPHUR_CODE;
+    let amphur_name = newAddress.amphur_name;
+    let province_id = address.province_id;
+    let zipcode = newAddress.zipcode;
+    let geo_id = address.GEO_ID;
+    /******************************** Select Address ************************************/
+    let selectAddress = `SELECT * FROM postinfo_district_flash df 
+    JOIN postinfo_amphur_flash af ON df.AMPHUR_ID=af.AMPHUR_ID
+    JOIN postinfo_province p ON df.PROVINCE_ID=p.PROVINCE_ID
+    JOIN postinfo_zipcodes_flash zf ON df.DISTRICT_CODE=zf.district_code
+    WHERE df.DISTRICT_CODE =?`;
+    let dataAddress = [district_code];
+    /******************************** Update Address ************************************/
+    let updateDistrict = `UPDATE postinfo_district_flash SET DISTRICT_ID=?, DISTRICT_CODE=?, DISTRICT_NAME=?, AMPHUR_ID=?, PROVINCE_ID=? WHERE DISTRICT_CODE=?`;
+    let dataUpdateDistrict = [district_id, district_code, district_name, amphur_id, province_id ,district_code];
+
+    let updateAmphur = `UPDATE postinfo_amphur_flash SET AMPHUR_ID=?, AMPHUR_NAME=?, PROVINCE_ID=? WHERE AMPHUR_ID=?`;
+    let dataUpdateAmphur = [amphur_id, amphur_name, province_id, amphur_id];
+
+    let updateZipcode = `UPDATE postinfo_zipcodes_flash SET district_code=?, zipcode=? WHERE district_code=? AND zipcode=?`;
+    let dataUpdateZipcode = [district_code, zipcode, district_code, zipcode];
+    /********************************** Save Address ************************************/
+    let saveDistrict = `INSERT INTO postinfo_district_flash(DISTRICT_ID, DISTRICT_CODE, DISTRICT_NAME, AMPHUR_ID, PROVINCE_ID, GEO_ID) VALUES (?, ?, ?, ?, ?, ?)`;
+    let dataDistrict = [district_id, district_code, district_name, amphur_id, province_id, geo_id];
+
+    let saveAmphur= `INSERT INTO postinfo_amphur_flash(AMPHUR_ID, AMPHUR_CODE, AMPHUR_NAME, GEO_ID, PROVINCE_ID) VALUES (?, ?, ?, ?, ?)`;
+    let dataAmphur =[amphur_id, amphur_code, amphur_name, geo_id, province_id];
+
+    let saveZipcode= `INSERT INTO postinfo_zipcodes_flash(district_code, zipcode) VALUES (?, ?)`;
+    let dataZipcode =[district_code, zipcode];
+    /************************************************************************************/
+    return new Promise(function(resolve, reject) {
+      db.query(selectAddress, dataAddress, (errorAddress, resultAddress) => {
+        if(errorAddress==null) {
+          if(resultAddress.length > 0) {
+            db.query(updateDistrict, dataUpdateDistrict, (errorDistrict, resultDistrict) => {
+              if(errorDistrict == null){
+                if(resultDistrict.affectedRows > 0){
+                  db.query(updateAmphur, dataUpdateAmphur, (errorAmphur, resultAmphur) => {
+                    if(errorAmphur == null){
+                      if(resultAmphur.affectedRows > 0){
+                        db.query(updateZipcode, dataUpdateZipcode, (errorZipcode, resultZipcode) => {
+                          if(errorZipcode == null){
+                            if(resultZipcode.affectedRows > 0){
+                              resolve(true);
+                            } else {
+                              resolve(false);
+                            }
+                          } else {
+                            resolve(false);
+                          }
+                        });
+                      } else {
+                        resolve(false);
+                      }
+                    } else {
+                      resolve(false);
+                    }
+                  });
+                } else {
+                  resolve(false);
+                }
+              } else {
+                resolve(false);
+              }
+            });
+          } else {
+            db.query(saveDistrict, dataDistrict, (errorDistrict, resultDistrict) => {
+              if(errorDistrict == null){
+                if(resultDistrict.affectedRows > 0){
+                  db.query(saveAmphur, dataAmphur, (errorAmphur, resultAmphur) => {
+                    if(errorAmphur == null){
+                      if(resultAmphur.affectedRows > 0){
+                        db.query(saveZipcode, dataZipcode, (errorZipcode, resultZipcode) => {
+                          if(errorZipcode == null){
+                            if(resultZipcode.affectedRows > 0){
+                              resolve(true);
+                            } else {
+                              resolve(false);
+                            }
+                          } else {
+                            resolve(false);
+                          }
+                        });
+                      } else {
+                        resolve(false);
+                      }
+                    } else {
+                      resolve(false);
+                    }
+                  });
+                } else {
+                  resolve(false);
+                }
+              } else {
+                resolve(false);
+              }
+            });
           }
         } else {
           resolve(false);

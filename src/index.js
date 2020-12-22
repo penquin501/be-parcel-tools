@@ -688,6 +688,60 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
     }
   });
 
+  app.post("/update/flash/data", function(req, res) {
+    let valid = true;
+
+    valid = isGenericValid(req.body, "tracking", valid);
+    valid = isGenericValid(req.body, "billing_no", valid);
+    valid = isGenericValid(req.body, "previous_value", valid);
+    valid = isGenericValid(req.body, "current_value", valid);
+    valid = isGenericValid(req.body, "user", valid);
+
+    valid = isGenericValid(req.body.current_value, "receiver_name", valid);
+    valid = isGenericValid(req.body.current_value, "receiver_address", valid);
+    valid = isGenericValid(req.body.current_value, "receiver_phone", valid);
+    valid = isGenericValid(req.body.current_value, "district_code", valid);
+    valid = isGenericValid(req.body.current_value, "district_name", valid);
+    valid = isGenericValid(req.body.current_value, "amphur_name", valid);
+    valid = isGenericValid(req.body.current_value, "province_name", valid);
+    valid = isGenericValid(req.body.current_value, "zipcode", valid);
+
+    if (!valid) {
+      return res.json({ status: "ERROR_DATA_NOT_VALID" });
+    } else {
+      let tracking = req.body.tracking;
+      parcelServices.updateStatusReceiver(db, tracking).then(function(resultReceiver) {
+          if (!resultReceiver) {
+            return res.json({ status: "ERROR_DATA_NOT_COMPLETE" });
+          } else {
+            let address = req.body.previous_value;
+            let newAddress = req.body.current_value;
+            parcelServices.saveAddressFlash(db, address, newAddress).then(function(resultSaveAddress) {
+              if(!resultSaveAddress){
+                return res.json({ status: "ERROR_CANNOT_SAVE_ADDRESS" });
+              } else {
+                parcelServices.updateReceiverInfo(db, tracking, newAddress).then(result => {
+                  if(result){
+                    var info = {
+                      tracking: tracking,
+                      status: "ready_to_booking"
+                    };
+                    console.log("send to exchange checked-ready = %s", tracking);
+                    amqpChannel.publish(MY_AMQP_PREFIX+".exchange.checked-ready", "", Buffer.from(JSON.stringify(info)), { persistent: true });
+                    console.log("sent to exchange checked-ready = %s", tracking);
+  
+                    return res.json({ status: "SUCCESS" });
+                  } else {
+                    return res.json({ status: "ERROR_CANNOT_UPDATE_RECEIVER_INFO" });
+                  }
+                });
+              }
+            });
+          }
+      });
+    }
+  });
+
   app.get("/report-branch", (req, res) => {
     let date_check = req.query.date_check;
     parcelServices.reportBranch(db,date_check).then(function(data) {
@@ -880,9 +934,8 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
     });
   });
   
-  app.get("/booking-report", (req, res) => {
-    let tracking = req.query.tracking;
-    parcelServices.bookingReport(db,tracking).then(function(data) {
+  app.get("/booking-flash-report", (req, res) => {
+    parcelServices.bookingFlashReport(db).then(function(data) {
       if (data == false) {
         res.json([]);
       } else {
