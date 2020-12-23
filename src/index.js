@@ -710,33 +710,29 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
       return res.json({ status: "ERROR_DATA_NOT_VALID" });
     } else {
       let tracking = req.body.tracking;
-      parcelServices.updateStatusReceiver(db, tracking).then(function(resultReceiver) {
-          if (!resultReceiver) {
-            return res.json({ status: "ERROR_DATA_NOT_COMPLETE" });
+      let address = req.body.previous_value;
+      let newAddress = req.body.current_value;
+      parcelServices.saveAddressFlash(db, address, newAddress).then(function(resultSaveAddress) {
+          if (!resultSaveAddress) {
+            return res.json({ status: "ERROR_CANNOT_SAVE_ADDRESS" });
           } else {
-            let address = req.body.previous_value;
-            let newAddress = req.body.current_value;
-            parcelServices.saveAddressFlash(db, address, newAddress).then(function(resultSaveAddress) {
-              if(!resultSaveAddress){
-                return res.json({ status: "ERROR_CANNOT_SAVE_ADDRESS" });
-              } else {
-                parcelServices.updateReceiverInfo(db, tracking, newAddress).then(result => {
-                  if(result){
-                    var info = {
-                      tracking: tracking,
-                      status: "ready_to_booking"
-                    };
-                    console.log("send to exchange checked-ready = %s", tracking);
-                    amqpChannel.publish(MY_AMQP_PREFIX+".exchange.checked-ready", "", Buffer.from(JSON.stringify(info)), { persistent: true });
-                    console.log("sent to exchange checked-ready = %s", tracking);
-  
-                    return res.json({ status: "SUCCESS" });
-                  } else {
-                    return res.json({ status: "ERROR_CANNOT_UPDATE_RECEIVER_INFO" });
-                  }
-                });
-              }
-            });
+            parcelServices.updateReceiverInfo(db, tracking, newAddress).then(result => {
+                if (result) {
+                  var info = {
+                    tracking: tracking,
+                    status: "ready_to_booking"
+                  };
+                  console.log("send to exchange checked-ready = %s", tracking);
+                  amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.checked-ready", "", Buffer.from(JSON.stringify(info)), { persistent: true });
+                  console.log("sent to exchange checked-ready = %s", tracking);
+
+                  return res.json({ status: "SUCCESS" });
+                } else {
+                  return res.json({
+                    status: "ERROR_CANNOT_UPDATE_RECEIVER_INFO"
+                  });
+                }
+              });
           }
       });
     }

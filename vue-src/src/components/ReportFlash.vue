@@ -49,7 +49,7 @@
             <b>จังหวัด</b>
             <input style="text-align:left;" :disabled="true" v-model="province_name" />
             <b>รหัสไปรษณีย์</b>
-            <input style="text-align:left;" v-model="zipcode" />
+            <input maxlength="5" @keypress="isNumber($event)" style="text-align:left;" v-model="zipcode" />
             <b>ที่อยู่</b>
             <input style="text-align:left;" v-model="receiver_address" />
 
@@ -83,7 +83,7 @@ export default {
       zipcode: "",
       receiver_address: "",
       reasonCode: "",
-      url: ""
+      url: "http://localhost:3000"
     };
   },
   mounted() {

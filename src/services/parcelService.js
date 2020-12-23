@@ -50,11 +50,12 @@ module.exports = {
 
     return new Promise(function(resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
-        if (error === null) {
-          if (results.length == 0) {
-            resolve(false);
+        if (error == null) {
+          if (results.length > 0) {
+            let result = (results[0].image_url !== "" && results[0].image_url !== null)? results : false;
+            resolve(result);
           } else {
-            resolve(results);
+            resolve(false);
           }
         } else {
           console.log(error);
@@ -342,13 +343,26 @@ module.exports = {
     });
   },
   updateReceiverInfo: (db, tracking, newAddress) => {
-    let sql = `UPDATE billing_receiver_info SET receiver_name=?, phone=?, receiver_address=? WHERE tracking=?`;
-    let data = [newAddress.receiver_name, newAddress.receiver_phone, newAddress.receiver_address, tracking];
+    let sql = `UPDATE billing_receiver_info SET receiver_name=?, phone=?, receiver_address=?, status=? WHERE tracking=? AND status is null`;
+    let data = [newAddress.receiver_name, newAddress.receiver_phone, newAddress.receiver_address, "ready", tracking];
+
+    let sqlLog = `UPDATE response_flash_log SET status=? WHERE tracking=?`;    
+    let dataLog = [99, tracking];
     return new Promise(function(resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
         if(error==null){
           if(results.affectedRows > 0){
-            resolve(true);
+            db.query(sqlLog, dataLog, (errorLog, resultsLog, fields) => {
+              if(errorLog==null){
+                if(resultsLog.affectedRows > 0){
+                  resolve(true);
+                } else {
+                  resolve(false);
+                }
+              } else {
+                resolve(false);
+              }
+            });
           } else {
             resolve(false);
           }
@@ -695,8 +709,8 @@ module.exports = {
     });
   },
   bookingFlashReport: (db) => {
-    var sql = `SELECT * FROM response_flash_log WHERE status != ?`;
-    var data = [100];
+    var sql = `SELECT * FROM response_flash_log WHERE status != ? AND status != ?`;
+    var data = [100, 99];
     return new Promise(function(resolve, reject) {
       db.query(sql, data, (err, results) => {
         if (err === null) {
@@ -741,12 +755,14 @@ module.exports = {
     let province_id = address.province_id;
     let zipcode = newAddress.zipcode;
     let geo_id = address.GEO_ID;
+
+    let dhlZipcode = address.br_zipcode;
     /******************************** Select Address ************************************/
     let selectAddress = `SELECT * FROM postinfo_district_flash df 
     JOIN postinfo_amphur_flash af ON df.AMPHUR_ID=af.AMPHUR_ID
     JOIN postinfo_province p ON df.PROVINCE_ID=p.PROVINCE_ID
     JOIN postinfo_zipcodes_flash zf ON df.DISTRICT_CODE=zf.district_code
-    WHERE df.DISTRICT_CODE =?`;
+    WHERE df.DISTRICT_CODE=?`;
     let dataAddress = [district_code];
     /******************************** Update Address ************************************/
     let updateDistrict = `UPDATE postinfo_district_flash SET DISTRICT_ID=?, DISTRICT_CODE=?, DISTRICT_NAME=?, AMPHUR_ID=?, PROVINCE_ID=? WHERE DISTRICT_CODE=?`;
@@ -755,8 +771,8 @@ module.exports = {
     let updateAmphur = `UPDATE postinfo_amphur_flash SET AMPHUR_ID=?, AMPHUR_NAME=?, PROVINCE_ID=? WHERE AMPHUR_ID=?`;
     let dataUpdateAmphur = [amphur_id, amphur_name, province_id, amphur_id];
 
-    let updateZipcode = `UPDATE postinfo_zipcodes_flash SET district_code=?, zipcode=? WHERE district_code=? AND zipcode=?`;
-    let dataUpdateZipcode = [district_code, zipcode, district_code, zipcode];
+    let updateZipcode = `UPDATE postinfo_zipcodes_flash SET district_code=?, zipcode=? WHERE district_code=? AND dhl_zipcode=?`;
+    let dataUpdateZipcode = [district_code, zipcode, district_code, dhlZipcode];
     /********************************** Save Address ************************************/
     let saveDistrict = `INSERT INTO postinfo_district_flash(DISTRICT_ID, DISTRICT_CODE, DISTRICT_NAME, AMPHUR_ID, PROVINCE_ID, GEO_ID) VALUES (?, ?, ?, ?, ?, ?)`;
     let dataDistrict = [district_id, district_code, district_name, amphur_id, province_id, geo_id];
@@ -764,8 +780,8 @@ module.exports = {
     let saveAmphur= `INSERT INTO postinfo_amphur_flash(AMPHUR_ID, AMPHUR_CODE, AMPHUR_NAME, GEO_ID, PROVINCE_ID) VALUES (?, ?, ?, ?, ?)`;
     let dataAmphur =[amphur_id, amphur_code, amphur_name, geo_id, province_id];
 
-    let saveZipcode= `INSERT INTO postinfo_zipcodes_flash(district_code, zipcode) VALUES (?, ?)`;
-    let dataZipcode =[district_code, zipcode];
+    let saveZipcode= `INSERT INTO postinfo_zipcodes_flash(district_code, dhl_zipcode, zipcode) VALUES (?, ?, ?)`;
+    let dataZipcode =[district_code, dhlZipcode, zipcode];
     /************************************************************************************/
     return new Promise(function(resolve, reject) {
       db.query(selectAddress, dataAddress, (errorAddress, resultAddress) => {
