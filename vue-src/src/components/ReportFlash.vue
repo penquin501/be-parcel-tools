@@ -83,7 +83,7 @@ export default {
       zipcode: "",
       receiver_address: "",
       reasonCode: "",
-      url: "http://localhost:3000"
+      url: ""
     };
   },
   mounted() {

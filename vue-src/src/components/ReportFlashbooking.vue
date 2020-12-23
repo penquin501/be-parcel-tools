@@ -62,7 +62,7 @@ export default {
       date: new Date(),
       datePick: moment().tz("Asia/Bangkok").format("YYYY-MM-DD"),
       sorting: -1,
-      url: "http://localhost:3000"
+      url: ""
     };
   },
   mounted() {
