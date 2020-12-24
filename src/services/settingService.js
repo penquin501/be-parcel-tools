@@ -87,7 +87,8 @@ module.exports = {
     });
   },
   sizeInfo: (db) => {
-    let sql =`SELECT size_id,size_name,location_zone,parcel_price,parcel_cost,alias_size,sold_to_account_id,pickup_account_id,customer_account_id FROM size_info ORDER BY size_id ASC`;
+    // let sql =`SELECT size_id,size_name,location_zone,parcel_price,parcel_cost,alias_size,sold_to_account_id,pickup_account_id,customer_account_id FROM size_info ORDER BY size_id ASC`;
+    let sql =`SELECT * FROM size_info ORDER BY size_id ASC`;
     return new Promise(function(resolve, reject) {
       db.query(sql, (error, results, fields) => {
         if(error==null){
@@ -104,17 +105,17 @@ module.exports = {
     });
   },
   sizeInfoById: (db,sizeId) => {
-    let sqlSizeInfo =`SELECT size_id,size_name,location_zone,parcel_price,parcel_cost,alias_size,sold_to_account_id,pickup_account_id,customer_account_id FROM size_info WHERE size_id=?`;
+    let sqlSizeInfo =`SELECT * FROM size_info WHERE size_id=?`;
     let dataSizeInfo = [sizeId];
 
-    let sqlGlobalSize =`SELECT * FROM global_parcel_size WHERE alias_name=? AND area=?`;
+    let sqlGlobalSize =`SELECT * FROM global_parcel_size WHERE alias_name=? AND area=? AND zone=?`;
     // let dataGlobalSize = [sizeId];
 
     return new Promise(function(resolve, reject) {
       db.query(sqlSizeInfo,dataSizeInfo, (error_size_info, results_size_info, fields) => {
           if(error_size_info==null){
             if(results_size_info.length>0){
-              db.query(sqlGlobalSize,[results_size_info[0].alias_size,results_size_info[0].location_zone], (error_global_size, results_global_size, fields) => {
+              db.query(sqlGlobalSize,[results_size_info[0].alias_size, results_size_info[0].location_zone, results_size_info[0].zone], (error_global_size, results_global_size, fields) => {
                 if(error_global_size==null){
                   if(results_global_size.length>0){
                     var data_size={
@@ -139,14 +140,15 @@ module.exports = {
         })
     });
   },
-  addSizeInfo:(db,location_zone,parcel_price,parcel_cost,alias_size,sold_to_account_id,pickup_account_id,customer_account_id)=>{
-    var sqlSizeInfo = "SELECT * FROM size_info WHERE alias_size=? AND location_zone=?";
-    var dataSizeInfo=[alias_size,location_zone];
+  addSizeInfo:(db, location_zone, parcel_price, parcel_cost, alias_size, sold_to_account_id, pickup_account_id, customer_account_id, zone)=>{
+    var sqlSizeInfo = "SELECT * FROM size_info WHERE alias_size=? AND location_zone=? AND zone=?";
+    var dataSizeInfo=[alias_size, location_zone, zone];
 
     var size_name="พัสดุ size "+alias_size.toUpperCase();
 
-    var sqlSaveSizeInfo = "INSERT INTO size_info(size_name, location_zone, parcel_price, parcel_cost, alias_size, sold_to_account_id, pickup_account_id, customer_account_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-    var dataSaveSizeInfo=[size_name, location_zone.toLowerCase(), parcel_price, parcel_cost, alias_size.toLowerCase(), sold_to_account_id, pickup_account_id, customer_account_id];
+    var sqlSaveSizeInfo = `INSERT INTO size_info(size_name, location_zone, parcel_price, parcel_cost, alias_size, sold_to_account_id, pickup_account_id, customer_account_id, zone) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    var dataSaveSizeInfo=[size_name, location_zone.toLowerCase(), parcel_price, parcel_cost, alias_size.toLowerCase(), sold_to_account_id, pickup_account_id, customer_account_id, zone];
 
     return new Promise(function(resolve, reject) {
       db.query(sqlSizeInfo,dataSizeInfo, (error_size_info, results_size_info) => {
@@ -172,7 +174,7 @@ module.exports = {
       });
     });
   },
-  addGlobalSize: (db,location_zone,alias_size,global_product_id_normal,global_product_id_cod) => {
+  addGlobalSize: (db, location_zone, alias_size, global_product_id_normal, global_product_id_cod, zone) => {
     var sqlGlobalSizeNormal = "SELECT * FROM global_parcel_size WHERE product_id=?";
     var dataGlobalSizeNormal=[global_product_id_normal];
 
@@ -236,8 +238,8 @@ module.exports = {
     var sqlSizeInfo = "SELECT * FROM size_info WHERE size_id=?";
     var dataSizeInfo=[data_size_id];
 
-    var sqlUpdateSizeInfo = "UPDATE size_info SET parcel_price=?,parcel_cost=?,sold_to_account_id=?,pickup_account_id=?,customer_account_id=? WHERE size_id=?";
-    var dataUpdateSizeInfo=[parcel_price,parcel_cost,sold_to_account_id,pickup_account_id,customer_account_id,data_size_id];
+    var sqlUpdateSizeInfo = "UPDATE size_info SET parcel_price=?, parcel_cost=?, sold_to_account_id=?, pickup_account_id=?, customer_account_id=? WHERE size_id=?";
+    var dataUpdateSizeInfo=[parcel_price, parcel_cost, sold_to_account_id, pickup_account_id, customer_account_id, data_size_id];
 
     return new Promise(function(resolve, reject) {
       db.query(sqlSizeInfo,dataSizeInfo, (err_size_info, results_size_info) => {
@@ -263,30 +265,30 @@ module.exports = {
       });
     });
   },
-  editGlobalSize:(db,location_zone,alias_size,global_product_id_normal,global_product_id_cod)=>{
-    var sqlGlobalSizeNormal = "SELECT * FROM global_parcel_size WHERE alias_name=? AND area=? AND type=?";
-    var dataGlobalSizeNormal=[alias_size.toLowerCase(),location_zone.toUpperCase(),"NORMAL"];
+  editGlobalSize:(db, location_zone, alias_size, global_product_id_normal, global_product_id_cod, zone)=>{
+    var sqlGlobalSizeNormal = "SELECT * FROM global_parcel_size WHERE alias_name=? AND area=? AND type=? AND zone=?";
+    var dataGlobalSizeNormal=[alias_size.toLowerCase(), location_zone.toUpperCase(), "NORMAL", zone];
 
-    var sqlGlobalSizeCod = "SELECT * FROM global_parcel_size WHERE alias_name=? AND area=? AND type=?";
-    var dataGlobalSizeCod=[alias_size.toLowerCase(),location_zone.toUpperCase(),"COD"];
+    var sqlGlobalSizeCod = "SELECT * FROM global_parcel_size WHERE alias_name=? AND area=? AND type=? AND zone=?";
+    var dataGlobalSizeCod=[alias_size.toLowerCase(), location_zone.toUpperCase(), "COD", zone];
 
-    var sqlUpdateGlobalSizeNormal = "UPDATE global_parcel_size SET product_id=? WHERE alias_name=? AND area=? AND type=?";
-    var dataUpdateGlobalSizeNormal=[global_product_id_normal,alias_size.toLowerCase(),location_zone.toUpperCase(),"NORMAL"];
+    var sqlUpdateGlobalSizeNormal = "UPDATE global_parcel_size SET product_id=? WHERE alias_name=? AND area=? AND type=? AND zone=?";
+    var dataUpdateGlobalSizeNormal=[global_product_id_normal, alias_size.toLowerCase(), location_zone.toUpperCase(), "NORMAL", zone];
 
-    var sqlUpdateGlobalSizeCod = "UPDATE global_parcel_size SET product_id=? WHERE alias_name=? AND area=? AND type=?";
-    var dataUpdateGlobalSizeCod=[global_product_id_cod,alias_size.toLowerCase(),location_zone.toUpperCase(),"COD"];
+    var sqlUpdateGlobalSizeCod = "UPDATE global_parcel_size SET product_id=? WHERE alias_name=? AND area=? AND type=? AND zone=?";
+    var dataUpdateGlobalSizeCod=[global_product_id_cod, alias_size.toLowerCase(), location_zone.toUpperCase(), "COD", zone];
 
     return new Promise(function(resolve, reject) {
-      db.query(sqlGlobalSizeNormal,dataGlobalSizeNormal, (err_global_normal, results_global_normal) => {
+      db.query(sqlGlobalSizeNormal, dataGlobalSizeNormal, (err_global_normal, results_global_normal) => {
           if(err_global_normal==null){
             if(results_global_normal.length>0){
-              db.query(sqlGlobalSizeCod,dataGlobalSizeCod, (err_global_cod, results_global_cod) => {
+              db.query(sqlGlobalSizeCod, dataGlobalSizeCod, (err_global_cod, results_global_cod) => {
                 if(err_global_cod==null){
                   if(results_global_cod.length>0){
-                    db.query(sqlUpdateGlobalSizeNormal,dataUpdateGlobalSizeNormal, (err_update_global_normal, results_update_global_normal) => {
+                    db.query(sqlUpdateGlobalSizeNormal, dataUpdateGlobalSizeNormal, (err_update_global_normal, results_update_global_normal) => {
                       if(err_update_global_normal==null){
                         if(results_update_global_normal.affectedRows>0){
-                          db.query(sqlUpdateGlobalSizeCod,dataUpdateGlobalSizeCod, (err_update_global_cod, results_update_global_cod) => {
+                          db.query(sqlUpdateGlobalSizeCod, dataUpdateGlobalSizeCod, (err_update_global_cod, results_update_global_cod) => {
                             if(err_update_global_cod==null){
                               if(results_update_global_cod.affectedRows>0){
                                 resolve(true);
@@ -317,6 +319,14 @@ module.exports = {
           } else {
             resolve(false);
           }
+      });
+    });
+  },
+  provinceInfo: (db) => {
+    let sql =`SELECT * FROM postinfo_province ORDER BY PROVINCE_ID ASC`;
+    return new Promise(function(resolve, reject) {
+      db.query(sql, (error, results, fields) => {
+        resolve(results);
       });
     });
   },

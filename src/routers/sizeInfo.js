@@ -25,6 +25,7 @@ module.exports = function(app, appCtx) {
     let sold_to_account_id = req.body.sold_to_account_id;
     let pickup_account_id = req.body.pickup_account_id;
     let customer_account_id = req.body.customer_account_id;
+    let zone = req.body.zone;
     let global_product_id_normal = req.body.global_product_id_normal;
     let global_product_id_cod = req.body.global_product_id_cod;
 
@@ -38,6 +39,7 @@ module.exports = function(app, appCtx) {
     valid = isGenericValid(req.body,"sold_to_account_id",valid,resultList,sold_to_account_id);
     valid = isGenericValid(req.body,"pickup_account_id",valid,resultList,pickup_account_id);
     valid = isGenericValid(req.body,"customer_account_id",valid,resultList,customer_account_id);
+    valid = isGenericValid(req.body,"zone",valid,resultList,zone);
     valid = isGenericValid(req.body,"global_product_id_normal",valid,resultList,global_product_id_normal);
     valid = isGenericValid(req.body,"global_product_id_cod",valid,resultList,global_product_id_cod);
 
@@ -48,9 +50,9 @@ module.exports = function(app, appCtx) {
     } else if(parcel_price==0){
       res.json({ status: "error_wrong_parcel_price"});
     } else {
-      settingService.addSizeInfo(db,location_zone,parcel_price,parcel_cost,alias_size,sold_to_account_id,pickup_account_id,customer_account_id).then(function(data_size_info) {
+      settingService.addSizeInfo(db, location_zone, parcel_price, parcel_cost, alias_size, sold_to_account_id, pickup_account_id, customer_account_id, zone).then(function(data_size_info) {
         if (data_size_info) {
-          settingService.addGlobalSize(db,location_zone,alias_size,global_product_id_normal,global_product_id_cod).then(function(data_global_size) {
+          settingService.addGlobalSize(db, location_zone, alias_size, global_product_id_normal, global_product_id_cod, zone).then(function(data_global_size) {
             if(data_global_size){
               res.json({ status: "success" });
             } else {
@@ -86,6 +88,7 @@ module.exports = function(app, appCtx) {
     let sold_to_account_id = req.body.sold_to_account_id;
     let pickup_account_id = req.body.pickup_account_id;
     let customer_account_id = req.body.customer_account_id;
+    let zone = req.body.zone;
     let global_product_id_normal = req.body.global_product_id_normal;
     let global_product_id_cod = req.body.global_product_id_cod;
 
@@ -99,6 +102,7 @@ module.exports = function(app, appCtx) {
     valid = isGenericValid(req.body,"sold_to_account_id",valid,resultList,sold_to_account_id);
     valid = isGenericValid(req.body,"pickup_account_id",valid,resultList,pickup_account_id);
     valid = isGenericValid(req.body,"customer_account_id",valid,resultList,customer_account_id);
+    valid = isGenericValid(req.body,"zone",valid,resultList,zone);
     valid = isGenericValid(req.body,"global_product_id_normal",valid,resultList,global_product_id_normal);
     valid = isGenericValid(req.body,"global_product_id_cod",valid,resultList,global_product_id_cod);
 
@@ -107,9 +111,9 @@ module.exports = function(app, appCtx) {
     } else if(!valid){
       res.json({ status: "data_not_complete"});
     } else {
-      settingService.editSizeInfo(db,data_size_id,location_zone,parcel_price,parcel_cost,alias_size,sold_to_account_id,pickup_account_id,customer_account_id).then(function(data_size_info) {
+      settingService.editSizeInfo(db, data_size_id, location_zone, parcel_price, parcel_cost, alias_size, sold_to_account_id, pickup_account_id, customer_account_id).then(function(data_size_info) {
         if (data_size_info) {
-          settingService.editGlobalSize(db,location_zone,alias_size,global_product_id_normal,global_product_id_cod).then(function(data_global_size) {
+          settingService.editGlobalSize(db, location_zone, alias_size, global_product_id_normal, global_product_id_cod, zone).then(function(data_global_size) {
             if(data_global_size){
               res.json({ status: "success" });
             } else {

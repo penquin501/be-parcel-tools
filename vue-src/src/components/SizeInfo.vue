@@ -12,10 +12,18 @@
                 <button class="button-re" v-on:click="getSize()"><i class="fa fa-refresh" aria-hidden="true"></i></button>
             </div>
         </div>
+        <div class="row">
+          <div class="col-ms-2 col-sm-2 col-xs-2">Zone : </div>
+          <div class="radio-inline" v-for="(item) in listZone" v-on:change="selectedZone(item.zone)" v-bind:key="item.id">
+            <label><input type="radio" :value="item.zone" v-model="selectZone"/>{{ item.zone }}</label>
+          </div>
+        </div>
+        
       <table>
         <tr>
           <th style="text-align: center;">ชื่อ size</th>
           <th style="text-align: center;">ชื่อย่อ</th>
+          <th style="text-align: center;">พื้นที่</th>
           <th style="text-align: center;">Zone</th>
            <th style="text-align: center;">Action</th>
         </tr>   
@@ -23,6 +31,7 @@
             <td style="text-align: center;">{{ item.size_name }}</td>
             <td style="text-align: center;">{{ item.alias_size }}</td>
             <td style="text-align: center;">{{ item.location_zone }}</td>
+            <td style="text-align: center;">{{ item.zone }}</td>
             
             <td style="text-align: center;">
             <button v-on:click="addSize(item.size_id)" class="button-set"><i class="fa fa-pencil" aria-hidden="true"></i></button>
@@ -41,7 +50,10 @@ export default {
 data: function() {
     return {
       dataSize: [],
-      sizeId:0
+      listZone: [],
+      selectZone:0,
+      sizeId:0,
+      url:""
     };
   },
   mounted() {
@@ -53,9 +65,34 @@ data: function() {
   methods: {
     getSize() {
       const options = { okLabel: "ตกลง" };
-      axios.get("/size/size-info").then(response => {
+      axios.get(this.url+"/size/size-info").then(response => {
           if(response.data) {
-           this.dataSize=response.data.data;
+            var dataSize=response.data.data;
+
+            this.listZone = [];
+            var zoneInfo = {};
+              for (let item of dataSize) {
+                if (!(item.zone in zoneInfo)) {
+                  zoneInfo[String(item.zone)] = [];
+                }
+                zoneInfo[String(item.zone)].push({ zone: item.zone });
+              }
+              for (const [key] of Object.entries(zoneInfo)) {
+                this.listZone.push({ zone: key });
+              }
+
+              if(this.selectZone == 0){
+                this.dataSize = dataSize;
+              } else {
+                let listSizeZone =[];
+                for(let item of dataSize){
+                  if(item.zone == this.selectZone){
+                    listSizeZone.push(item);
+                  }
+                }
+                this.dataSize = listSizeZone;
+              }
+             
           } else {
              this.$dialogs.alert("ไม่พบข้อมูล", options);
           }
@@ -66,6 +103,10 @@ data: function() {
     },
     addSize(sizeId) {
       this.$router.push({ name: "AddSize", params:{sizeId:sizeId} });
+    },
+    selectedZone(zone) {
+      this.selectZone = zone;
+      this.getSize();
     },
   },
 }

@@ -36,20 +36,20 @@
             <b>ชื่อ</b>
             <input maxlength="50" style="text-align:left;" v-model="receiver_name" />
             <b>โทรศัพท์</b>
-            <input
-              maxlength="10"
-              @keypress="isNumber($event)"
-              style="text-align:left;"
-              v-model="receiver_phone"
-            />
+            <input maxlength="10" @keypress="isNumber($event)" style="text-align:left;" v-model="receiver_phone"/>
             <b>ตำบล</b>
             <input style="text-align:left;" v-model="district_name" />
             <b>อำเภอ</b>
             <input style="text-align:left;" v-model="amphur_name" />
             <b>จังหวัด</b>
-            <input style="text-align:left;" :disabled="true" v-model="province_name" />
+            <div class="search">
+              <select class="select" style="margin-left: 0px; margin-right: 0px;" v-model="provinceInfo">
+                <option value="0">-----เลือกจังหวัด-----</option>
+                <option v-for="item in listProvince" v-bind:key="item.PROVINCE_CODE" :value="item">{{ item.PROVINCE_NAME }}</option>
+              </select>
+            </div>
             <b>รหัสไปรษณีย์</b>
-            <input maxlength="5" @keypress="isNumber($event)" style="text-align:left;" v-model="zipcode" />
+            <input maxlength="5" @keypress="isNumber($event)" style="text-align:left;" v-model="zipcode"/>
             <b>ที่อยู่</b>
             <input style="text-align:left;" v-model="receiver_address" />
 
@@ -79,10 +79,12 @@ export default {
       receiver_phone: "",
       district_name: "",
       amphur_name: "",
+      provinceInfo: "0",
       province_name: "",
       zipcode: "",
       receiver_address: "",
       reasonCode: "",
+      listProvince: [],
       url: ""
     };
   },
@@ -110,20 +112,43 @@ export default {
             this.receiver_name = this.billingInfo.receiver_name;
             this.receiver_phone = this.billingInfo.phone;
             this.receiver_address = this.billingInfo.receiver_address;
-            this.district_name = (this.reasonCode == "dstDistrictName")?"":this.billingInfo.district_name;
-            this.amphur_name = (this.reasonCode == "dstCityName")?"":this.billingInfo.amphur_name;
-            this.province_name = this.billingInfo.province_name;
-            this.zipcode = (this.reasonCode == "dstPostalCode")?"":this.billingInfo.br_zipcode;
-
+            this.district_name =this.reasonCode == "dstDistrictName" ? "" : this.billingInfo.district_name;
+            this.amphur_name = this.reasonCode == "dstCityName" ? "" : this.billingInfo.amphur_name;
+            this.zipcode = this.reasonCode == "dstPostalCode" ? "" : this.billingInfo.br_zipcode;
+            this.getListProvince();
             this.imgCapture = response.data.imgCapture;
             if (this.imgCapture == false) {
-              this.imgUrl =
-                "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC";
+              this.imgUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC";
             } else {
               this.imgUrl = this.imgCapture[0].image_url;
             }
           } else {
             this.$dialogs.alert("ไม่พบข้อมูล", options);
+          }
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+    },
+    getListProvince() {
+      const options = { okLabel: "ตกลง" };
+      axios
+        .get(this.url + "/general/list-province")
+        .then(response => {
+          if (response.data.status == "success") {
+            var provinceInfo = response.data.data;
+            if (provinceInfo.length !== 0) {
+              this.listProvince = provinceInfo;
+              this.listProvince.forEach(element => {
+                if (element.PROVINCE_CODE == this.billingInfo.PROVINCE_CODE) {
+                  this.provinceInfo = element;
+                }
+              });
+            } else {
+              this.$dialogs.alert("ไม่พบข้อมูลจังหวัดในระบบ", options);
+            }
+          } else {
+            this.$dialogs.alert("ok", options);
           }
         })
         .catch(function(error) {
@@ -145,6 +170,8 @@ export default {
         this.$dialogs.alert("กรุณากรอก ตำบล ให้ถูกต้อง", options);
       } else if (this.amphur_name.trim() == "") {
         this.$dialogs.alert("กรุณากรอก อำเภอ ให้ถูกต้อง", options);
+      } else if (this.provinceInfo == "0") {
+        this.$dialogs.alert("กรุณากรอก จังหวัด ให้ถูกต้อง", options);
       } else if (this.zipcode == "") {
         this.$dialogs.alert("กรุณากรอก รหัสไปรษณีย์ ให้ถูกต้อง", options);
       } else if (
@@ -167,7 +194,7 @@ export default {
             district_code: this.billingInfo.DISTRICT_CODE,
             district_name: this.district_name,
             amphur_name: this.amphur_name,
-            province_name: this.province_name,
+            province_info: this.provinceInfo,
             zipcode: this.zipcode
           },
           user: this.$session.get("session_username")
@@ -207,6 +234,43 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
+.search {
+  text-align: center;
+  input {
+    margin: 10px 5px 10px 5px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid #000;
+    outline: none;
+    width: 100%;
+    text-align: center;
+  }
+  button {
+    padding: 5px 20px;
+    background-color: #fff;
+    border: 2px solid rgb(0, 136, 148);
+    cursor: pointer;
+    color: rgb(0, 136, 148);
+    font-weight: bold;
+    margin: 20px 10px;
+    outline: none;
+    transition: 0.5s;
+    &:hover {
+      background-color: rgb(0, 136, 148);
+      color: #fff;
+    }
+  }
+}
+.select {
+  width: 300px;
+  border: none;
+  border-bottom: 1px solid #000;
+  background: none;
+  margin: 0 15px;
+  outline: none;
+  font-size: 16px;
+  // font-weight: bold;
+}
 .mycontent {
   input {
     background: none;

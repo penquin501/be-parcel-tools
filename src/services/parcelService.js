@@ -752,7 +752,7 @@ module.exports = {
     let amphur_id = address.amphur_id;
     let amphur_code = address.AMPHUR_CODE;
     let amphur_name = newAddress.amphur_name;
-    let province_id = address.province_id;
+    let province_id = newAddress.province_info.PROVINCE_ID;
     let zipcode = newAddress.zipcode;
     let geo_id = address.GEO_ID;
 
@@ -766,19 +766,19 @@ module.exports = {
     let dataAddress = [district_code];
     /******************************** Update Address ************************************/
     let updateDistrict = `UPDATE postinfo_district_flash SET DISTRICT_ID=?, DISTRICT_CODE=?, DISTRICT_NAME=?, AMPHUR_ID=?, PROVINCE_ID=? WHERE DISTRICT_CODE=?`;
-    let dataUpdateDistrict = [district_id, district_code, district_name, amphur_id, province_id ,district_code];
+    let dataUpdateDistrict = [district_id, district_code, district_name, amphur_id, parseInt(province_id), district_code];
 
     let updateAmphur = `UPDATE postinfo_amphur_flash SET AMPHUR_ID=?, AMPHUR_NAME=?, PROVINCE_ID=? WHERE AMPHUR_ID=?`;
-    let dataUpdateAmphur = [amphur_id, amphur_name, province_id, amphur_id];
+    let dataUpdateAmphur = [amphur_id, amphur_name, parseInt(province_id), amphur_id];
 
     let updateZipcode = `UPDATE postinfo_zipcodes_flash SET district_code=?, zipcode=? WHERE district_code=? AND dhl_zipcode=?`;
     let dataUpdateZipcode = [district_code, zipcode, district_code, dhlZipcode];
     /********************************** Save Address ************************************/
     let saveDistrict = `INSERT INTO postinfo_district_flash(DISTRICT_ID, DISTRICT_CODE, DISTRICT_NAME, AMPHUR_ID, PROVINCE_ID, GEO_ID) VALUES (?, ?, ?, ?, ?, ?)`;
-    let dataDistrict = [district_id, district_code, district_name, amphur_id, province_id, geo_id];
+    let dataDistrict = [district_id, district_code, district_name, amphur_id, parseInt(province_id), geo_id];
 
     let saveAmphur= `INSERT INTO postinfo_amphur_flash(AMPHUR_ID, AMPHUR_CODE, AMPHUR_NAME, GEO_ID, PROVINCE_ID) VALUES (?, ?, ?, ?, ?)`;
-    let dataAmphur =[amphur_id, amphur_code, amphur_name, geo_id, province_id];
+    let dataAmphur =[amphur_id, amphur_code, amphur_name, geo_id, parseInt(province_id)];
 
     let saveZipcode= `INSERT INTO postinfo_zipcodes_flash(district_code, dhl_zipcode, zipcode) VALUES (?, ?, ?)`;
     let dataZipcode =[district_code, dhlZipcode, zipcode];

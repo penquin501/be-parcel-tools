@@ -52,6 +52,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
 
   require('./routers/branch')(app,appCtx);
   require('./routers/sizeInfo')(app,appCtx);
+  require('./routers/general')(app,appCtx);
 
   app.get("/", function(req, res) {
     res.sendFile(path.resolve("public/index.html"));
@@ -703,7 +704,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
     valid = isGenericValid(req.body.current_value, "district_code", valid);
     valid = isGenericValid(req.body.current_value, "district_name", valid);
     valid = isGenericValid(req.body.current_value, "amphur_name", valid);
-    valid = isGenericValid(req.body.current_value, "province_name", valid);
+    valid = isGenericValid(req.body.current_value, "province_info", valid);
     valid = isGenericValid(req.body.current_value, "zipcode", valid);
 
     if (!valid) {

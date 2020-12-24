@@ -11,67 +11,46 @@
       <div class="center">
         <div>
           <b>ขนาด:</b>
-          <input
-            v-model="alias_size"
-            autocomplete="false"
-            :disabled="refAliasSize"
-            ref="refAliasSize"
-          />
+          <input v-model="alias_size" autocomplete="false" :disabled="refAliasSize" ref="refAliasSize"/>
         </div>
         <div>
-          <b>zone:</b>
-          <!-- <input
-            v-model="location_zone"
-            v-on:keypress="engOnly"
-            :disabled="refLocationZone"
-            ref="refLocationZone"
-          />-->
+          <b>พื้นที่:</b>
           <div style="display: grid ; grid-template-columns: .5fr 1fr .5fr 1fr">
-            <input
-              style="margin-top: 5%"
-              v-model="location_zone"
-              type="radio"
-              :disabled="refLocationZone"
-              v-on:change="selectType('BKK')"
-              value="BKK"
-            />BKK
-            <input
-              style="margin-top: 5%"
-              v-model="location_zone"
-              type="radio"
-              :disabled="refLocationZone"
-              v-on:change="selectType('UPC')"
-              value="UPC"
-            />UPC
+            <input style="margin-top: 5%" v-model="location_zone" type="radio" :disabled="refLocationZone" v-on:change="selectType('BKK')" value="BKK"/>BKK
+            <input style="margin-top: 5%" v-model="location_zone" type="radio" :disabled="refLocationZone" v-on:change="selectType('UPC')" value="UPC"/>UPC
           </div>
         </div>
         <div>
+          <b>zone:</b>
+          <input v-model="zone" :disabled="refZone" @keypress="isNumber($event)"/>
+        </div>
+        <div>
           <b>ราคาขาย:</b>
-          <input v-model="parcel_price" />
+          <input v-model="parcel_price" @keypress="isNumber($event)"/>
         </div>
         <div>
           <b>ราคาทุน:</b>
-          <input v-model="parcel_cost" />
+          <input v-model="parcel_cost" @keypress="isNumber($event)"/>
         </div>
         <div>
           <b>sold to account id:</b>
-          <input v-model="sold_to_account_id" />
+          <input v-model="sold_to_account_id" @keypress="isNumber($event)"/>
         </div>
         <div>
           <b>pickup account id:</b>
-          <input v-model="pickup_account_id" />
+          <input v-model="pickup_account_id" @keypress="isNumber($event)"/>
         </div>
         <div>
           <b>customer account id:</b>
-          <input v-model="customer_account_id" />
+          <input v-model="customer_account_id" @keypress="isNumber($event)"/>
         </div>
         <div>
           <b>global product id (NORMAL):</b>
-          <input v-model="global_product_id_normal" />
+          <input v-model="global_product_id_normal" @keypress="isNumber($event)"/>
         </div>
         <div>
           <b>global product id (COD):</b>
-          <input v-model="global_product_id_cod" />
+          <input v-model="global_product_id_cod" @keypress="isNumber($event)"/>
         </div>
         <!-- <div>
           <b>สถานะ:</b>
@@ -113,6 +92,7 @@ export default {
       sold_to_account_id: "",
       pickup_account_id: "",
       customer_account_id: "",
+      zone:0,
 
       global_product_id_normal: "",
       global_product_id_cod: "",
@@ -122,7 +102,10 @@ export default {
       global_type: "",
 
       refLocationZone: true,
-      refAliasSize: true
+      refAliasSize: true,
+      refZone: true,
+
+      url: ""
     };
   },
   mounted() {
@@ -137,7 +120,7 @@ export default {
       const options = { okLabel: "ตกลง" };
       if (this.sizeId !== 0) {
         axios
-          .get("/size/get-size-info/" + this.sizeId)
+          .get(this.url + "/size/get-size-info/" + this.sizeId)
           .then(response => {
             if (response.data) {
               this.dataSize = response.data.data;
@@ -151,6 +134,7 @@ export default {
               this.sold_to_account_id = this.dataSize.size_info[0].sold_to_account_id;
               this.pickup_account_id = this.dataSize.size_info[0].pickup_account_id;
               this.customer_account_id = this.dataSize.size_info[0].customer_account_id;
+              this.zone = this.dataSize.size_info[0].zone;
 
               var global_size = this.dataSize.global_size;
               global_size.forEach(value => {
@@ -180,12 +164,14 @@ export default {
         this.sold_to_account_id = "";
         this.pickup_account_id = "";
         this.customer_account_id = "";
+        this.zone = 0;
 
         this.global_product_id_normal = "";
         this.global_product_id_cod = "";
 
         this.refLocationZone = false;
         this.refAliasSize = false;
+        this.refZone = false;
         this.action = "add";
       }
     },
@@ -211,6 +197,8 @@ export default {
         this.$dialogs.alert("กรุณาใส่รหัส pickup account id ให้ถูกต้อง", options);
       } else if (this.customer_account_id == "") {
         this.$dialogs.alert("กรุณารหัส customer account idให้ถูกต้อง", options);
+      } else if (this.zone == 0) {
+        this.$dialogs.alert("กรุณาระบุ zone ให้ถูกต้อง", options);
       } else if (this.global_product_id_normal == "") {
         this.$dialogs.alert("กรุณาใส่ global product id สำหรับ Normal ให้ถูกต้อง", options);
       } else if (this.global_product_id_cod == "") {
@@ -225,20 +213,20 @@ export default {
           sold_to_account_id: this.sold_to_account_id,
           pickup_account_id: this.pickup_account_id,
           customer_account_id: this.customer_account_id,
+          zone: this.zone,
 
           global_product_id_normal: this.global_product_id_normal,
           global_product_id_cod: this.global_product_id_cod
         };
-        
         if (this.action == "add") {
           axios
-            .post("/size/add-size", data)
+            .post(this.url + "/size/add-size", data)
             .then(response => {
               if (response.data.status == "success") {
                 this.$dialogs.alert("เพิ่มข้อมูล Size เรียบร้อยแล้ว", options);
                 this.$router.push("/");
               } else {
-                this.$dialogs.alert("ไม่สามารถเพิ่มข้อมูล Size ได้ เนื่องจาก..."+response.data.status, options);
+                this.$dialogs.alert("ไม่สามารถเพิ่มข้อมูล Size ได้ เนื่องจาก..." + response.data.status, options);
               }
             })
             .catch(function(error) {
@@ -246,13 +234,13 @@ export default {
             });
         } else if (this.action == "edit") {
           axios
-            .post("/size/edit-size", data)
+            .post(this.url + "/size/edit-size", data)
             .then(response => {
               if (response.data.status == "success") {
                 this.$dialogs.alert("บันทึกข้อมูล Size เรียบร้อยแล้ว", options);
                 this.$router.push("/");
               } else {
-                this.$dialogs.alert("ไม่สามารถแก้ไขข้อมูลได้ เนื่องจาก..." + response.data.status,options);
+                this.$dialogs.alert("ไม่สามารถแก้ไขข้อมูลได้ เนื่องจาก..." + response.data.status, options);
               }
             })
             .catch(function(error) {
