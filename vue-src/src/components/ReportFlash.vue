@@ -38,9 +38,9 @@
             <b>โทรศัพท์</b>
             <input maxlength="10" @keypress="isNumber($event)" style="text-align:left;" v-model="receiver_phone"/>
             <b>ตำบล</b>
-            <input style="text-align:left;" v-model="district_name" />
+            <input style="text-align:left;" :placeholder="billingInfo.district_name" v-model="district_name" />
             <b>อำเภอ</b>
-            <input style="text-align:left;" v-model="amphur_name" />
+            <input style="text-align:left;" :placeholder="billingInfo.amphur_name"  v-model="amphur_name" />
             <b>จังหวัด</b>
             <div class="search">
               <select class="select" style="margin-left: 0px; margin-right: 0px;" v-model="provinceInfo">
@@ -70,6 +70,7 @@ export default {
   data: function() {
     return {
       date: new Date(),
+      billingInfo:"",
       tracking: "",
       billing_no: "",
       imgUrl:
