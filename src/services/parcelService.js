@@ -745,72 +745,29 @@ module.exports = {
       });
     });
   },
-  saveAddressFlash: (db, address, newAddress) => {
+  saveDistrictFlash:(db, address, newAddress)=>{
     let district_id = address.district_id;
     let district_code = address.DISTRICT_CODE;
     let district_name = newAddress.district_name;
     let amphur_id = address.amphur_id;
-    let amphur_code = address.AMPHUR_CODE;
-    let amphur_name = newAddress.amphur_name;
     let province_id = newAddress.province_info.PROVINCE_ID;
-    let zipcode = newAddress.zipcode;
     let geo_id = address.GEO_ID;
 
-    let dhlZipcode = address.br_zipcode;
-    /******************************** Select Address ************************************/
-    let selectAddress = `SELECT * FROM postinfo_district_flash df 
-    JOIN postinfo_amphur_flash af ON df.AMPHUR_ID=af.AMPHUR_ID
-    JOIN postinfo_province p ON df.PROVINCE_ID=p.PROVINCE_ID
-    JOIN postinfo_zipcodes_flash zf ON df.DISTRICT_CODE=zf.district_code
-    WHERE df.DISTRICT_CODE=?`;
-    let dataAddress = [district_code];
-    /******************************** Update Address ************************************/
+    let selectDistrict = `SELECT * FROM postinfo_district_flash WHERE DISTRICT_ID=?`;
+
     let updateDistrict = `UPDATE postinfo_district_flash SET DISTRICT_ID=?, DISTRICT_CODE=?, DISTRICT_NAME=?, AMPHUR_ID=?, PROVINCE_ID=? WHERE DISTRICT_CODE=?`;
     let dataUpdateDistrict = [district_id, district_code, district_name, amphur_id, parseInt(province_id), district_code];
 
-    let updateAmphur = `UPDATE postinfo_amphur_flash SET AMPHUR_ID=?, AMPHUR_NAME=?, PROVINCE_ID=? WHERE AMPHUR_ID=?`;
-    let dataUpdateAmphur = [amphur_id, amphur_name, parseInt(province_id), amphur_id];
-
-    let updateZipcode = `UPDATE postinfo_zipcodes_flash SET district_code=?, zipcode=? WHERE district_code=? AND dhl_zipcode=?`;
-    let dataUpdateZipcode = [district_code, zipcode, district_code, dhlZipcode];
-    /********************************** Save Address ************************************/
     let saveDistrict = `INSERT INTO postinfo_district_flash(DISTRICT_ID, DISTRICT_CODE, DISTRICT_NAME, AMPHUR_ID, PROVINCE_ID, GEO_ID) VALUES (?, ?, ?, ?, ?, ?)`;
     let dataDistrict = [district_id, district_code, district_name, amphur_id, parseInt(province_id), geo_id];
-
-    let saveAmphur= `INSERT INTO postinfo_amphur_flash(AMPHUR_ID, AMPHUR_CODE, AMPHUR_NAME, GEO_ID, PROVINCE_ID) VALUES (?, ?, ?, ?, ?)`;
-    let dataAmphur =[amphur_id, amphur_code, amphur_name, geo_id, parseInt(province_id)];
-
-    let saveZipcode= `INSERT INTO postinfo_zipcodes_flash(district_code, dhl_zipcode, zipcode) VALUES (?, ?, ?)`;
-    let dataZipcode =[district_code, dhlZipcode, zipcode];
-    /************************************************************************************/
     return new Promise(function(resolve, reject) {
-      db.query(selectAddress, dataAddress, (errorAddress, resultAddress) => {
-        if(errorAddress==null) {
-          if(resultAddress.length > 0) {
-            db.query(updateDistrict, dataUpdateDistrict, (errorDistrict, resultDistrict) => {
-              if(errorDistrict == null){
-                if(resultDistrict.affectedRows > 0){
-                  db.query(updateAmphur, dataUpdateAmphur, (errorAmphur, resultAmphur) => {
-                    if(errorAmphur == null){
-                      if(resultAmphur.affectedRows > 0){
-                        db.query(updateZipcode, dataUpdateZipcode, (errorZipcode, resultZipcode) => {
-                          if(errorZipcode == null){
-                            if(resultZipcode.affectedRows > 0){
-                              resolve(true);
-                            } else {
-                              resolve(false);
-                            }
-                          } else {
-                            resolve(false);
-                          }
-                        });
-                      } else {
-                        resolve(false);
-                      }
-                    } else {
-                      resolve(false);
-                    }
-                  });
+      db.query(selectDistrict, [district_id], (error, result) => {
+        if(error == null){
+          if(result.length > 0){
+            db.query(updateDistrict, dataUpdateDistrict, (errorUpdate, resultUpdate) => {
+              if(errorUpdate == null){
+                if(resultUpdate.affectedRows > 0){
+                  resolve(true);
                 } else {
                   resolve(false);
                 }
@@ -819,30 +776,103 @@ module.exports = {
               }
             });
           } else {
-            db.query(saveDistrict, dataDistrict, (errorDistrict, resultDistrict) => {
-              if(errorDistrict == null){
-                if(resultDistrict.affectedRows > 0){
-                  db.query(saveAmphur, dataAmphur, (errorAmphur, resultAmphur) => {
-                    if(errorAmphur == null){
-                      if(resultAmphur.affectedRows > 0){
-                        db.query(saveZipcode, dataZipcode, (errorZipcode, resultZipcode) => {
-                          if(errorZipcode == null){
-                            if(resultZipcode.affectedRows > 0){
-                              resolve(true);
-                            } else {
-                              resolve(false);
-                            }
-                          } else {
-                            resolve(false);
-                          }
-                        });
-                      } else {
-                        resolve(false);
-                      }
-                    } else {
-                      resolve(false);
-                    }
-                  });
+            db.query(saveDistrict, dataDistrict, (errorSave, resultSave) => {
+              if(errorSave == null){
+                if(resultSave.affectedRows > 0){
+                  resolve(true);
+                } else {
+                  resolve(false);
+                }
+              } else {
+                resolve(false);
+              }
+            });
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
+  saveAmphurFlash:(db, address, newAddress)=>{
+    let amphur_id = address.amphur_id;
+    let amphur_code = address.AMPHUR_CODE;
+    let amphur_name = newAddress.amphur_name;
+    let province_id = newAddress.province_info.PROVINCE_ID;
+    let geo_id = address.GEO_ID;
+    let selectAmphur = `SELECT * FROM postinfo_amphur_flash WHERE AMPHUR_ID=?`;
+
+    let updateAmphur = `UPDATE postinfo_amphur_flash SET AMPHUR_ID=?, AMPHUR_NAME=?, PROVINCE_ID=? WHERE AMPHUR_ID=?`;
+    let dataUpdateAmphur = [amphur_id, amphur_name, parseInt(province_id), amphur_id];
+
+    let saveAmphur= `INSERT INTO postinfo_amphur_flash(AMPHUR_ID, AMPHUR_CODE, AMPHUR_NAME, GEO_ID, PROVINCE_ID) VALUES (?, ?, ?, ?, ?)`;
+    let dataAmphur =[amphur_id, amphur_code, amphur_name, geo_id, parseInt(province_id)];
+    return new Promise(function(resolve, reject) {
+      db.query(selectAmphur, [amphur_id], (error, result) => {
+        if(error == null){
+          if(result.length > 0){
+            db.query(updateAmphur, dataUpdateAmphur, (errorUpdate, resultUpdate) => {
+              if(errorUpdate == null){
+                if(resultUpdate.affectedRows > 0){
+                  resolve(true);
+                } else {
+                  resolve(false);
+                }
+              } else {
+                resolve(false);
+              }
+            });
+          } else {
+            db.query(saveAmphur, dataAmphur, (errorSave, resultSave) => {
+              if(errorSave == null){
+                if(resultSave.affectedRows > 0){
+                  resolve(true);
+                } else {
+                  resolve(false);
+                }
+              } else {
+                resolve(false);
+              }
+            });
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
+  saveZipcodeFlash:(db, address, newAddress)=>{
+    let district_code = address.DISTRICT_CODE;
+    let zipcode = newAddress.zipcode;
+    let dhlZipcode = address.br_zipcode;
+
+    let selectZipcode = `SELECT * FROM postinfo_zipcodes_flash WHERE district_code=? AND dhl_zipcode=?`;
+
+    let updateZipcode = `UPDATE postinfo_zipcodes_flash SET district_code=?, zipcode=? WHERE district_code=? AND dhl_zipcode=?`;
+    let dataUpdateZipcode = [district_code, zipcode, district_code, dhlZipcode];
+
+    let saveZipcode= `INSERT INTO postinfo_zipcodes_flash(district_code, dhl_zipcode, zipcode) VALUES (?, ?, ?)`;
+    let dataZipcode =[district_code, dhlZipcode, zipcode];
+    return new Promise(function(resolve, reject) {
+      db.query(selectZipcode, [district_code, dhlZipcode], (error, result) => {
+        if(error == null){
+          if(result.length > 0){
+            db.query(updateZipcode, dataUpdateZipcode, (errorUpdate, resultUpdate) => {
+              if(errorUpdate == null){
+                if(resultUpdate.affectedRows > 0){
+                  resolve(true);
+                } else {
+                  resolve(false);
+                }
+              } else {
+                resolve(false);
+              }
+            });
+          } else {
+            db.query(saveZipcode, dataZipcode, (errorSave, resultSave) => {
+              if(errorSave == null){
+                if(resultSave.affectedRows > 0){
+                  resolve(true);
                 } else {
                   resolve(false);
                 }
@@ -905,6 +935,27 @@ module.exports = {
     JOIN billing b ON log_tool.billing_no = b.billing_no
     JOIN branch_info b_info ON b.branch_id = b_info.branch_id
     WHERE (time_to_system >=? AND time_to_system < ?)`;
+    var data = [currentDay, nextDay];
+
+    return new Promise(function(resolve, reject) {
+      db.query(sql, data, (err, results) => {
+        if (err === null) {
+          if (results.length <= 0) {
+            resolve(false);
+          } else {
+            resolve(results);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
+  listCapture: (db, dateCheck) => {
+    var currentDay = moment(dateCheck + " 00:00:00").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+    var nextDay = moment(currentDay).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+
+    var sql = `SELECT phone_number, barcode FROM parcel_capture_data WHERE record_created_at >= ? AND record_created_at < ?`;
     var data = [currentDay, nextDay];
 
     return new Promise(function(resolve, reject) {

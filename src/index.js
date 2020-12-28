@@ -713,28 +713,40 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
       let tracking = req.body.tracking;
       let address = req.body.previous_value;
       let newAddress = req.body.current_value;
-      parcelServices.saveAddressFlash(db, address, newAddress).then(function(resultSaveAddress) {
-          if (!resultSaveAddress) {
-            return res.json({ status: "ERROR_CANNOT_SAVE_ADDRESS" });
-          } else {
-            parcelServices.updateReceiverInfo(db, tracking, newAddress).then(result => {
-                if (result) {
-                  var info = {
-                    tracking: tracking,
-                    status: "ready_to_booking"
-                  };
-                  console.log("send to exchange checked-ready = %s", tracking);
-                  amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.checked-ready", "", Buffer.from(JSON.stringify(info)), { persistent: true });
-                  console.log("sent to exchange checked-ready = %s", tracking);
-
-                  return res.json({ status: "SUCCESS" });
+      parcelServices.saveDistrictFlash(db, address, newAddress).then(function(resultDistrict) {
+        if(!resultDistrict){
+          return res.json({ status: "ERROR_CANNOT_SAVE_DISTRICT" });
+        } else {
+          parcelServices.saveAmphurFlash(db, address, newAddress).then(function(resultAmphur) {
+            if(!resultAmphur){
+              return res.json({ status: "ERROR_CANNOT_SAVE_AMPHUR" });
+            } else {
+              parcelServices.saveZipcodeFlash(db, address, newAddress).then(function(resultZipcode) {
+                if(!resultZipcode){
+                  return res.json({ status: "ERROR_CANNOT_SAVE_ZIPCODE" });
                 } else {
-                  return res.json({
-                    status: "ERROR_CANNOT_UPDATE_RECEIVER_INFO"
+                  parcelServices.updateReceiverInfo(db, tracking, newAddress).then(result => {
+                    if (result) {
+                      var info = {
+                        tracking: tracking,
+                        status: "ready_to_booking"
+                      };
+                      console.log("send to exchange checked-ready = %s", tracking);
+                      amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.checked-ready", "", Buffer.from(JSON.stringify(info)), { persistent: true });
+                      console.log("sent to exchange checked-ready = %s", tracking);
+    
+                      return res.json({ status: "SUCCESS" });
+                    } else {
+                      return res.json({
+                        status: "ERROR_CANNOT_UPDATE_RECEIVER_INFO"
+                      });
+                    }
                   });
                 }
               });
-          }
+            }
+          });
+        }
       });
     }
   });
@@ -966,6 +978,17 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
   app.get("/log-daily-qlchecker", (req, res) => {
     let dateCheck = req.query.date_check;
     parcelServices.logDailyQlChecker(db, dateCheck).then(function(data) {
+      if (data == false) {
+        res.json([]);
+      } else {
+        res.json(data);
+      }
+    });
+  });
+
+  app.get("/daily-capture", (req, res) => {
+    let dateCheck = req.query.date_check;
+    parcelServices.listCapture(db, dateCheck).then(function(data) {
       if (data == false) {
         res.json([]);
       } else {
