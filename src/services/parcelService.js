@@ -726,7 +726,7 @@ module.exports = {
     });
   },
   updateStatusReceiver: (db, tracking) => {
-    let updateReceiver = `UPDATE billing_receiver_info SET status=? WHERE tracking=? AND status is null`;
+    let updateReceiver = `UPDATE billing_receiver_info SET status=? WHERE tracking=?`;
     let dataReceiver = ["ready", tracking];
 
     return new Promise(function(resolve, reject) {
