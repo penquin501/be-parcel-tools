@@ -725,26 +725,26 @@ module.exports = {
       });
     });
   },
-  updateStatusReceiver: (db, tracking) => {
-    let updateReceiver = `UPDATE billing_receiver_info SET status=? WHERE tracking=?`;
-    let dataReceiver = ["ready", tracking];
+  // updateStatusReceiver: (db, status, tracking) => {
+  //   let updateReceiver = `UPDATE billing_receiver_info SET status=? WHERE tracking=?`;
+  //   let dataReceiver = ["ready", tracking];
 
-    return new Promise(function(resolve, reject) {
-      db.query(updateReceiver, dataReceiver, (errorUpdateStatus, resultUpdateStatus) => {
-        if(errorUpdateStatus==null) {
-          if(resultUpdateStatus.affectedRows > 0) {
-            resolve(true);
-          } else {
-            console.log("cannot update receiver status to ready = %s",tracking);
-            resolve(false);
-          }
-        } else {
-          console.log("error update receiver status = %s (%s)", tracking, errorUpdateStatus);
-          resolve(false);
-        }
-      });
-    });
-  },
+  //   return new Promise(function(resolve, reject) {
+  //     db.query(updateReceiver, dataReceiver, (errorUpdateStatus, resultUpdateStatus) => {
+  //       if(errorUpdateStatus==null) {
+  //         if(resultUpdateStatus.affectedRows > 0) {
+  //           resolve(true);
+  //         } else {
+  //           console.log("cannot update receiver status to ready = %s", tracking);
+  //           resolve(false);
+  //         }
+  //       } else {
+  //         console.log("error update receiver status = %s (%s)", tracking, errorUpdateStatus);
+  //         resolve(false);
+  //       }
+  //     });
+  //   });
+  // },
   saveDistrictFlash:(db, address, newAddress)=>{
     let district_id = address.district_id;
     let district_code = address.DISTRICT_CODE;

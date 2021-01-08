@@ -210,7 +210,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
                     async function cancelItem() {
                       var listTracking = [];
                       await listCancelTracking.forEach(async (val,index) => {
-                        listTracking.push(parcelServices.updateStatusReceiver(db,'cancel',val.tracking));
+                        listTracking.push(parcelServices.updateStatusReceiver(db, 'cancel', val.tracking));
                       })
                       var resultArr = await Promise.all(listTracking);
                       return resultArr;
@@ -248,7 +248,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
                   async function cancelItem() {
                     var listTracking = [];
                     await listCancelTracking.forEach(async (val,index) => {
-                      listTracking.push(parcelServices.updateStatusReceiver(db,'cancel',val.tracking));
+                      listTracking.push(parcelServices.updateStatusReceiver(db, 'cancel', val.tracking));
                     })
                     var resultArr = await Promise.all(listTracking);
                     return resultArr;
@@ -385,8 +385,8 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
                 return res.json({ status: "ERROR", reason: "tracking_not_available" });
               } else {
                 /* start process relabel */
-                parcelServices.updateStatusReceiver(db,'relabel',billingInfo.tracking).then(resultUpdateStatus => {
-                  if(resultUpdateStatus !== false){
+                parcelServices.updateStatusReceiver(db, 'relabel', billingInfo.tracking).then(resultUpdateStatus => {
+                  if(resultUpdateStatus !== false) {
                     parcelServices.selectBillingInfo(db, billingInfo.billing_no).then(resultBilling => {
                         createBillingRelabel(resultBilling, billingInfo, currentValue, causeType, reason, remark).then(resultCreateBilling => {
                           if (resultCreateBilling !== false) {
@@ -1091,7 +1091,7 @@ Promise.all([initDb(),initAmqp()]).then((values)=> {
       return res.send(401, 'Unauthorized');
     } else {
       let tracking = req.body.tracking;
-      parcelServices.updateStatusReceiver(db,null,tracking).then(function(resultUpdateStatus) {
+      parcelServices.updateStatusReceiver(db, null, tracking).then(function(resultUpdateStatus) {
         if(resultUpdateStatus !== false){
           var data = {
             tracking: tracking.toUpperCase(),
