@@ -2,7 +2,7 @@
   <div class="container" style="margin-top: 60px;">
     <div class="search">
       <b style="font-size:18px;">กรุณาใส่เลขที่บิล :</b>
-      <input maxlength="30" v-model="billingInput" autocomplete="false" style="width: 214px;"/>
+      <input maxlength="30" v-model="billingInput" autocomplete="false" style="width: 214px;" />
       <button v-on:click="getData" type="button">Search</button>
     </div>
 
@@ -53,7 +53,7 @@
               <th style="text-align:center; width: 5%;border-top: 1px solid;">สถานะ</th>
               <th style="text-align:center; width: 5%;border-top: 1px solid; display:none">
                 เลือก
-                <input type="checkbox" @click="selectAll" v-model="allSelected" disabled/>
+                <input type="checkbox" @click="selectAll" v-model="allSelected" disabled />
               </th>
             </tr>
             <tr v-for="(item) in billingItem" v-bind:key="item.id">
@@ -66,14 +66,14 @@
               <td style="text-align: center;">{{ item.phone }}</td>
               <td style="text-align: center;">{{ item.status }}</td>
               <td style="text-align: center; display:none">
-                <input type="checkbox" :value="item" v-model="selectItem" @click="select" disabled/>
+                <input type="checkbox" :value="item" v-model="selectItem" @click="select" disabled />
               </td>
               <!-- <td v-if="item.status != 'cancel'" style="text-align: center;">
                 <input type="checkbox" :value="item" v-model="selectItem" @click="select" />
               </td>
               <td v-else style="text-align: center;">
                 <input type="checkbox" :value="item" v-model="selectItem" @click="select" disabled />
-              </td> -->
+              </td>-->
             </tr>
           </table>
         </div>
@@ -158,7 +158,7 @@ export default {
         this.resetData();
       } else {
         axios
-          .get(this.url+"/check/info/billing?billing=" + this.billingInput)
+          .get(this.url + "/check/info/billing?billing=" + this.billingInput)
           .then(response => {
             if (response.data.status == "SUCCESS") {
               this.responseData = response.data.data;
@@ -202,34 +202,34 @@ export default {
           });
       }
     },
-    resetData(){
-      this.billingInput="";
-      this.billingNo={};
-      this.countTracking= 0;
-      this.sum= 0;
-      this.billingItem=[];
-      this.previous_value= {};
-      this.billingInfo= {};
-      this.selectItem=[];
+    resetData() {
+      this.billingInput = "";
+      this.billingNo = {};
+      this.countTracking = 0;
+      this.sum = 0;
+      this.billingItem = [];
+      this.previous_value = {};
+      this.billingInfo = {};
+      this.selectItem = [];
 
-      this.sender_name= "";
-      this.reasonValue= "";
-      this.remark="";
-      this.billing_no="";
-      this.billingStatus="";
+      this.sender_name = "";
+      this.reasonValue = "";
+      this.remark = "";
+      this.billing_no = "";
+      this.billingStatus = "";
       this.status_lb = "";
       this.allSelected = false;
     },
     confirmData() {
       const options = { okLabel: "ตกลง" };
-      if(this.billing_no==""){
+      if (this.billing_no == "") {
         this.$dialogs.alert("กรุณาระบุเลขที่บิลเพื่อทำรายการ", options);
         this.resetData();
-      } else if (this.billingStatus=='cancel') {
+      } else if (this.billingStatus == "cancel") {
         this.$dialogs.alert("รายการนี้ได้ถูกยกเลิกไปแล้ว", options);
-      } else if(this.billingStatus=='pass'){
+      } else if (this.billingStatus == "pass") {
         this.$dialogs.alert("รายการนี้กำลังถูกส่งข้อมูลไปยัง server หลัก กรุณารอ 2-3 นาที", options);
-      } else if(this.selectItem.length<=0){
+      } else if (this.selectItem.length <= 0) {
         this.$dialogs.alert("กรุณาเลือกรายการที่ต้องการยกเลิก", options);
       } else if (this.reasonValue == "") {
         this.$dialogs.alert("กรุณาระบุ เหตุผล", options);
@@ -238,12 +238,7 @@ export default {
       } else if (this.remark.length < 25) {
         this.$dialogs.alert("กรุณากรอกรายละเอียดเพิ่มเติม ให้ชัดเจน", options);
       } else {
-        let moduleName="";
-        if(this.selectItem.length == this.billingItem.length){
-          moduleName="cancel_billing";
-        } else {
-          moduleName="cancel_tracking";
-        }
+        let moduleName = this.selectItem.length == this.billingItem.length ? "cancel_billing" : "cancel_tracking";
 
         var dataConfirm = {
           billingNo: this.billing_no,
@@ -261,27 +256,32 @@ export default {
           user: this.$session.get("session_username"),
           moduleName: moduleName
         };
-        axios.post(this.url+"/tools/void-billing", dataConfirm).then(response => {
+        axios
+          .post(this.url + "/tools/void-billing", dataConfirm)
+          .then(response => {
             if (response.data.status == "SUCCESS") {
-              let billingNo=response.data.billingNo;
-              if(billingNo!==""){
+              let billingNo = response.data.billingNo;
+              if (billingNo !== "") {
                 // const optionsDialog = {title: 'รายการที่คุณเลือกได้ถูกยกเลิกแล้ว', cancelLabel: 'ยกเลิก', okLabel: "ตกลง"}
-                const optionsDialog = {title: 'รายการที่คุณเลือกได้ถูกยกเลิกแล้ว', okLabel: "ตกลง"}
-                this.$dialogs.confirm('เลขที่บิลใหม่...'+ billingNo, optionsDialog)
-                .then(res => {
-                  // console.log(res) // {ok: true|false|undefined}
-                  if(res){
-                    this.$router.push("/");
-                  } else {
-                    this.$router.push("/");
-                  }
-                })
+                const optionsDialog = {
+                  title: "รายการที่คุณเลือกได้ถูกยกเลิกแล้ว",
+                  okLabel: "ตกลง"
+                };
+                this.$dialogs.confirm("เลขที่บิลใหม่..." + billingNo, optionsDialog)
+                  .then(res => {
+                    // console.log(res) // {ok: true|false|undefined}
+                    if (res) {
+                      this.$router.push("/");
+                    } else {
+                      this.$router.push("/");
+                    }
+                  });
               } else {
                 this.$dialogs.alert("ยกเลิกรายการทั้งหมดแล้ว", options);
                 this.$router.push("/");
               }
             } else {
-              this.$dialogs.alert("ไม่สามารถยกเลิกรายการได้ เนื่องจาก..."+response.data.reason, options);
+              this.$dialogs.alert("ไม่สามารถยกเลิกรายการได้ เนื่องจาก..." + response.data.reason, options);
               this.$router.push("/");
             }
           })

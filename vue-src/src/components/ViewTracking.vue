@@ -8,20 +8,16 @@
         </div>
         <div class="col-ms-3 col-sm-3 col-xs-3">
           <div class="search">
-            <input v-model="billingSearch" autocomplete="false" style="margin-top: 0px;" />
+            <input v-model="billingSearch" autocomplete="false" style="margin-top: 0px;"/>
           </div>
         </div>
         <div class="col-ms-3 col-sm-3 col-xs-3"></div>
       </div>
-       </div>
-        <div class="row">
-         <div class="col-ms-9 col-sm-9 col-xs-9"></div>
-          <div class="col-ms-2 col-sm-2 col-xs-2" style="text-align:right;">
-          <label style="margin-top: 5px;">Refresh</label>
-        </div>
-        <div class="col-ms-1 col-sm-1 col-xs-1" style="margin-bottom: 5px;">
-          <button class="button-re"  v-on:click="getData()"><i class="fa fa-refresh" aria-hidden="true"></i></button>
-        </div>
+    </div>
+    <div class="row">
+      <div class="col-ms-9 col-sm-9 col-xs-9"></div>
+      <div class="col-ms-2 col-sm-2 col-xs-2" style="text-align: right;"><label style="margin-top: 5px;">Refresh</label></div>
+      <div class="col-ms-1 col-sm-1 col-xs-1" style="margin-bottom: 5px;"><button class="button-re" v-on:click="getData()"><i class="fa fa-refresh" aria-hidden="true"></i></button></div>
 
       <table class="table-detail">
         <tr>
@@ -38,7 +34,7 @@
           <th style="text-align:center; width: 5%;">วัน/เวลา DHL booking</th>
         </tr>
         <tr v-bind:key="item.id" v-for="item in filteredResources">
-          <td v-if="item.booking_status != 100" style="text-align: center;"> <a href="#" v-on:click="getTracking(item.tracking)">{{ item.tracking }}</a></td>
+          <td v-if="item.booking_status != 100" style="text-align: center;"><a href="#" v-on:click="getTracking(item.tracking)">{{ item.tracking }}</a></td>
           <td v-else style="text-align: center;">{{ item.tracking }}</td>
           <td style="text-align: center;">{{ item.alias_size }}/{{ item.size_price }}</td>
           <td style="text-align: center;">{{ item.bi_parcel_type }}/{{ item.br_parcel_type }}</td>
@@ -88,8 +84,7 @@ export default {
     },
     getData() {
       const options = { okLabel: "ตกลง" };
-      axios
-        .get(this.url+"/list-tracking-bill?billing_no=" + this.billing_no)
+      axios.get(this.url + "/list-tracking-bill?billing_no=" + this.billing_no)
         .then(response => {
           if (response.data.length === 0) {
             this.$dialogs.alert("ไม่พบข้อมูล", options);

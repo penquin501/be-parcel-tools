@@ -1,6 +1,6 @@
 <template>
   <div style="margin-top: 60px;">
-    <div class="container" style="overflow-x:auto;">
+    <div class="container" style="overflow-x: auto;">
       <div class="row">
         <div class="col-ms-3 col-sm-3 col-xs-3"></div>
         <div class="col-ms-3 col-sm-3 col-xs-3">
@@ -16,7 +16,7 @@
 
       <div class="row">
         <div class="col-ms-9 col-sm-9 col-xs-9"></div>
-        <div class="col-ms-2 col-sm-2 col-xs-2" style="text-align:right;">
+        <div class="col-ms-2 col-sm-2 col-xs-2" style="text-align: right;">
           <label style="margin-top: 5px;">Refresh</label>
         </div>
         <div class="col-ms-1 col-sm-1 col-xs-1" style="margin-bottom: 5px;">
@@ -79,29 +79,21 @@ export default {
   },
   methods: {
     getTracking(uid) {
-      window.open(
-        // "https://app.my945capture.com/v2/api/parcel-capture/tasks/manual/pick/" +
-        // "https://key.my945capture.com/v2/api/parcel-capture/tasks/manual/pick/" +tracking
-        "https://key.my945capture.com/parcel-capture/fill/" + uid
-      );
+      window.open("https://key.my945capture.com/parcel-capture/fill/" + uid);
     },
     getListSkipTracking() {
       const options = { okLabel: "ตกลง" };
-      axios
-        .get(
-          // "https://app.my945capture.com/v2/api/parcel-capture/tasks/list-priority-reason"
-          "https://key.my945capture.com/v2/api/parcel-capture/tasks/list-priority-reason"
-        )
-        .then(response => {
-          if (response.data.status == "ok") {
-            this.listSkipTracking = response.data.results;
-          } else {
-            this.$dialogs.alert("ไม่พบข้อมูล", options);
-          }
-        })
-        .catch(function(error) {
-          console.log(error);
-        });
+      axios.get("https://key.my945capture.com/v2/api/parcel-capture/tasks/list-priority-reason")
+      .then(response => {
+        if (response.data.status == "ok") {
+          this.listSkipTracking = response.data.results;
+        } else {
+          this.$dialogs.alert("ไม่พบข้อมูล", options);
+        }
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
     }
   },
   computed: {

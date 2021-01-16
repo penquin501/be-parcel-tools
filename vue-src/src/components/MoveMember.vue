@@ -31,10 +31,7 @@
               </tr>
               <tr>
                 <td style="width: 15%;">สถานะ:</td>
-                <td style="width: 25%;" v-for="(item) in listStatus" v-bind:key="item.id">
-                  <input type="radio" :value="item.value" v-model="selectedStatus" />
-                  {{ item.name }}
-                </td>
+                <td style="width: 25%;" v-for="(item) in listStatus" v-bind:key="item.id"><input type="radio" :value="item.value" v-model="selectedStatus" />{{ item.name }}</td>
                 <td style="width: 15%;"></td>
                 <td style="width: 25%;"></td>
               </tr>
@@ -90,10 +87,7 @@ export default {
       if (this.memberInput == "") {
         this.$dialogs.alert("กรุณาใส่เลขสมาชิกให้ถูกต้อง", options);
       } else {
-        axios
-          .get(
-            this.url945 + "/check/member-info?memberId=" + this.memberInput.trim()
-          )
+        axios.get(this.url945 + "/check/member-info?memberId=" + this.memberInput.trim())
           .then(response => {
             if (response.data.status == "SUCCESS") {
               var memberInfo = response.data.memberInfo;
@@ -165,7 +159,6 @@ export default {
           options
         );
       } else {
-
         var moduleName = "move_member";
         var dataConfirm = {
           previousValue: this.memberInfo,
@@ -178,20 +171,20 @@ export default {
           moduleName: moduleName
         };
         // console.log(JSON.stringify(dataConfirm));
-          axios
-            .post("/tools/move-member-info", dataConfirm)
-            .then(response => {
-              if (response.data.status == "SUCCESS") {
-                this.$dialogs.alert("ย้ายเลขสมาชิก : "+response.data.memberInfo.member_id+" ไปยัง "+response.data.memberInfo.merchantname+" เรียบร้อยแล้ว", options);
-                this.$router.push("/");
-              } else {
-                this.$dialogs.alert("ไม่สามารถย้ายเลขสมาชิกได้ เนื่องจาก..." +response.data.reason,options);
-                this.$router.push("/");
-              }
-            })
-            .catch(function(error) {
-              console.log(error);
-            });
+        axios
+          .post("/tools/move-member-info", dataConfirm)
+          .then(response => {
+            if (response.data.status == "SUCCESS") {
+              this.$dialogs.alert("ย้ายเลขสมาชิก : " + response.data.memberInfo.member_id + " ไปยัง " + response.data.memberInfo.merchantname + " เรียบร้อยแล้ว", options);
+              this.$router.push("/");
+            } else {
+              this.$dialogs.alert("ไม่สามารถย้ายเลขสมาชิกได้ เนื่องจาก..." + response.data.reason, options);
+              this.$router.push("/");
+            }
+          })
+          .catch(function(error) {
+            console.log(error);
+          });
       }
     },
     changeDoubleSix2Zero() {

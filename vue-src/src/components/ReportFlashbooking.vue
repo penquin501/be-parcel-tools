@@ -18,7 +18,7 @@
         <div class="col-ms-2 col-sm-2 col-xs-2" style="text-align: right; margin-top: 15px;">
           <label style="margin-top: 5px;">Refresh</label>
         </div>
-        <div class="col-ms-1 col-sm-1 col-xs-1" style="margin-bottom: 5px; margin-top: 15px;padding-left: 0px;padding-right: 0px;">
+        <div class="col-ms-1 col-sm-1 col-xs-1" style="margin-bottom: 5px; margin-top: 15px; padding-left: 0px; padding-right: 0px;">
           <button class="button-re" v-on:click="getData()">
             <i class="fa fa-refresh" aria-hidden="true"></i>
           </button>
@@ -35,11 +35,7 @@
           <th style="text-align:center;">record_at</th>
         </tr>
         <tr v-for="(item, index) in filteredResources" v-bind:key="item.id">
-          <td style="text-align: center;">
-            <router-link
-              :to="{ name: 'ReportFlash', params: { tracking: filteredResources[index].tracking, reasonCode: item.reason_code }}"
-            >{{ item.tracking }}</router-link>
-          </td>
+          <td style="text-align: center;"><router-link :to="{ name: 'ReportFlash', params: { tracking: filteredResources[index].tracking, reasonCode: item.reason_code }}">{{ item.tracking }}</router-link></td>
           <td style="text-align: center;">{{ item.code }}</td>
           <td style="text-align: center;">{{ item.message }}</td>
           <td style="text-align: center;">{{ item.reason_code }}</td>

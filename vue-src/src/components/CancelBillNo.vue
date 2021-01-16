@@ -40,9 +40,9 @@
           </table>
           <div style="height: 20px;"></div>
           <!-- <div> -->
-            <table class="line-table" border="1">
-              <tr>
-                <th style="text-align:center; width: 10%;">Tracking</th>
+          <table class="line-table" border="1">
+            <tr>
+              <th style="text-align:center; width: 10%;">Tracking</th>
               <th style="text-align:center; width: 10%;">ขนาดพัสดุ</th>
               <th style="text-align:center; width: 10%;">ราคาพัสดุ</th>
               <th style="text-align:center; width: 10%;">ประเภทพัสดุ</th>
@@ -51,25 +51,38 @@
               <th style="text-align:center; width: 5%;">เบอร์ผู้รับ</th>
               <th style="text-align:center; width: 5%;">สถานะ</th>
               <th style="text-align:center; width: 5%;">เลือก</th>
-                <!-- <th style="text-align:center; width: 5%">เลือก<input type="checkbox" @click="selectAll" v-model="allSelected"></th> -->
-              </tr>
-              <tr v-for="(item) in billingItem" v-bind:key="item.id">
-                <td style="text-align: center;">{{ item.tracking }}</td>
-                <td style="text-align: center;">{{ item.alias_size }}</td>
-                <td style="text-align: center;">{{ item.size_price }}</td>
-                <td style="text-align: center;">{{ item.parcel_type }}</td>
-                <td style="text-align: center;">{{ item.cod_value }}</td>
-                <td style="text-align: center;">{{ item.receiver_name }}</td>
-                <td style="text-align: center;">{{ item.phone }}</td>
-                <td style="text-align: center;">{{ item.status }}</td>
-                <td v-if="item.status != 'cancel'" style="text-align: center;">
-                  <input type="checkbox" :value="item" v-model="selectItem" @click="select" style="width: 20px;"/>
-                </td>
-                <td v-else style="text-align: center;">
-                  <input type="checkbox" :value="item" v-model="selectItem" @click="select" disabled style="width: 20px;"/>
-                </td>
-              </tr>
-            </table>
+              <!-- <th style="text-align:center; width: 5%">เลือก<input type="checkbox" @click="selectAll" v-model="allSelected"></th> -->
+            </tr>
+            <tr v-for="(item) in billingItem" v-bind:key="item.id">
+              <td style="text-align: center;">{{ item.tracking }}</td>
+              <td style="text-align: center;">{{ item.alias_size }}</td>
+              <td style="text-align: center;">{{ item.size_price }}</td>
+              <td style="text-align: center;">{{ item.parcel_type }}</td>
+              <td style="text-align: center;">{{ item.cod_value }}</td>
+              <td style="text-align: center;">{{ item.receiver_name }}</td>
+              <td style="text-align: center;">{{ item.phone }}</td>
+              <td style="text-align: center;">{{ item.status }}</td>
+              <td v-if="item.status != 'cancel'" style="text-align: center;">
+                <input
+                  type="checkbox"
+                  :value="item"
+                  v-model="selectItem"
+                  @click="select"
+                  style="width: 20px;"
+                />
+              </td>
+              <td v-else style="text-align: center;">
+                <input
+                  type="checkbox"
+                  :value="item"
+                  v-model="selectItem"
+                  @click="select"
+                  disabled
+                  style="width: 20px;"
+                />
+              </td>
+            </tr>
+          </table>
           <!-- </div> -->
         </div>
       </div>
@@ -153,19 +166,16 @@ export default {
         this.$dialogs.alert("กรุณาใส่เลขที่บิลให้ถูกต้อง", options);
         this.resetData();
       } else {
-        axios.get(this.url+"/check/info/billing?billing=" + this.billingInput)
+        axios.get(this.url + "/check/info/billing?billing=" + this.billingInput)
           .then(response => {
             if (response.data.status == "SUCCESS") {
               this.responseData = response.data.data;
               this.billingInfo = this.responseData.billing;
               this.billingItem = this.responseData.billingItem;
-
               this.countTracking = this.responseData.billingItem.length;
-
               this.billing_no = this.billingInfo.billing_no;
               this.billingStatus = this.billingInfo.status;
               this.sum = this.billingInfo.total;
-
               this.sender_name = this.billingItem[0].sender_name;
 
               if (this.billingStatus == "complete") {
@@ -228,12 +238,7 @@ export default {
       } else if (this.remark.length < 25) {
         this.$dialogs.alert("กรุณากรอกรายละเอียดเพิ่มเติม ให้ชัดเจน", options);
       } else {
-        let moduleName = "";
-        if (this.selectItem.length == this.billingItem.length) {
-          moduleName = "cancel_billing";
-        } else {
-          moduleName = "cancel_tracking";
-        }
+        let moduleName = this.selectItem.length == this.billingItem.length ? "cancel_billing" : "cancel_tracking";
 
         var dataConfirm = {
           billingNo: this.billing_no,
@@ -251,8 +256,7 @@ export default {
           user: this.$session.get("session_username"),
           moduleName: moduleName
         };
-        axios
-          .post(this.url+"/tools/void-billing", dataConfirm)
+        axios.post(this.url + "/tools/void-billing", dataConfirm)
           .then(response => {
             if (response.data.status == "SUCCESS") {
               let billingNo = response.data.billingNo;

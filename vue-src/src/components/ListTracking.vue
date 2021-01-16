@@ -8,7 +8,7 @@
       <div class="col-md-4"></div>
     </div>
 
-    <section v-if="inMenu == 1  || inMenu == 2.5" class="table">
+    <section v-if="inMenu == 1 || inMenu == 2.5" class="table">
       <div class="row">
         <div class="col-ms-9 col-sm-9 col-xs-9"></div>
         <div class="col-ms-2 col-sm-2 col-xs-2" style="text-align:right;">
@@ -22,9 +22,7 @@
         <table class="table table-striped">
           <tbody style="text-align:center;">
             <tr v-for="(item, index) in listTracking" v-bind:key="item.id">
-              <router-link :to="{ name: 'CompareData', params: { tracking: listTracking[index].tracking }}">
-                <td>{{listTracking[index].branch_name}}({{ listTracking[index].total }})</td>
-              </router-link>
+              <router-link :to="{ name: 'CompareData', params: { tracking: listTracking[index].tracking }}"><td>{{listTracking[index].branch_name}}({{ listTracking[index].total }})</td></router-link>
             </tr>
           </tbody>
         </table>

@@ -69,10 +69,10 @@ export default {
     return {
       listTracking: [],
       phoneNumberKey: "",
-      priority:0,
+      priority: 0,
       trackingSeach: "",
-      n:0,
-      nModified:0,
+      n: 0,
+      nModified: 0,
       state: {
         isSending: true
       }
@@ -89,41 +89,31 @@ export default {
   },
   methods: {
     getTracking(tracking) {
-      window.open(
-        "https://key.my945capture.com/v2/api/parcel-capture/tasks/manual/pick/" +
-        // "http://127.0.0.1:8081/v2/api/parcel-capture/tasks/manual/pick/" +
-          tracking
-      );
+      window.open("https://key.my945capture.com/v2/api/parcel-capture/tasks/manual/pick/" + tracking);
     },
     getlistTracking() {
       const options = { okLabel: "ตกลง" };
-      axios
-        .get(
-          "https://key.my945capture.com/v2/api/parcel-capture/tasks/tracking/by-phone/" + this.phoneNumberKey+"/"+ parseInt(this.priority)
-          // "http://127.0.0.1:8081/v2/api/parcel-capture/tasks/tracking/by-phone/" + this.phoneNumberKey +"/"+ parseInt(this.priority)
-        )
-        .then(response => {
-          if (response.data.status == "ok") {
-            this.listTracking = response.data.results;
-          } else {
-            this.$dialogs.alert("ไม่พบข้อมูล", options);
-          }
-        })
-        .catch(function(error) {
-          console.log(error);
-        });
+      axios.get("https://key.my945capture.com/v2/api/parcel-capture/tasks/tracking/by-phone/" + this.phoneNumberKey + "/" + parseInt(this.priority))
+      .then(response => {
+        if (response.data.status == "ok") {
+          this.listTracking = response.data.results;
+        } else {
+          this.$dialogs.alert("ไม่พบข้อมูล", options);
+        }
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
     },
     skipTracking(uid) {
       const options = { okLabel: "ตกลง" };
-      axios
-        .get("https://key.my945capture.com/v2/api/parcel-capture/tasks/skip-by-tracking/"+uid)
-        // .get("http://127.0.0.1:8081/v2/api/parcel-capture/tasks/skip-by-tracking/"+uid)
-        .then(response => {
-          if(response.data.status=='ok' && response.data.result.nModified===1){
-            this.$dialogs.alert("skip tracking แล้ว", options);
-          } else {
-              this.$dialogs.alert("ไม่พบข้อมูล", options);
-          }
+      axios.get("https://key.my945capture.com/v2/api/parcel-capture/tasks/skip-by-tracking/" + uid)
+      .then(response => {
+        if (response.data.status == "ok" && response.data.result.nModified === 1) {
+          this.$dialogs.alert("skip tracking แล้ว", options);
+        } else {
+          this.$dialogs.alert("ไม่พบข้อมูล", options);
+        }
       })
       .catch(function(error) {
         console.log(error);

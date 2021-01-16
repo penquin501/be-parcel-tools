@@ -3,17 +3,10 @@
     <div class="container" style="overflow-x:auto;">
       <div class="row" style="margin-top: 68px;grid-gap: 10px;">
         <div class="col-2"></div>
-        <div
-          class="col-ms-4 col-sm-4 col-xs-4"
-          style="text-align:center; border: 1px solid #000; padding: 10px 30px;"
-        >
+        <div class="col-ms-4 col-sm-4 col-xs-4" style="text-align:center; border: 1px solid #000; padding: 10px 30px;">
           <div class="imgPart">
             <v-zoomer class="v-zoomer">
-              <img
-                :src="imgUrl"
-                style="object-fit: contain; width: 100%; height: 100%;"
-                :style="`transform: rotate(${rotation}deg);`"
-              />
+              <img :src="imgUrl" style="object-fit: contain; width: 100%; height: 100%;" :style="`transform: rotate(${rotation}deg);`"/>
             </v-zoomer>
             <div class="btnRotation">
               <button v-on:click="rotateLeft">
@@ -32,15 +25,15 @@
         >
           <div class="address">
             <b>Tracking</b>
-            <input style="text-align:left;" :disabled="true" v-model="tracking" />
+            <input style="text-align: left;" :disabled="true" v-model="tracking" />
             <b>ชื่อ</b>
-            <input maxlength="50" style="text-align:left;" v-model="receiver_name" />
+            <input maxlength="50" style="text-align: left;" v-model="receiver_name" />
             <b>โทรศัพท์</b>
-            <input maxlength="10" @keypress="isNumber($event)" style="text-align:left;" v-model="receiver_phone"/>
+            <input maxlength="10" @keypress="isNumber($event)" style="text-align: left;" v-model="receiver_phone" />
             <b>ตำบล</b>
-            <input style="text-align:left;" :placeholder="billingInfo.district_name" v-model="district_name" />
+            <input style="text-align: left;" :placeholder="billingInfo.district_name" v-model="district_name" />
             <b>อำเภอ</b>
-            <input style="text-align:left;" :placeholder="billingInfo.amphur_name"  v-model="amphur_name" />
+            <input style="text-align: left;" :placeholder="billingInfo.amphur_name" v-model="amphur_name" />
             <b>จังหวัด</b>
             <div class="search">
               <select class="select" style="margin-left: 0px; margin-right: 0px;" v-model="provinceInfo">
@@ -49,9 +42,9 @@
               </select>
             </div>
             <b>รหัสไปรษณีย์</b>
-            <input maxlength="5" @keypress="isNumber($event)" style="text-align:left;" v-model="zipcode"/>
+            <input maxlength="5" @keypress="isNumber($event)" style="text-align: left;" v-model="zipcode"/>
             <b>ที่อยู่</b>
-            <input style="text-align:left;" v-model="receiver_address" />
+            <input style="text-align: left;" v-model="receiver_address" />
 
             <div class="py-2 text-center">
               <button class="btn btn-primary" type="button" @click="submit">บันทึก</button>
@@ -70,11 +63,10 @@ export default {
   data: function() {
     return {
       date: new Date(),
-      billingInfo:"",
+      billingInfo: "",
       tracking: "",
       billing_no: "",
-      imgUrl:
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC",
+      imgUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC",
       rotation: 0,
       receiver_name: "",
       receiver_phone: "",
@@ -113,16 +105,12 @@ export default {
             this.receiver_name = this.billingInfo.receiver_name;
             this.receiver_phone = this.billingInfo.phone;
             this.receiver_address = this.billingInfo.receiver_address;
-            this.district_name =this.reasonCode == "dstDistrictName" ? "" : this.billingInfo.district_name;
+            this.district_name = this.reasonCode == "dstDistrictName" ? "" : this.billingInfo.district_name;
             this.amphur_name = this.reasonCode == "dstCityName" ? "" : this.billingInfo.amphur_name;
             this.zipcode = this.reasonCode == "dstPostalCode" ? "" : this.billingInfo.br_zipcode;
             this.getListProvince();
             this.imgCapture = response.data.imgCapture;
-            if (this.imgCapture == false) {
-              this.imgUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC";
-            } else {
-              this.imgUrl = this.imgCapture[0].image_url;
-            }
+            this.imgUrl = this.imgCapture == false ? "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC" : this.imgCapture[0].image_url;
           } else {
             this.$dialogs.alert("ไม่พบข้อมูล", options);
           }
@@ -163,7 +151,7 @@ export default {
         this.$dialogs.alert("กรุณาระบุ Tracking เพื่อทำรายการ", options);
       } else if (this.receiver_name == "" || this.receiver_name == undefined) {
         this.$dialogs.alert("กรุณาใส่ชื่อ-นามสกุลผู้รับให้ถูกต้อง", options);
-      } else if (this.receiver_name.indexOf(' ') == -1){
+      } else if (this.receiver_name.indexOf(" ") == -1) {
         this.$dialogs.alert("กรุณาใส่ชื่อ-นามสกุลผู้รับให้ครบถ้วน", options);
       } else if (this.receiver_address.trim() == "") {
         this.$dialogs.alert("กรุณาระบุ ที่อยู่ให้ถูกต้อง", options);
@@ -207,7 +195,7 @@ export default {
               this.$dialogs.alert("ข้อมูลได้ update เข้าระบบแล้ว", options);
               this.$router.push("/report-flash-booking");
             } else {
-              this.$dialogs.alert("ไม่สามารถแก้ไข ได้ เนื่องจาก..." + response.data.status, options);
+              this.$dialogs.alert("ไม่สามารถแก้ไข ได้ เนื่องจาก..." + response.data.status, ptions);
               this.$router.push("/");
             }
           })

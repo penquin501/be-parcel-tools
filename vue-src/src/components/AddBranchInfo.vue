@@ -1,10 +1,7 @@
 <template>
   <div class="container" style="margin-top: 60px;">
     <div style="text-align: center; margin-top: 100px;">
-      <b
-        style="font-size:18px;"
-        v-if="branch_id==0? msg='เพิ่มข้อมูลสาขา': msg='แก้ไขข้อมูลสาขา'"
-      >{{msg}}</b>
+      <b style="font-size: 18px;" v-if="branch_id==0? msg='เพิ่มข้อมูลสาขา': msg='แก้ไขข้อมูลสาขา'" >{{msg}}</b>
     </div>
     <div class="mycontent">
       <div class="left" style="border: 0px solid #000;"></div>
@@ -20,11 +17,7 @@
         </div>
         <div>
           <b>ตัวย่อ:</b>
-          <input
-            v-model="prefix_branch"
-            v-on:keypress="engOnly"
-            @input="prefix_branch = $event.target.value.toUpperCase()"
-          />
+          <input v-model="prefix_branch" v-on:keypress="engOnly" @input="prefix_branch = $event.target.value.toUpperCase()" />
         </div>
         <div>
           <b>ชื่อสาขา:</b>
@@ -32,11 +25,7 @@
         </div>
         <div>
           <b>สถานะ:</b>
-          <select
-            style="margin-left: 0px; margin-right: 0px;"
-            class="select"
-            v-model="branch_status"
-          >
+          <select style="margin-left: 0px; margin-right: 0px;" class="select" v-model="branch_status" >
             <option value="0" disabled="disabled" selected="selected">----- เลือก สถานะ -----</option>
             <option value="active">active</option>
             <option value="inactive">inactive</option>
@@ -147,13 +136,13 @@ export default {
             });
         } else if (this.action == "edit") {
           axios
-            .post("/branch//edit-branch",data)
+            .post("/branch//edit-branch", data)
             .then(response => {
-              if (response.data.status=="success") {
+              if (response.data.status == "success") {
                 this.$dialogs.alert("บันทึกข้อมูลสาขาเรียบร้อยแล้ว", options);
                 this.$router.push("/");
               } else {
-                this.$dialogs.alert("ไม่สามารถแก้ไขข้อมูลได้ เนื่องจาก..."+response.data.status, options);
+                this.$dialogs.alert("ไม่สามารถแก้ไขข้อมูลได้ เนื่องจาก..." + response.data.status, options);
               }
             })
             .catch(function(error) {

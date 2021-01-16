@@ -81,7 +81,11 @@
 
         <div>
           <b>ชื่อผู้รับ:</b>
-          <input :disabled="receiverFNameEdit" ref="receiverFNameEdit" v-model="receiver_first_name"/>
+          <input
+            :disabled="receiverFNameEdit"
+            ref="receiverFNameEdit"
+            v-model="receiver_first_name"
+          />
         </div>
         <div>
           <b>นามสกุลผู้รับ:</b>
@@ -90,11 +94,11 @@
 
         <div>
           <b>เบอร์โทรศัพท์ผู้รับ:</b>
-          <input maxlength="10" :disabled="receiverPhoneEdit" ref="receiverPhoneEdit" v-model="phone"/>
+          <input maxlength="10" :disabled="receiverPhoneEdit" ref="receiverPhoneEdit" v-model="phone" />
         </div>
         <div>
           <b>ที่อยู่ผู้รับ:</b>
-          <input :disabled="receiverAddressEdit" ref="receiverAddressEdit" v-model="receiver_address"/>
+          <input :disabled="receiverAddressEdit" ref="receiverAddressEdit" v-model="receiver_address" />
         </div>
         <div>
           <b>พิกัด:</b>
@@ -208,14 +212,11 @@ export default {
     getData() {
       this.emptyBox();
       const options = { okLabel: "ตกลง" };
-      axios
-        .get(
-          "/check/info/tracking?tracking=" + this.trackingInput.toUpperCase()
-        )
+      axios.get("/check/info/tracking?tracking=" + this.trackingInput.toUpperCase())
         .then(response => {
           if (response.data.status == "SUCCESS") {
             this.billingInfo = response.data.billingInfo;
-            this.billing_no = this.billingInfo[0].billing_no ? this.billingInfo[0].billing_no: "";
+            this.billing_no = this.billingInfo[0].billing_no ? this.billingInfo[0].billing_no : "";
             this.tracking = this.billingInfo[0].tracking;
             this.bi_parcel_type = this.billingInfo[0].bi_parcel_type;
             this.size_id = this.billingInfo[0].alias_size ? this.billingInfo[0].alias_size.toUpperCase() : "";
@@ -236,7 +237,7 @@ export default {
 
             this.previous_value = this.billingInfo;
 
-            this.location =this.billingInfo[0].district_name +" " + this.billingInfo[0].amphur_name + " " + this.billingInfo[0].province_name;
+            this.location = this.billingInfo[0].district_name + " " + this.billingInfo[0].amphur_name + " " + this.billingInfo[0].province_name;
             this.br_zipcode = this.billingInfo[0].br_zipcode;
             this.br_parcel_type = this.billingInfo[0].br_parcel_type;
 
@@ -331,7 +332,7 @@ export default {
         this.emptyBox();
         this.$dialogs.alert("กรุณาระบุ Tracking เพื่อทำรายการ", options);
       } else if (this.billing_no == "") {
-        this.$dialogs.alert("ไม่สามารถยกเลิกได้ เนื่องจากทางร้านยังไม่ได้ทำรายการ",options);
+        this.$dialogs.alert("ไม่สามารถยกเลิกได้ เนื่องจากทางร้านยังไม่ได้ทำรายการ", options);
       } else if (this.reasonValue == "") {
         this.$dialogs.alert("กรุณาระบุ เหตุผล", options);
       } else if (this.remark.trim() == "") {
@@ -341,10 +342,7 @@ export default {
       } else if (this.status == "cancel") {
         this.$dialogs.alert("รายการนี้ได้ถูกยกเลิกไปแล้ว", options);
       } else if (this.status == "success") {
-        this.$dialogs.alert(
-          "รายการนี้กำลังถูกส่งข้อมูลไปยัง server หลัก กรุณารอ 2-3 นาที",
-          options
-        );
+        this.$dialogs.alert("รายการนี้กำลังถูกส่งข้อมูลไปยัง server หลัก กรุณารอ 2-3 นาที", options);
       } else {
         if (this.selectValue == 1) {
           var data = {

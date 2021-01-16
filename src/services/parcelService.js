@@ -52,7 +52,7 @@ module.exports = {
       db.query(sql, data, (error, results, fields) => {
         if (error == null) {
           if (results.length > 0) {
-            let result = (results[0].image_url !== "" && results[0].image_url !== null)? results : false;
+            let result = results[0].image_url !== "" && results[0].image_url !== null ? results : false;
             resolve(result);
           } else {
             resolve(false);
@@ -179,10 +179,10 @@ module.exports = {
             results.forEach(value => {
               var item_valid = true;
               item_valid = isGenericValid(value, "branch_name", item_valid, (resultList = null), value.tracking);
-              // item_valid = isGenericValid(value,"branch_id",item_valid,resultList,value.tracking);
+              // item_valid = isGenericValid(value, "branch_id", item_valid, resultList, value.tracking);
               item_valid = isGenericValid(value, "tracking", item_valid, (resultList = null), value.tracking);
               item_valid = isGenericValid(value, "bi_type", item_valid, (resultList = null), value.tracking);
-              // item_valid = isGenericValid(value,"cod_value",item_valid,resultList,value.tracking);
+              // item_valid = isGenericValid(value, "cod_value", item_valid, resultList, value.tracking);
               item_valid = isGenericValid(value, "bi_zipcode", item_valid, (resultList = null), value.tracking);
               item_valid = isGenericValid(value, "br_type", item_valid, (resultList = null), value.tracking);
               item_valid = isGenericValid(value, "br_zipcode", item_valid, (resultList = null), value.tracking);
@@ -346,15 +346,15 @@ module.exports = {
     let sql = `UPDATE billing_receiver_info SET receiver_name=?, phone=?, receiver_address=?, status=? WHERE tracking=? AND status is null`;
     let data = [newAddress.receiver_name, newAddress.receiver_phone, newAddress.receiver_address, "ready", tracking];
 
-    let sqlLog = `UPDATE response_flash_log SET status=? WHERE tracking=?`;    
+    let sqlLog = `UPDATE response_flash_log SET status=? WHERE tracking=?`;
     let dataLog = [99, tracking];
     return new Promise(function(resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
-        if(error==null){
-          if(results.affectedRows > 0){
+        if (error == null) {
+          if (results.affectedRows > 0) {
             db.query(sqlLog, dataLog, (errorLog, resultsLog, fields) => {
-              if(errorLog==null){
-                if(resultsLog.affectedRows > 0){
+              if (errorLog == null) {
+                if (resultsLog.affectedRows > 0) {
                   resolve(true);
                 } else {
                   resolve(false);
@@ -396,7 +396,7 @@ module.exports = {
     let dataBillingItem = [zipcode, size_id, size_price, parcel_type, cod_value, tracking];
 
     let sqlReceiver = `UPDATE billing_receiver_info SET parcel_type=?, receiver_name=?, phone=?, receiver_address=?, district_id=?, district_name=?, amphur_id=?, amphur_name=?, province_id=?, province_name=?, zipcode=? WHERE tracking=?`;
-    let dataReceiver = [parcel_type, receiver_name, phone, address, district_id, district_name, amphur_id, amphur_name, province_id, province_name, zipcode, tracking];
+    let dataReceiver = [parcel_type, receiver_name, phone,address, district_id, district_name, amphur_id, amphur_name, province_id, province_name, zipcode, tracking];
 
     let sqlSizeItem = `SELECT size_price FROM billing_item WHERE billing_no=?`;
     let dataSizeItem = [billing_no];
@@ -404,34 +404,34 @@ module.exports = {
     let total = 0;
     return new Promise(function(resolve, reject) {
       db.query(sqlBillingItem, dataBillingItem, (error1, resultsItem, fields) => {
-          if (error1 === null) {
-            if (resultsItem.affectedRows > 0) {
-              db.query(sqlReceiver, dataReceiver, (error2, resultsReceiver, fields) => {
-                  if (error2 === null) {
-                    if (resultsReceiver.affectedRows > 0) {
-                      db.query(sqlSizeItem, dataSizeItem, (error, resultsSizeItem, fields) => {
-                          for (i = 0; i < resultsSizeItem.length; i++) {
-                            total += resultsSizeItem[i].size_price;
-                          }
-                          resolve(total);
-                      });
-                    } else {
-                      console.log("resultsReceiver", resultsReceiver);
-                      resolve(false);
+        if (error1 === null) {
+          if (resultsItem.affectedRows > 0) {
+            db.query(sqlReceiver, dataReceiver, (error2, resultsReceiver, fields) => {
+              if (error2 === null) {
+                if (resultsReceiver.affectedRows > 0) {
+                  db.query(sqlSizeItem, dataSizeItem, (error, resultsSizeItem, fields) => {
+                    for (i = 0; i < resultsSizeItem.length; i++) {
+                      total += resultsSizeItem[i].size_price;
                     }
-                  } else {
-                    console.log("error2", error2);
-                    resolve(false);
-                  }
-              });
-            } else {
-              console.log("resultsItem", resultsItem);
-              resolve(false);
-            }
+                    resolve(total);
+                  });
+                } else {
+                  console.log("resultsReceiver", resultsReceiver);
+                  resolve(false);
+                }
+              } else {
+                console.log("error2", error2);
+                resolve(false);
+              }
+            });
           } else {
-            console.log("error1", error1);
+            console.log("resultsItem", resultsItem);
             resolve(false);
           }
+        } else {
+          console.log("error1", error1);
+          resolve(false);
+        }
       });
     });
   },
@@ -445,7 +445,7 @@ module.exports = {
     });
   },
   updateResendBilling: (db, billing_no, status) => {
-    let sql = `UPDATE billing SET status='booked',prepare_raw_data=null WHERE billing_no=? AND status=?`;
+    let sql = `UPDATE billing SET status='booked', prepare_raw_data=null WHERE billing_no=? AND status=?`;
     let data = [billing_no, status];
     return new Promise(function(resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
@@ -708,7 +708,7 @@ module.exports = {
       });
     });
   },
-  bookingFlashReport: (db) => {
+  bookingFlashReport: db => {
     var sql = `SELECT * FROM response_flash_log WHERE status != ? AND status != ?`;
     var data = [100, 99];
     return new Promise(function(resolve, reject) {
@@ -725,27 +725,7 @@ module.exports = {
       });
     });
   },
-  // updateStatusReceiver: (db, status, tracking) => {
-  //   let updateReceiver = `UPDATE billing_receiver_info SET status=? WHERE tracking=?`;
-  //   let dataReceiver = ["ready", tracking];
-
-  //   return new Promise(function(resolve, reject) {
-  //     db.query(updateReceiver, dataReceiver, (errorUpdateStatus, resultUpdateStatus) => {
-  //       if(errorUpdateStatus==null) {
-  //         if(resultUpdateStatus.affectedRows > 0) {
-  //           resolve(true);
-  //         } else {
-  //           console.log("cannot update receiver status to ready = %s", tracking);
-  //           resolve(false);
-  //         }
-  //       } else {
-  //         console.log("error update receiver status = %s (%s)", tracking, errorUpdateStatus);
-  //         resolve(false);
-  //       }
-  //     });
-  //   });
-  // },
-  saveDistrictFlash:(db, address, newAddress)=>{
+  saveDistrictFlash: (db, address, newAddress) => {
     let district_id = address.district_id;
     let district_code = address.DISTRICT_CODE;
     let district_name = newAddress.district_name;
@@ -762,11 +742,11 @@ module.exports = {
     let dataDistrict = [district_id, district_code, district_name, amphur_id, parseInt(province_id), geo_id];
     return new Promise(function(resolve, reject) {
       db.query(selectDistrict, [district_id], (error, result) => {
-        if(error == null){
-          if(result.length > 0){
+        if (error == null) {
+          if (result.length > 0) {
             db.query(updateDistrict, dataUpdateDistrict, (errorUpdate, resultUpdate) => {
-              if(errorUpdate == null){
-                if(resultUpdate.affectedRows > 0){
+              if (errorUpdate == null) {
+                if (resultUpdate.affectedRows > 0) {
                   resolve(true);
                 } else {
                   resolve(false);
@@ -777,8 +757,8 @@ module.exports = {
             });
           } else {
             db.query(saveDistrict, dataDistrict, (errorSave, resultSave) => {
-              if(errorSave == null){
-                if(resultSave.affectedRows > 0){
+              if (errorSave == null) {
+                if (resultSave.affectedRows > 0) {
                   resolve(true);
                 } else {
                   resolve(false);
@@ -794,7 +774,7 @@ module.exports = {
       });
     });
   },
-  saveAmphurFlash:(db, address, newAddress)=>{
+  saveAmphurFlash: (db, address, newAddress) => {
     let amphur_id = address.amphur_id;
     let amphur_code = address.AMPHUR_CODE;
     let amphur_name = newAddress.amphur_name;
@@ -805,15 +785,15 @@ module.exports = {
     let updateAmphur = `UPDATE postinfo_amphur_flash SET AMPHUR_ID=?, AMPHUR_NAME=?, PROVINCE_ID=? WHERE AMPHUR_ID=?`;
     let dataUpdateAmphur = [amphur_id, amphur_name, parseInt(province_id), amphur_id];
 
-    let saveAmphur= `INSERT INTO postinfo_amphur_flash(AMPHUR_ID, AMPHUR_CODE, AMPHUR_NAME, GEO_ID, PROVINCE_ID) VALUES (?, ?, ?, ?, ?)`;
-    let dataAmphur =[amphur_id, amphur_code, amphur_name, geo_id, parseInt(province_id)];
+    let saveAmphur = `INSERT INTO postinfo_amphur_flash(AMPHUR_ID, AMPHUR_CODE, AMPHUR_NAME, GEO_ID, PROVINCE_ID) VALUES (?, ?, ?, ?, ?)`;
+    let dataAmphur = [amphur_id, amphur_code, amphur_name, geo_id, parseInt(province_id)];
     return new Promise(function(resolve, reject) {
       db.query(selectAmphur, [amphur_id], (error, result) => {
-        if(error == null){
-          if(result.length > 0){
+        if (error == null) {
+          if (result.length > 0) {
             db.query(updateAmphur, dataUpdateAmphur, (errorUpdate, resultUpdate) => {
-              if(errorUpdate == null){
-                if(resultUpdate.affectedRows > 0){
+              if (errorUpdate == null) {
+                if (resultUpdate.affectedRows > 0) {
                   resolve(true);
                 } else {
                   resolve(false);
@@ -824,8 +804,8 @@ module.exports = {
             });
           } else {
             db.query(saveAmphur, dataAmphur, (errorSave, resultSave) => {
-              if(errorSave == null){
-                if(resultSave.affectedRows > 0){
+              if (errorSave == null) {
+                if (resultSave.affectedRows > 0) {
                   resolve(true);
                 } else {
                   resolve(false);
@@ -841,7 +821,7 @@ module.exports = {
       });
     });
   },
-  saveZipcodeFlash:(db, address, newAddress)=>{
+  saveZipcodeFlash: (db, address, newAddress) => {
     let district_code = address.DISTRICT_CODE;
     let zipcode = newAddress.zipcode;
     let dhlZipcode = address.br_zipcode;
@@ -851,15 +831,15 @@ module.exports = {
     let updateZipcode = `UPDATE postinfo_zipcodes_flash SET district_code=?, zipcode=? WHERE district_code=? AND dhl_zipcode=?`;
     let dataUpdateZipcode = [district_code, zipcode, district_code, dhlZipcode];
 
-    let saveZipcode= `INSERT INTO postinfo_zipcodes_flash(district_code, dhl_zipcode, zipcode) VALUES (?, ?, ?)`;
-    let dataZipcode =[district_code, dhlZipcode, zipcode];
+    let saveZipcode = `INSERT INTO postinfo_zipcodes_flash(district_code, dhl_zipcode, zipcode) VALUES (?, ?, ?)`;
+    let dataZipcode = [district_code, dhlZipcode, zipcode];
     return new Promise(function(resolve, reject) {
       db.query(selectZipcode, [district_code, dhlZipcode], (error, result) => {
-        if(error == null){
-          if(result.length > 0){
+        if (error == null) {
+          if (result.length > 0) {
             db.query(updateZipcode, dataUpdateZipcode, (errorUpdate, resultUpdate) => {
-              if(errorUpdate == null){
-                if(resultUpdate.affectedRows > 0){
+              if (errorUpdate == null) {
+                if (resultUpdate.affectedRows > 0) {
                   resolve(true);
                 } else {
                   resolve(false);
@@ -870,8 +850,8 @@ module.exports = {
             });
           } else {
             db.query(saveZipcode, dataZipcode, (errorSave, resultSave) => {
-              if(errorSave == null){
-                if(resultSave.affectedRows > 0){
+              if (errorSave == null) {
+                if (resultSave.affectedRows > 0) {
                   resolve(true);
                 } else {
                   resolve(false);
@@ -1017,15 +997,15 @@ module.exports = {
       db.query(sqlItem, dataItem, (err_item, results_item) => {
         if (err_item == null) {
           db.query(sqlItemTemp, dataItemTemp, (err_item_temp, results_item_temp) => {
-              if (err_item_temp == null) {
-                var data = {
-                  billingItemTemp: results_item_temp,
-                  billingItem: results_item
-                };
-                resolve(data);
-              } else {
-                resolve(false);
-              }
+            if (err_item_temp == null) {
+              var data = {
+                billingItemTemp: results_item_temp,
+                billingItem: results_item
+              };
+              resolve(data);
+            } else {
+              resolve(false);
+            }
           });
         } else {
           resolve(false);
@@ -1044,15 +1024,15 @@ module.exports = {
       db.query(sqlReceiver, dataReceiver, (err_receiver, results_receiver) => {
         if (err_receiver == null) {
           db.query(sqlReceiverTemp, dataReceiverTemp, (err_receiver_temp, results_receiver_temp) => {
-              if (err_receiver_temp == null) {
-                var data = {
-                  receiverInfoTemp: results_receiver_temp,
-                  receiverInfo: results_receiver
-                };
-                resolve(data);
-              } else {
-                resolve(false);
-              }
+            if (err_receiver_temp == null) {
+              var data = {
+                receiverInfoTemp: results_receiver_temp,
+                receiverInfo: results_receiver
+              };
+              resolve(data);
+            } else {
+              resolve(false);
+            }
           });
         } else {
           resolve(false);
@@ -1064,90 +1044,88 @@ module.exports = {
     var sqlBilling = `SELECT user_id,mer_authen_level,member_code,carrier_id,billing_no,branch_id,img_url FROM billing WHERE billing_no= ? AND status='complete'`;
     var dataBilling = [billing_no];
 
-    let sqlBillingItem = `SELECT bItem.tracking, bItem.size_id, bItem.size_price, bItem.parcel_type, bItem.cod_value
-        FROM billing_item bItem 
-        WHERE bItem.billing_no=?`;
+    let sqlBillingItem = `SELECT bItem.tracking, bItem.size_id, bItem.size_price, bItem.parcel_type, bItem.cod_value FROM billing_item bItem WHERE bItem.billing_no=?`;
     var dataBillItem = [billing_no];
 
     return new Promise(function(resolve, reject) {
       db.query(sqlBilling, dataBilling, (error_billing, result_billing, fields) => {
-          if (error_billing == null) {
-            if (result_billing.length > 0) {
-              db.query(sqlBillingItem, dataBillItem, async (error_item, result_items, fields) => {
-                  if (error_item == null) {
-                    if (result_items.length > 0) {
-                      var orderlist = [];
-                      for (let item of result_items) {
-                        let sizeItem = await getSizeInfo(db, item);
-                        let dataItem = await selectReceiverData(db, item);
+        if (error_billing == null) {
+          if (result_billing.length > 0) {
+            db.query(sqlBillingItem, dataBillItem, async (error_item, result_items, fields) => {
+              if (error_item == null) {
+                if (result_items.length > 0) {
+                  var orderlist = [];
+                  for (let item of result_items) {
+                    let sizeItem = await getSizeInfo(db, item);
+                    let dataItem = await selectReceiverData(db, item);
 
-                        var dataReceiver = dataItem.dataReceiver;
+                    var dataReceiver = dataItem.dataReceiver;
 
-                        var data_json_item = {
-                          productinfo: {
-                            globalproductid: sizeItem.product_id,
-                            productname: sizeItem.product_name,
-                            methodtype: dataItem.parcel_type.toUpperCase(),
-                            paymenttype: dataItem.parcel_type.toUpperCase() == "NORMAL" ? "99" : "60",
-                            price: dataItem.size_price.toString(),
-                            codvalue: dataItem.cod_value.toString()
-                          },
-                          destinationinfo: {
-                            custname: dataReceiver.receiver_name,
-                            custphone: dataReceiver.phone,
-                            custzipcode: dataReceiver.zipcode,
-                            custaddr: dataReceiver.receiver_address,
-                            ordershortnote: dataReceiver.remark == null || dataReceiver.remark == "KEYIN" ? "" : dataReceiver.remark,
-                            districtcode: dataReceiver.DISTRICT_CODE,
-                            amphercode: dataReceiver.AMPHUR_CODE,
-                            provincecode: dataReceiver.PROVINCE_CODE,
-                            geoid: dataReceiver.GEO_ID,
-                            geoname: dataReceiver.GEO_NAME,
-                            sendername: dataReceiver.sender_name,
-                            senderphone: dataReceiver.sender_phone,
-                            senderaddr: dataReceiver.sender_address == null ? "-" : dataReceiver.sender_address
-                          },
-                          consignmentno: dataItem.tracking,
-                          transporter_id: dataReceiver.courirer_id == null ? 7 : parseInt(dataReceiver.courirer_id),
-                          user_id: "0",
-                          sendbooking: dataReceiver.booking_status == 100 ? 1 : null
-                        };
-                        if (dataReceiver.booking_date !== null) {
-                          data_json_item.sendmaildate = m(dataReceiver.booking_date).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss", true);
-                        }
-                        orderlist.push(data_json_item);
-                      }
-
-                      var data = {
-                        authen: {
-                          merid: result_billing[0].branch_id,
-                          userid: result_billing[0].user_id,
-                          merauthenlevel: result_billing[0].mer_authen_level
-                        },
-                        memberparcel: {
-                          memberinfo: {
-                            memberid: result_billing[0].member_code,
-                            courierpid: result_billing[0].carrier_id,
-                            courierimage: result_billing[0].img_url
-                          },
-                          billingno: result_billing[0].billing_no,
-                          orderlist: orderlist
-                        }
-                      };
-                      resolve(data);
-                    } else {
-                      resolve(false);
+                    var data_json_item = {
+                      productinfo: {
+                        globalproductid: sizeItem.product_id,
+                        productname: sizeItem.product_name,
+                        methodtype: dataItem.parcel_type.toUpperCase(),
+                        paymenttype: dataItem.parcel_type.toUpperCase() == "NORMAL" ? "99" : "60",
+                        price: dataItem.size_price.toString(),
+                        codvalue: dataItem.cod_value.toString()
+                      },
+                      destinationinfo: {
+                        custname: dataReceiver.receiver_name,
+                        custphone: dataReceiver.phone,
+                        custzipcode: dataReceiver.zipcode,
+                        custaddr: dataReceiver.receiver_address,
+                        ordershortnote: dataReceiver.remark == null || dataReceiver.remark == "KEYIN" ? "" : dataReceiver.remark,
+                        districtcode: dataReceiver.DISTRICT_CODE,
+                        amphercode: dataReceiver.AMPHUR_CODE,
+                        provincecode: dataReceiver.PROVINCE_CODE,
+                        geoid: dataReceiver.GEO_ID,
+                        geoname: dataReceiver.GEO_NAME,
+                        sendername: dataReceiver.sender_name,
+                        senderphone: dataReceiver.sender_phone,
+                        senderaddr: dataReceiver.sender_address == null ? "-" : dataReceiver.sender_address
+                      },
+                      consignmentno: dataItem.tracking,
+                      transporter_id: dataReceiver.courirer_id == null ? 7 : parseInt(dataReceiver.courirer_id),
+                      user_id: "0",
+                      sendbooking: dataReceiver.booking_status == 100 ? 1 : null
+                    };
+                    if (dataReceiver.booking_date !== null) {
+                      data_json_item.sendmaildate = m(dataReceiver.booking_date).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss", true);
                     }
-                  } else {
-                    resolve(false);
+                    orderlist.push(data_json_item);
                   }
-              });
-            } else {
-              resolve(false);
-            }
+
+                  var data = {
+                    authen: {
+                      merid: result_billing[0].branch_id,
+                      userid: result_billing[0].user_id,
+                      merauthenlevel: result_billing[0].mer_authen_level
+                    },
+                    memberparcel: {
+                      memberinfo: {
+                        memberid: result_billing[0].member_code,
+                        courierpid: result_billing[0].carrier_id,
+                        courierimage: result_billing[0].img_url
+                      },
+                      billingno: result_billing[0].billing_no,
+                      orderlist: orderlist
+                    }
+                  };
+                  resolve(data);
+                  } else {
+                      resolve(false);
+                  }
+                } else {
+                    resolve(false);
+                }
+            });
           } else {
             resolve(false);
           }
+        } else {
+          resolve(false);
+        }
       });
     });
   },
@@ -1160,60 +1138,60 @@ module.exports = {
 
     return new Promise(function(resolve, reject) {
       db.query(sqlBillingItem, dataBillItem, (error_item, result_items, fields) => {
-          if (error_item == null) {
-            if (result_items.length > 0) {
-              db.query(sqlBilling, dataBilling, async (error_billing, result_billing, fields) => {
-                  if (error_billing == null) {
-                    if (result_billing.length > 0) {
-                      var orderlist = [];
+        if (error_item == null) {
+          if (result_items.length > 0) {
+            db.query(sqlBilling, dataBilling, async (error_billing, result_billing, fields) => {
+              if (error_billing == null) {
+                if (result_billing.length > 0) {
+                  var orderlist = [];
 
-                      for (let item of result_items) {
-                        let sizeItem = await getSizeInfo(db, item);
+                  for (let item of result_items) {
+                    let sizeItem = await getSizeInfo(db, item);
 
-                        var data_item = {
-                          productinfo: {
-                            globalproductid: sizeItem.product_id,
-                            productname: sizeItem.product_name,
-                            methodtype: item.parcel_type.toUpperCase(),
-                            paymenttype: item.parcel_type.toUpperCase() == "NORMAL" ? "99" : "60",
-                            price: item.size_price.toString(),
-                            codvalue: item.cod_value.toString()
-                          },
-                          consignmentno: item.tracking
-                        };
-                        orderlist.push(data_item);
-                      }
-
-                      var data = {
-                        authen: {
-                          merid: result_billing[0].branch_id,
-                          userid: result_billing[0].user_id,
-                          merauthenlevel: result_billing[0].mer_authen_level
-                        },
-                        memberparcel: {
-                          memberinfo: {
-                            memberid: result_billing[0].member_code,
-                            courierpid: result_billing[0].carrier_id,
-                            courierimage: result_billing[0].img_url
-                          },
-                          billingno: result_billing[0].billing_no,
-                          orderlist: orderlist
-                        }
-                      };
-                      resolve(data);
-                    } else {
-                      resolve(false);
-                    }
-                  } else {
-                    resolve(false);
+                    var data_item = {
+                      productinfo: {
+                        globalproductid: sizeItem.product_id,
+                        productname: sizeItem.product_name,
+                        methodtype: item.parcel_type.toUpperCase(),
+                        paymenttype: item.parcel_type.toUpperCase() == "NORMAL" ? "99" : "60",
+                        price: item.size_price.toString(),
+                        codvalue: item.cod_value.toString()
+                      },
+                      consignmentno: item.tracking
+                    };
+                    orderlist.push(data_item);
                   }
-              });
-            } else {
-              resolve(false);
-            }
+
+                  var data = {
+                    authen: {
+                      merid: result_billing[0].branch_id,
+                      userid: result_billing[0].user_id,
+                      merauthenlevel: result_billing[0].mer_authen_level
+                    },
+                    memberparcel: {
+                      memberinfo: {
+                        memberid: result_billing[0].member_code,
+                        courierpid: result_billing[0].carrier_id,
+                        courierimage: result_billing[0].img_url
+                      },
+                      billingno: result_billing[0].billing_no,
+                      orderlist: orderlist
+                    }
+                  };
+                  resolve(data);
+                } else {
+                  resolve(false);
+                }
+              } else {
+                resolve(false);
+              }
+            });
           } else {
             resolve(false);
           }
+        } else {
+          resolve(false);
+        }
       });
     });
   },
@@ -1231,25 +1209,25 @@ module.exports = {
 
     return new Promise(function(resolve, reject) {
       db.query(sqlUpdateBilling, dataUpdateBilling, (errorUpdateBilling, resultUpdateBilling, fields) => {
-          if (errorUpdateBilling == null) {
-            if (resultUpdateBilling.affectedRows > 0) {
-              db.query(sqlSaveBilling, dataSaveBilling, (errorSaveBilling, resultSaveBilling, fields) => {
-                  if (errorSaveBilling == null) {
-                    if (resultSaveBilling.affectedRows > 0) {
-                      resolve(true);
-                    } else {
-                      resolve(false);
-                    }
-                  } else {
-                    resolve(false);
-                  }
-              });
-            } else {
-              resolve(false);
-            }
+        if (errorUpdateBilling == null) {
+          if (resultUpdateBilling.affectedRows > 0) {
+            db.query(sqlSaveBilling, dataSaveBilling, (errorSaveBilling, resultSaveBilling, fields) => {
+              if (errorSaveBilling == null) {
+                if (resultSaveBilling.affectedRows > 0) {
+                  resolve(true);
+                } else {
+                  resolve(false);
+                }
+              } else {
+                resolve(false);
+              }
+            });
           } else {
             resolve(false);
           }
+        } else {
+          resolve(false);
+        }
       });
     });
   },
@@ -1264,15 +1242,15 @@ module.exports = {
 
     return new Promise(function(resolve, reject) {
       db.query(sqlSaveBilling, dataSaveBilling, (errorSaveBilling, resultSaveBilling, fields) => {
-          if (errorSaveBilling == null) {
-            if (resultSaveBilling.affectedRows > 0) {
-              resolve(true);
-            } else {
-              resolve(false);
-            }
+        if (errorSaveBilling == null) {
+          if (resultSaveBilling.affectedRows > 0) {
+            resolve(true);
           } else {
             resolve(false);
           }
+        } else {
+          resolve(false);
+        }
       });
     });
   },
@@ -1290,25 +1268,25 @@ module.exports = {
 
     return new Promise(function(resolve, reject) {
       db.query(sqlSaveBillingItem, dataBillingItem, (error_item, results_item, fields) => {
-          if (error_item == null) {
-            if (results_item.affectedRows > 0) {
-              db.query(sqlReceiver, dataReceiver, (error_receiver, results_receiver, fields) => {
-                  if (error_receiver == null) {
-                    if (results_receiver.affectedRows > 0) {
-                      resolve(true);
-                    } else {
-                      resolve(false);
-                    }
-                  } else {
-                    resolve(false);
-                  }
-              });
-            } else {
-              resolve(false);
-            }
+        if (error_item == null) {
+          if (results_item.affectedRows > 0) {
+            db.query(sqlReceiver, dataReceiver, (error_receiver, results_receiver, fields) => {
+              if (error_receiver == null) {
+                if (results_receiver.affectedRows > 0) {
+                  resolve(true);
+                } else {
+                  resolve(false);
+                }
+              } else {
+                resolve(false);
+              }
+            });
           } else {
             resolve(false);
           }
+        } else {
+          resolve(false);
+        }
       });
     });
   },
@@ -1324,15 +1302,15 @@ module.exports = {
         if (errorItem == null) {
           if (resultItem.affectedRows > 0) {
             db.query(sqlUpdateReceiver, dataReceiver, (errorReceiver, resultReceiver, fields) => {
-                if (errorReceiver == null) {
-                  if (resultReceiver.affectedRows > 0) {
-                    resolve(true);
-                  } else {
-                    resolve(false);
-                  }
+              if (errorReceiver == null) {
+                if (resultReceiver.affectedRows > 0) {
+                  resolve(true);
                 } else {
                   resolve(false);
                 }
+              } else {
+                resolve(false);
+              }
             });
           } else {
             resolve(false);
@@ -1349,15 +1327,15 @@ module.exports = {
 
     return new Promise(function(resolve, reject) {
       db.query(updateStatusBilling, dataStatusBilling, (error, results, fields) => {
-          if (error == null) {
-            if (results.affectedRows > 0) {
-              resolve(true);
-            } else {
-              resolve(false);
-            }
+        if (error == null) {
+          if (results.affectedRows > 0) {
+            resolve(true);
           } else {
             resolve(false);
           }
+        } else {
+          resolve(false);
+        }
       });
     });
   },
@@ -1367,15 +1345,15 @@ module.exports = {
 
     return new Promise(function(resolve, reject) {
       db.query(updateStatusBilling, dataStatusBilling, (error, results, fields) => {
-          if (error == null) {
-            if (results.affectedRows > 0) {
-              resolve(true);
-            } else {
-              resolve(false);
-            }
+        if (error == null) {
+          if (results.affectedRows > 0) {
+            resolve(true);
           } else {
             resolve(false);
           }
+        } else {
+          resolve(false);
+        }
       });
     });
   },
@@ -1403,91 +1381,91 @@ module.exports = {
         if (err_receiver == null) {
           if (result_receiver.length > 0) {
             db.query(sqlBillingItem, dataItem, (error_item, results_item, fields) => {
-                if (error_item == null) {
-                  if (results_item.length > 0) {
-                    var data = result_receiver[0];
+              if (error_item == null) {
+                if (results_item.length > 0) {
+                  var data = result_receiver[0];
 
-                    var result = {
-                      status: 200,
-                      tracking: tracking,
-                      result: {
-                        manifestResponse: {
-                          hdr: {
-                            messageType: "SHIPMENT",
-                            messageDateTime: m(data.booking_date).tz("Asia/Bangkok"),
-                            messageVersion: "1.0",
-                            messageLanguage: "en"
-                          },
-                          bd: {
-                            shipmentItems: [
-                              {
-                                shipmentID: data.tracking,
-                                deliveryConfirmationNo: "5320076806463210",
-                                responseStatus: {
-                                  code: "200",
-                                  message: "SUCCESS",
-                                  messageDetails: [
-                                    {
-                                      messageDetail:
-                                        "Shipment processed Successfully; Handover Method has been updated to Drop-Off; Return Shipping Service has been updated to PDO."
-                                    }
-                                  ]
-                                }
+                  var result = {
+                    status: 200,
+                    tracking: tracking,
+                    result: {
+                      manifestResponse: {
+                        hdr: {
+                          messageType: "SHIPMENT",
+                          messageDateTime: m(data.booking_date).tz("Asia/Bangkok"),
+                          messageVersion: "1.0",
+                          messageLanguage: "en"
+                        },
+                        bd: {
+                          shipmentItems: [
+                            {
+                              shipmentID: data.tracking,
+                              deliveryConfirmationNo: "5320076806463210",
+                              responseStatus: {
+                                code: "200",
+                                message: "SUCCESS",
+                                messageDetails: [
+                                  {
+                                    messageDetail:
+                                      "Shipment processed Successfully; Handover Method has been updated to Drop-Off; Return Shipping Service has been updated to PDO."
+                                  }
+                                ]
                               }
-                            ],
-                            responseStatus: {
-                              code: "200",
-                              message: "SUCCESS",
-                              messageDetails: [
-                                {
-                                  messageDetail: "All shipments processed successfully"
-                                }
-                              ]
                             }
+                          ],
+                          responseStatus: {
+                            code: "200",
+                            message: "SUCCESS",
+                            messageDetails: [
+                              {
+                                messageDetail: "All shipments processed successfully"
+                              }
+                            ]
                           }
                         }
-                      },
-                      productinfo: {
-                        globalproductid: results_item[0].product_id,
-                        productname: results_item[0].product_name,
-                        methodtype: results_item[0].bi_parcel_type.toUpperCase(),
-                        paymenttype: results_item[0].bi_parcel_type.toUpperCase() == "NORMAL" ? "99" : "60",
-                        price: results_item[0].size_price.toString(),
-                        codvalue: results_item[0].cod_value.toString()
-                      },
-                      destinationinfo: {
-                        custname: data.receiver_name,
-                        custphone: data.phone,
-                        custzipcode: data.zipcode,
-                        custaddr: data.receiver_address,
-                        ordershortnote: data.remark == null || data.remark == "KEYIN" ? "" : data.remark,
-                        districtcode: data.DISTRICT_CODE,
-                        amphercode: data.AMPHUR_CODE,
-                        provincecode: data.PROVINCE_CODE,
-                        geoid: data.GEO_ID,
-                        geoname: data.GEO_NAME,
-                        sendername: data.sender_name,
-                        senderphone: data.sender_phone,
-                        senderaddr: data.sender_address == null ? "-" : data.sender_address
-                      },
-                      consignmentno: data.tracking,
-                      transporter_id: data.courirer_id == null ? 7 : parseInt(data.courirer_id),
-                      user_id: "0",
-                      billing_no: results_item[0].billing_no,
-                      billing_date: m(results_item[0].billing_date).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss", true)
-                      // sendmaildate: momentTimezone(data.booking_date).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss", true)
-                    };
+                      }
+                    },
+                    productinfo: {
+                      globalproductid: results_item[0].product_id,
+                      productname: results_item[0].product_name,
+                      methodtype: results_item[0].bi_parcel_type.toUpperCase(),
+                      paymenttype: results_item[0].bi_parcel_type.toUpperCase() == "NORMAL" ? "99" : "60",
+                      price: results_item[0].size_price.toString(),
+                      codvalue: results_item[0].cod_value.toString()
+                    },
+                    destinationinfo: {
+                      custname: data.receiver_name,
+                      custphone: data.phone,
+                      custzipcode: data.zipcode,
+                      custaddr: data.receiver_address,
+                      ordershortnote: data.remark == null || data.remark == "KEYIN" ? "" : data.remark,
+                      districtcode: data.DISTRICT_CODE,
+                      amphercode: data.AMPHUR_CODE,
+                      provincecode: data.PROVINCE_CODE,
+                      geoid: data.GEO_ID,
+                      geoname: data.GEO_NAME,
+                      sendername: data.sender_name,
+                      senderphone: data.sender_phone,
+                      senderaddr: data.sender_address == null ? "-" : data.sender_address
+                    },
+                    consignmentno: data.tracking,
+                    transporter_id: data.courirer_id == null ? 7 : parseInt(data.courirer_id),
+                    user_id: "0",
+                    billing_no: results_item[0].billing_no,
+                    billing_date: m(results_item[0].billing_date).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss", true)
+                    // sendmaildate: momentTimezone(data.booking_date).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss", true)
+                  };
 
-                    if (data.booking_date !== null) {
-                      result.sendmaildate = m(data.booking_date).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss", true);
-                    }
-                    resolve(result);
-                  } else {
-                    resolve(false);
+                  if (data.booking_date !== null) {
+                    result.sendmaildate = m(data.booking_date).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss", true);
                   }
+                  resolve(result);
                 } else {
                   resolve(false);
                 }
+              } else {
+                resolve(false);
+              }
             });
           } else {
             resolve(false);
@@ -1513,16 +1491,16 @@ function selectReceiverData(db, dataItem) {
   let dataReceiver = [dataItem.tracking];
   return new Promise(function(resolve, reject) {
     db.query(sqlReceiver, dataReceiver, (error_receiver, results_receiver, fields) => {
-        if (error_receiver == null) {
-          if (results_receiver.length > 0) {
-            dataItem.dataReceiver = results_receiver[0];
-            resolve(dataItem);
-          } else {
-            resolve(dataItem);
-          }
+      if (error_receiver == null) {
+        if (results_receiver.length > 0) {
+          dataItem.dataReceiver = results_receiver[0];
+          resolve(dataItem);
         } else {
           resolve(dataItem);
         }
+      } else {
+        resolve(dataItem);
+      }
     });
   });
 }
@@ -1539,26 +1517,26 @@ function getSizeInfo(db, data) {
           let zone = sizeInfo.zone;
           let dataGlobalSize = [sizeInfo.alias_size.toUpperCase(), sizeInfo.location_zone.toUpperCase(), data.parcel_type];
           db.query(sqlGlobalSize, dataGlobalSize, (errGlobalSize, resultGlobalSize) => {
-              if (errGlobalSize == null) {
-                if (resultGlobalSize.length > 0) {
-                  resultGlobalSize.forEach(e => {
-                    if (zone == e.zone) {
-                      item = e;
-                    } else {
-                      item = resultGlobalSize[0];
-                    }
-                  });
-                  data.alias_size = sizeInfo.alias_size.toUpperCase();
-                  data.product_id = item.product_id;
-                  data.product_name = item.product_name;
+            if (errGlobalSize == null) {
+              if (resultGlobalSize.length > 0) {
+                resultGlobalSize.forEach(e => {
+                  if (zone == e.zone) {
+                    item = e;
+                  } else {
+                    item = resultGlobalSize[0];
+                  }
+                });
+                data.alias_size = sizeInfo.alias_size.toUpperCase();
+                data.product_id = item.product_id;
+                data.product_name = item.product_name;
 
-                  resolve(data);
-                } else {
-                  resolve(false);
-                }
+                resolve(data);
               } else {
                 resolve(false);
               }
+            } else {
+              resolve(false);
+            }
           });
         } else {
           resolve(false);

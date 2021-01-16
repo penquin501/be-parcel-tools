@@ -298,83 +298,93 @@ export default {
   methods: {
     getData() {
       const options = { okLabel: "ตกลง" };
-      if(this.trackingInput==""){
-          this.$dialogs.alert("กรุณาใส่เลข Tracking ให้ถูกต้อง",options);
+      if (this.trackingInput == "") {
+        this.$dialogs.alert("กรุณาใส่เลข Tracking ให้ถูกต้อง", options);
       } else {
+        axios
+          .get(
+            this.url +
+              "/check/info/tracking?tracking=" +
+              this.trackingInput.toUpperCase()
+          )
+          .then(response => {
+            if (response.data.status == "SUCCESS") {
+              var responseData = response.data.billingInfo;
+              this.billingInfo = responseData[0];
 
-      axios.get(this.url+"/check/info/tracking?tracking=" + this.trackingInput.toUpperCase())
-        .then(response => {
-          if (response.data.status == "SUCCESS") {
-            var responseData = response.data.billingInfo;
-            this.billingInfo = responseData[0];
+              this.billing_no = this.billingInfo.billing_no;
+              this.branch_id = this.billingInfo.branch_id;
+              this.tracking = this.billingInfo.tracking;
+              this.bi_parcel_type = this.billingInfo.bi_parcel_type.toUpperCase();
+              this.district_code = this.billingInfo.DISTRICT_CODE;
+              this.size_id = this.billingInfo.size_id;
+              this.alias_size = this.billingInfo.alias_size.toUpperCase();
+              this.size_price = this.billingInfo.size_price;
+              this.cod_value = this.billingInfo.cod_value;
+              this.bi_zipcode = this.billingInfo.bi_zipcode;
+              this.sender_name = this.billingInfo.sender_name;
+              this.sender_phone = this.billingInfo.sender_phone;
+              this.sender_address = this.billingInfo.sender_address;
+              var receiver_name = this.billingInfo.receiver_name;
+              var res = receiver_name.split(" ");
+              this.receiver_first_name = res[0];
+              this.receiver_last_name = res[1];
+              this.phone = this.billingInfo.phone;
+              this.receiver_address = this.billingInfo.receiver_address;
 
-            this.billing_no = this.billingInfo.billing_no;
-            this.branch_id = this.billingInfo.branch_id;
-            this.tracking = this.billingInfo.tracking;
-            this.bi_parcel_type = this.billingInfo.bi_parcel_type.toUpperCase();
-            this.district_code = this.billingInfo.DISTRICT_CODE;
-            this.size_id = this.billingInfo.size_id;
-            this.alias_size = this.billingInfo.alias_size.toUpperCase();
-            this.size_price = this.billingInfo.size_price;
-            this.cod_value = this.billingInfo.cod_value;
-            this.bi_zipcode = this.billingInfo.bi_zipcode;
-            this.sender_name = this.billingInfo.sender_name;
-            this.sender_phone = this.billingInfo.sender_phone;
-            this.sender_address = this.billingInfo.sender_address;
-            var receiver_name = this.billingInfo.receiver_name;
-            var res = receiver_name.split(" ");
-            this.receiver_first_name = res[0];
-            this.receiver_last_name = res[1];
-            this.phone = this.billingInfo.phone;
-            this.receiver_address = this.billingInfo.receiver_address;
+              this.location =
+                this.billingInfo.district_name +
+                " " +
+                this.billingInfo.amphur_name +
+                " " +
+                this.billingInfo.province_name;
+              this.br_zipcode = this.billingInfo.br_zipcode;
+              this.displayAddress = this.br_zipcode + " " + this.location;
+              this.parcelAddressList(this.br_zipcode);
 
-            this.location = this.billingInfo.district_name + " " + this.billingInfo.amphur_name + " " + this.billingInfo.province_name;
-            this.br_zipcode = this.billingInfo.br_zipcode;
-            this.displayAddress = this.br_zipcode + " " + this.location;
-            this.parcelAddressList(this.br_zipcode);
+              this.br_parcel_type = this.billingInfo.br_parcel_type;
 
-            this.br_parcel_type = this.billingInfo.br_parcel_type;
+              this.status = this.billingInfo.status;
+              if (this.status == "booked") {
+                this.order_status_lb = "ข้อมูลได้ถูกส่งให้กับ บ. ขนส่งแล้ว";
+              } else if (this.status == "SUCCESS") {
+                this.order_status_lb = "ข้อมูลได้ส่งเข้า server หลักแล้ว";
+              } else if (this.status == "ready") {
+                this.order_status_lb = "ข้อมูลกำลังถูกส่งไปยัง บ. ขนส่ง";
+              } else if (this.status == "cancel") {
+                this.order_status_lb = "ข้อมูลถูกยกเลิกแล้ว";
+              } else if (this.status == "success") {
+                this.order_status_lb =
+                  "ข้อมูลกำลังถูกส่งข้อมูลไปที่ server หลัก";
+              } else if (this.status == "relabel") {
+                this.order_status_lb = "ข้อมูลถูกย้ายไปที่ tracking ใหม่แล้ว";
+              } else {
+                this.order_status_lb = "";
+              }
 
-            this.status = this.billingInfo.status;
-            if (this.status == "booked") {
-              this.order_status_lb = "ข้อมูลได้ถูกส่งให้กับ บ. ขนส่งแล้ว";
-            } else if (this.status == "SUCCESS") {
-              this.order_status_lb = "ข้อมูลได้ส่งเข้า server หลักแล้ว";
-            } else if (this.status == "ready") {
-              this.order_status_lb = "ข้อมูลกำลังถูกส่งไปยัง บ. ขนส่ง";
-            } else if (this.status == "cancel") {
-              this.order_status_lb = "ข้อมูลถูกยกเลิกแล้ว";
-            } else if (this.status == "success") {
-              this.order_status_lb = "ข้อมูลกำลังถูกส่งข้อมูลไปที่ server หลัก";
-            } else if (this.status == "relabel") {
-              this.order_status_lb = "ข้อมูลถูกย้ายไปที่ tracking ใหม่แล้ว";
+              this.imgCapture = response.data.imgCapture;
+
+              if (this.imgCapture == false) {
+                this.imgUrl =
+                  "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC";
+              } else {
+                this.imgUrl = this.imgCapture[0].image_url;
+              }
+              this.getNewTracking();
+
+              this.codeValueEdit = false;
+              this.receiverFNameEdit = false;
+              this.receiverLNameEdit = false;
+              this.receiverPhoneEdit = false;
+              this.receiverAddressEdit = false;
+              this.receriverZipcodeEdit = false;
             } else {
-              this.order_status_lb = "";
+              this.$dialogs.alert("ไม่พบข้อมูล", options);
             }
-
-            this.imgCapture = response.data.imgCapture;
-
-            if (this.imgCapture == false) {
-              this.imgUrl =
-                "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC";
-            } else {
-              this.imgUrl = this.imgCapture[0].image_url;
-            }
-            this.getNewTracking();
-
-            this.codeValueEdit = false;
-            this.receiverFNameEdit = false;
-            this.receiverLNameEdit = false;
-            this.receiverPhoneEdit = false;
-            this.receiverAddressEdit = false;
-            this.receriverZipcodeEdit = false;
-          } else {
-            this.$dialogs.alert("ไม่พบข้อมูล",options);
-          }
-        })
-        .catch(function(error) {
-          console.log(error);
-        });
+          })
+          .catch(function(error) {
+            console.log(error);
+          });
       }
     },
     parcelAddressList(zipcode) {
@@ -444,24 +454,21 @@ export default {
         // zone: (this.branch_id !== 50 && this.branch_id !== 70)?2:1
         zone: 2
       };
-      axios
-        // .post("https://pos.945.report/genBillNo/parcelPrice", dataSize)
-        .post(this.url+"/parcelPrice", dataSize)
-        .then(response => {
-          let parcelSizeSelect = response.data;
-          if (response.data != undefined) {
-            this.size_price = parcelSizeSelect[0].parcel_price;
-            this.size_id = parcelSizeSelect[0].size_id;
-          }
-        })
-        .catch(function(error) {
-          console.log(error);
-        });
+      axios.post(this.url + "/parcelPrice", dataSize)
+      .then(response => {
+        let parcelSizeSelect = response.data;
+        if (response.data != undefined) {
+          this.size_price = parcelSizeSelect[0].parcel_price;
+          this.size_id = parcelSizeSelect[0].size_id;
+        }
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
     },
     emptyBox() {
       this.trackingInput = "";
-      this.imgUrl =
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC";
+      this.imgUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC";
 
       this.billing_no = "";
       this.tracking = "";
@@ -500,8 +507,8 @@ export default {
       this.codeValueEdit = true;
     },
     selectType(parcel_type) {
-      if(parcel_type=="NORMAL"){
-        this.cod_value=0;
+      if (parcel_type == "NORMAL") {
+        this.cod_value = 0;
       }
       this.bi_parcel_type = parcel_type;
       this.br_parcel_type = parcel_type;
@@ -510,10 +517,9 @@ export default {
       this.causeType = causeType;
     },
     getNewTracking() {
-      axios.get(this.url+"/get-new-tracking")
-        .then(response => {
-          this.newTrackingInput=response.data.toUpperCase();
-        });
+      axios.get(this.url + "/get-new-tracking").then(response => {
+        this.newTrackingInput = response.data.toUpperCase();
+      });
     },
     confirmSelectTools() {
       const options = { okLabel: "ตกลง" };
@@ -566,18 +572,16 @@ export default {
       } else if (this.br_zipcode == "") {
         this.$dialogs.alert("กรุณากรอก รหัสไปรษณีย์ผู้รับให้ถูกต้อง", options);
       } else if (this.br_zipcode != this.bi_zipcode) {
-        this.$dialogs.alert("กรุณากรอก รหัสไปรษณีย์ผู้รับ ให้ตรงกับหน้ากล่องผู้รับ",options);
+        this.$dialogs.alert("กรุณากรอก รหัสไปรษณีย์ผู้รับ ให้ตรงกับหน้ากล่องผู้รับ", options);
       } else if (this.bi_parcel_type != this.br_parcel_type) {
-        this.$dialogs.alert("กรุณากรอก ประเภทการจัดส่ง ให้ตรงกับหน้ากล่องผู้รับ",options);
-      } else if (
-        this.bi_parcel_type == "COD" &&
-        (this.cod_value == "" || this.cod_value == 0)
-      ) {
+        this.$dialogs.alert("กรุณากรอก ประเภทการจัดส่ง ให้ตรงกับหน้ากล่องผู้รับ", options);
+      } else if (this.bi_parcel_type == "COD" && (this.cod_value == "" || this.cod_value == 0)) {
         this.$dialogs.alert("กรุณากรอก ค่าเก็บเงินปลายทาง ให้ถูกต้อง", options);
       } else if (this.bi_parcel_type == "NORMAL" && this.cod_value !== 0) {
         this.$dialogs.alert("กรุณากรอก ค่าเก็บเงินปลายทาง ให้ถูกต้อง", options);
       } else {
-        axios.get(this.url+"/check-available-tracking?tracking=" + this.newTrackingInput.toUpperCase()).then(response => {
+        axios.get(this.url + "/check-available-tracking?tracking=" + this.newTrackingInput.toUpperCase())
+          .then(response => {
             this.resultDuplicatedTracking = response.data;
 
             if (!this.resultDuplicatedTracking) {
@@ -595,7 +599,7 @@ export default {
                     parcelType: this.bi_parcel_type.toUpperCase(),
                     codValue: this.cod_value,
                     sizeId: this.size_id,
-                    sizePrice: (this.causeType == 1)? 0 : this.size_price
+                    sizePrice: this.causeType == 1 ? 0 : this.size_price
                   },
                   receiverInfo: {
                     receiverName: this.receiver_first_name + " " + this.receiver_last_name,
@@ -610,17 +614,16 @@ export default {
                 user: this.$session.get("session_username"),
                 moduleName: moduleName
               };
-              
-              axios.post(this.url+"/tools/relabel-tracking", dataConfirm)
+
+              axios.post(this.url + "/tools/relabel-tracking", dataConfirm)
                 .then(response => {
                   if (response.data.status == "SUCCESS") {
                     let billingNo = response.data.billingNo;
                     const optionsDialog = {
                       title: "รายการที่คุณเลือกได้ relabel แล้ว",
-                      okLabel: "ตกลง"
+                      okLabel: "ตกลง" 
                     };
-                    this.$dialogs.alert("เลขที่บิลใหม่..." + billingNo, optionsDialog)
-                      .then(res => {
+                    this.$dialogs.alert("เลขที่บิลใหม่..." + billingNo, optionsDialog).then(res => {
                         // console.log(res) // {ok: true|false|undefined}
                         if (res) {
                           this.$router.push("/");

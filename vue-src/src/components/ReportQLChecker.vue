@@ -1,42 +1,23 @@
 <template>
   <div style="margin-top: 60px;">
-    <div class="container" style="overflow-x:auto;">
+    <div class="container" style="overflow-x: auto;">
       <div class="row">
         <div class="col-ms-1 col-sm-1 col-xs-1"></div>
-        <div class="col-ms-10 col-sm-10 col-xs-10" style="text-align:center;">
+        <div class="col-ms-10 col-sm-10 col-xs-10" style="text-align: center;">
           <h2 style="margin-top: 10px;">Report QL Checker {{ date | moment("LL") }}</h2>
         </div>
         <div class="col-ms-1 col-sm-1 col-xs-1"></div>
       </div>
       <div class="row">
-        <div
-          class="col-ms-4 col-sm-4 col-xs-4"
-          style="text-align: center; margin-top: 5px; padding-left: 0px;padding-right: 0px;"
-        >
+        <div class="col-ms-4 col-sm-4 col-xs-4" style="text-align: center; margin-top: 5px; padding-left: 0px; padding-right: 0px;">
           <div>
             <input type="date" id="datePick" v-model="datePick" name="datePick" />
-            <span>
-              <button class="button-re" v-on:click="getData()">
-                <i class="fa fa-search" aria-hidden="true"></i>
-              </button>
-            </span>
+            <span><button class="button-re" v-on:click="getData()"><i class="fa fa-search" aria-hidden="true"></i></button></span>
           </div>
         </div>
         <div class="col-ms-5 col-sm-5 col-xs-5" style=" text-align: center; margin-top: 5px;"></div>
-        <div
-          class="col-ms-2 col-sm-2 col-xs-2"
-          style="text-align: right; margin-top: 5px; padding-left: 0px;padding-right: 0px;"
-        >
-          <label style="margin-top: 5px;">Refresh</label>
-        </div>
-        <div
-          class="col-ms-1 col-sm-1 col-xs-1"
-          style="text-align: center; margin-top: 5px; padding-left: 0px;padding-right: 0px;"
-        >
-          <button class="button-re" v-on:click="getData()">
-            <i class="fa fa-refresh" aria-hidden="true"></i>
-          </button>
-        </div>
+        <div class="col-ms-2 col-sm-2 col-xs-2" style="text-align: right; margin-top: 5px; padding-left: 0px; padding-right: 0px;"><label style="margin-top: 5px;">Refresh</label></div>
+        <div class="col-ms-1 col-sm-1 col-xs-1" style="text-align: center; margin-top: 5px; padding-left: 0px;padding-right: 0px;"><button class="button-re" v-on:click="getData()"><i class="fa fa-refresh" aria-hidden="true"></i></button></div>
         <table class="table-branch">
           <tr>
             <th style="text-align:center; width: 5%;">รหัสสาขา</th>
@@ -76,7 +57,7 @@ export default {
       date: new Date(),
       datePick: moment().tz("Asia/Bangkok").format("YYYY-MM-DD"),
       sorting: -1,
-      url:""
+      url: ""
     };
   },
   mounted() {
@@ -88,8 +69,7 @@ export default {
   methods: {
     getData() {
       const options = { okLabel: "ตกลง" };
-      axios
-        .get(this.url+"/log-daily-qlchecker?date_check=" + this.datePick)
+      axios.get(this.url + "/log-daily-qlchecker?date_check=" + this.datePick)
         .then(response => {
           if (response.data.length === 0) {
             this.$dialogs.alert("ไม่พบข้อมูล", options);
@@ -105,7 +85,7 @@ export default {
   },
   computed: {
     filteredResourcesBilling() {
-      return this.data.slice(0).sort((a, b) => (a.branch_id < b.branch_id ? this.sorting : -this.sorting));
+      return this.data.slice(0).sort((a, b) => a.branch_id < b.branch_id ? this.sorting : -this.sorting);
     }
   }
 };

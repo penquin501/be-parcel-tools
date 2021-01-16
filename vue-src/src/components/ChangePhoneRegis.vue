@@ -53,7 +53,9 @@
         style="width: 214px;"
         v-on:keypress="onlyNumber"
       />
-      <button v-on:click="checkMemberData" type="button"><i class="fa fa-search" aria-hidden="true"></i></button>
+      <button v-on:click="checkMemberData" type="button">
+        <i class="fa fa-search" aria-hidden="true"></i>
+      </button>
 
       <p style="font-size:16px; color: green;" v-if="availablePhone==true">{{reasonDisplay}}</p>
       <p style="font-size:16px; color: red;" v-else>{{reasonDisplay}}</p>
@@ -79,7 +81,7 @@ export default {
         { code: "01", name: "active", value: "active" },
         { code: "02", name: "inactive", value: "inactive" }
       ],
-      url945: "https://api-key-tool.945holding.com",
+      url945: "https://api-key-tool.945holding.com"
       // url945Dev: "https://admin-pc-tool.945.report"
     };
   },
@@ -144,15 +146,10 @@ export default {
       ) {
         this.$dialogs.alert("กรุณาใส่เบอร์โทรศัพท์มือถือเท่านั้น", options);
       } else if (this.displayPhone == this.phoneInput) {
-        this.$dialogs.alert("กรุณาใส่เบอร์โทรศัพท์ใหม่ เนื่องจากเป็นเบอร์ที่ลงทะเบียนปัจจุบัน",options);
+        this.$dialogs.alert("กรุณาใส่เบอร์โทรศัพท์ใหม่ เนื่องจากเป็นเบอร์ที่ลงทะเบียนปัจจุบัน", options);
       } else {
         this.changeZero2DoubleSix();
-        axios
-          .get(
-            this.url945 +
-              "/parcel/check-member/phoneregis?phoneregis=" +
-              this.phoneRegis
-          )
+        axios.get(this.url945 + "/parcel/check-member/phoneregis?phoneregis=" + this.phoneRegis)
           .then(response => {
             if (response.data.status == "EXISTED_MEMBER") {
               this.availablePhone = false;
@@ -161,7 +158,7 @@ export default {
               this.availablePhone = true;
               this.reasonDisplay = "สามารถใช้เบอร์โทรศัพท์นี้ได้";
             } else {
-              this.$dialogs.alert("ไม่พบข้อมูล เนื่องจาก..." + response.data.status,options);
+              this.$dialogs.alert("ไม่พบข้อมูล เนื่องจาก..." + response.data.status, options);
             }
           })
           .catch(function(error) {
@@ -184,9 +181,15 @@ export default {
       ) {
         this.$dialogs.alert("กรุณาใส่เบอร์โทรศัพท์มือถือเท่านั้น", options);
       } else if (this.displayPhone == this.phoneInput) {
-        this.$dialogs.alert("กรุณาใส่เบอร์โทรศัพท์ใหม่ เนื่องจากเป็นเบอร์ที่ลงทะเบียนปัจจุบัน",options);
+        this.$dialogs.alert(
+          "กรุณาใส่เบอร์โทรศัพท์ใหม่ เนื่องจากเป็นเบอร์ที่ลงทะเบียนปัจจุบัน",
+          options
+        );
       } else if (this.availablePhone == false) {
-        this.$dialogs.alert("กรุณาใส่เบอร์โทรศัพท์ใหม่ เนื่องจากเบอร์นี้ได้ลงทะเบียนแล้ว", options);
+        this.$dialogs.alert(
+          "กรุณาใส่เบอร์โทรศัพท์ใหม่ เนื่องจากเบอร์นี้ได้ลงทะเบียนแล้ว",
+          options
+        );
       } else {
         var moduleName = "change_phone_regis";
         var dataConfirm = {
@@ -203,11 +206,15 @@ export default {
           .post("/tools/change-phoneregis", dataConfirm)
           .then(response => {
             if (response.data.status == "SUCCESS") {
-              this.$dialogs.alert("เปลี่ยนเบอร์โทรศัพท์สมาชิกเรียบร้อยแล้ว",options);
+              this.$dialogs.alert(
+                "เปลี่ยนเบอร์โทรศัพท์สมาชิกเรียบร้อยแล้ว",
+                options
+              );
               this.$router.push("/");
             } else {
               this.$dialogs.alert(
-                "เปลี่ยนเบอร์โทรศัพท์สมาชิกได้ เนื่องจาก..." + response.data.reason,
+                "เปลี่ยนเบอร์โทรศัพท์สมาชิกได้ เนื่องจาก..." +
+                  response.data.reason,
                 options
               );
               this.$router.push("/");

@@ -11,46 +11,65 @@
       <div class="center">
         <div>
           <b>ขนาด:</b>
-          <input v-model="alias_size" autocomplete="false" :disabled="refAliasSize" ref="refAliasSize"/>
+          <input
+            v-model="alias_size"
+            autocomplete="false"
+            :disabled="refAliasSize"
+            ref="refAliasSize"
+          />
         </div>
         <div>
           <b>พื้นที่:</b>
           <div style="display: grid ; grid-template-columns: .5fr 1fr .5fr 1fr">
-            <input style="margin-top: 5%" v-model="location_zone" type="radio" :disabled="refLocationZone" v-on:change="selectType('BKK')" value="BKK"/>BKK
-            <input style="margin-top: 5%" v-model="location_zone" type="radio" :disabled="refLocationZone" v-on:change="selectType('UPC')" value="UPC"/>UPC
+            <input
+              style="margin-top: 5%"
+              v-model="location_zone"
+              type="radio"
+              :disabled="refLocationZone"
+              v-on:change="selectType('BKK')"
+              value="BKK"
+            />BKK
+            <input
+              style="margin-top: 5%"
+              v-model="location_zone"
+              type="radio"
+              :disabled="refLocationZone"
+              v-on:change="selectType('UPC')"
+              value="UPC"
+            />UPC
           </div>
         </div>
         <div>
           <b>zone:</b>
-          <input v-model="zone" :disabled="refZone" @keypress="isNumber($event)"/>
+          <input v-model="zone" :disabled="refZone" @keypress="isNumber($event)" />
         </div>
         <div>
           <b>ราคาขาย:</b>
-          <input v-model="parcel_price" @keypress="isNumber($event)"/>
+          <input v-model="parcel_price" @keypress="isNumber($event)" />
         </div>
         <div>
           <b>ราคาทุน:</b>
-          <input v-model="parcel_cost" @keypress="isNumber($event)"/>
+          <input v-model="parcel_cost" @keypress="isNumber($event)" />
         </div>
         <div>
           <b>sold to account id:</b>
-          <input v-model="sold_to_account_id" @keypress="isNumber($event)"/>
+          <input v-model="sold_to_account_id" @keypress="isNumber($event)" />
         </div>
         <div>
           <b>pickup account id:</b>
-          <input v-model="pickup_account_id" @keypress="isNumber($event)"/>
+          <input v-model="pickup_account_id" @keypress="isNumber($event)" />
         </div>
         <div>
           <b>customer account id:</b>
-          <input v-model="customer_account_id" @keypress="isNumber($event)"/>
+          <input v-model="customer_account_id" @keypress="isNumber($event)" />
         </div>
         <div>
           <b>global product id (NORMAL):</b>
-          <input v-model="global_product_id_normal" @keypress="isNumber($event)"/>
+          <input v-model="global_product_id_normal" @keypress="isNumber($event)" />
         </div>
         <div>
           <b>global product id (COD):</b>
-          <input v-model="global_product_id_cod" @keypress="isNumber($event)"/>
+          <input v-model="global_product_id_cod" @keypress="isNumber($event)" />
         </div>
         <!-- <div>
           <b>สถานะ:</b>
@@ -92,7 +111,7 @@ export default {
       sold_to_account_id: "",
       pickup_account_id: "",
       customer_account_id: "",
-      zone:0,
+      zone: 0,
 
       global_product_id_normal: "",
       global_product_id_cod: "",
@@ -240,7 +259,10 @@ export default {
                 this.$dialogs.alert("บันทึกข้อมูล Size เรียบร้อยแล้ว", options);
                 this.$router.push("/");
               } else {
-                this.$dialogs.alert("ไม่สามารถแก้ไขข้อมูลได้ เนื่องจาก..." + response.data.status, options);
+                this.$dialogs.alert(
+                  "ไม่สามารถแก้ไขข้อมูลได้ เนื่องจาก..." + response.data.status,
+                  options
+                );
               }
             })
             .catch(function(error) {

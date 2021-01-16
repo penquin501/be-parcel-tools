@@ -17,16 +17,8 @@
 
     <div v-if="state == 'blank'">
       <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
-        <h4 style="color:rgb(0, 136, 148);">Parcel Tools</h4>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-toggle="collapse"
-          data-target="#navbarTogglerDemo02"
-          aria-controls="navbarTogglerDemo02"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
+        <h4 style="color: rgb(0, 136, 148);">Parcel Tools</h4>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
 
@@ -34,9 +26,7 @@
           <div v-if="role==1">
             <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
               <li class="nav-item">
-                <router-link to="/list-skip-tracking">
-                  <a class="nav-link" v-on:click="toView" role="button" aria-haspopup="true" aria-expanded="false">List Skip Tracking</a>
-                </router-link>
+                <router-link to="/list-skip-tracking"><a class="nav-link" v-on:click="toView" role="button" aria-haspopup="true" aria-expanded="false">List Skip Tracking</a></router-link>
               </li>
             </ul>
           </div>
@@ -51,7 +41,7 @@
                   <router-link to="/change-member"><a v-on:click="toView" class="dropdown-item">เปลี่ยน Member</a></router-link>
                   <router-link to="/relabeling"><a v-on:click="toView" class="dropdown-item">Re-Labeling</a></router-link>
                   <router-link to="/listtracking"><a v-on:click="toView" class="dropdown-item">QL Checker</a></router-link>
-                  <router-link to="/report-flash-booking"><a v-on:click="toView"  class="dropdown-item" >Flash Booking Checker</a></router-link>
+                  <router-link to="/report-flash-booking"><a v-on:click="toView" class="dropdown-item">Flash Booking Checker</a></router-link>
                   <router-link to="/movemember"><a v-on:click="toView" class="dropdown-item">ย้าย Member ไป Shop อื่น</a></router-link>
                   <router-link to="/change-phoneregis"><a v-on:click="toView" class="dropdown-item">เปลี่ยนเบอร์โทรศัพท์ Member</a></router-link>
                 </div>
@@ -67,16 +57,16 @@
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Report</a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                   <router-link to="/list-daily-billing"><a v-on:click="toView" class="dropdown-item">Report Billing</a></router-link>
-                  <router-link to="/list-branch"><a v-on:click="toView"  class="dropdown-item" >Report Branch</a></router-link>
-                  <router-link to="/report-relabel"><a v-on:click="toView"  class="dropdown-item" >Report Relabel</a></router-link>
-                  <router-link to="/report-ql-checker"><a v-on:click="toView"  class="dropdown-item" >Report QL Checker</a></router-link>
-                  <router-link to="/report-tool-log"><a v-on:click="toView"  class="dropdown-item" >Report Tools Log</a></router-link>
+                  <router-link to="/list-branch"><a v-on:click="toView" class="dropdown-item">Report Branch</a></router-link>
+                  <router-link to="/report-relabel"><a v-on:click="toView" class="dropdown-item">Report Relabel</a></router-link>
+                  <router-link to="/report-ql-checker"><a v-on:click="toView" class="dropdown-item">Report QL Checker</a></router-link>
+                  <router-link to="/report-tool-log"><a v-on:click="toView" class="dropdown-item">Report Tools Log</a></router-link>
                 </div>
               </li>
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-cog" aria-hidden="true"></i></a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                  <router-link to="/branch-info"><a v-on:click="toView"  class="dropdown-item" >Branch Info</a></router-link>
+                  <router-link to="/branch-info"><a v-on:click="toView" class="dropdown-item">Branch Info</a></router-link>
                   <router-link to="/size-info"><a v-on:click="toView" class="dropdown-item">Size Info</a></router-link>
                 </div>
               </li>
@@ -85,8 +75,8 @@
         </div>
         <div style="text-align: right;">
           <a class="nav-link" v-on:click="Logout">
-            <label style="color:rgb(0, 136, 148);">
-              <img style="width: 20px" src="./assets/logout.png" /> Logout
+            <label style="color: rgb(0, 136, 148);">
+              <img style="width: 20px;" src="./assets/logout.png" /> Logout
             </label>
           </a>
         </div>
@@ -139,26 +129,24 @@ export default {
         password: password
       };
       //setlocalDatalogin
-      axios
-        .post("https://945cs.work/login_api", queryString.stringify(dataLogin))
-        .then(response => {
-          if (response.data.status) {
-            localStorage.setItem("dataLoginParcelTool",JSON.stringify(dataLogin));
-            this.$session.set("session_username", response.data.name);
-            this.state = "blank";
-            this.role = response.data.role;
-          } else {
-            this.state = "login";
-          }
-        })
-        .catch(function(error) {
-          console.log(error);
-        });
+      axios.post("https://945cs.work/login_api", queryString.stringify(dataLogin)).then(response => {
+        if (response.data.status) {
+          localStorage.setItem("dataLoginParcelTool", JSON.stringify(dataLogin));
+          this.$session.set("session_username", response.data.name);
+          this.state = "blank";
+          this.role = response.data.role;
+        } else {
+          this.state = "login";
+        }
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
     },
     Logout() {
       this.$session.clear();
       this.state = "login";
-      this.$router.push('/');
+      this.$router.push("/");
     },
 
     toView() {

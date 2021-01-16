@@ -163,7 +163,6 @@
 const axios = require("axios");
 
 export default {
-
   data: function() {
     return {
       imgUrl:
@@ -230,7 +229,7 @@ export default {
       const options = { okLabel: "ตกลง" };
       var resTracking;
       if (branch_id == "") {
-        this.$dialogs.alert("กรุณาเลือกสาขาที่ต้องการตรวจสอบให้ถูกต้อง",options);
+        this.$dialogs.alert("กรุณาเลือกสาขาที่ต้องการตรวจสอบให้ถูกต้อง", options);
       } else {
         axios
           .get("/select/tracking/check?branch_id=" + branch_id)
@@ -254,7 +253,7 @@ export default {
           if (response.data.status == "SUCCESS") {
             this.billingInfo = response.data.billingInfo;
             this.billing_no = this.billingInfo[0].billing_no;
-            this.branch_id= this.billingInfo[0].branch_id;
+            this.branch_id = this.billingInfo[0].branch_id;
             this.tracking = this.billingInfo[0].tracking;
             this.bi_parcel_type = this.billingInfo[0].bi_parcel_type;
             this.district_code = this.billingInfo[0].DISTRICT_CODE;
@@ -270,34 +269,16 @@ export default {
             var receiver_name = this.billingInfo[0].receiver_name;
             var res = receiver_name.split(" ");
             this.receiver_first_name = res[0];
-            this.receiver_last_name = (res[1]==""||res[1] == undefined) ? "": res[1];
-
+            this.receiver_last_name = res[1] == "" || res[1] == undefined ? "" : res[1];
             this.phone = this.billingInfo[0].phone;
             this.receiver_address = this.billingInfo[0].receiver_address;
-
-            this.location =
-              this.billingInfo[0].district_name +
-              " " +
-              this.billingInfo[0].amphur_name +
-              " " +
-              this.billingInfo[0].province_name;
-
+            this.location = this.billingInfo[0].district_name + " " + this.billingInfo[0].amphur_name + " " + this.billingInfo[0].province_name;
             this.br_zipcode = this.billingInfo[0].br_zipcode;
-
             this.displayAddress = this.br_zipcode + " " + this.location;
             this.parcelAddressList(this.br_zipcode);
-
             this.br_parcel_type = this.billingInfo[0].br_parcel_type;
-
             this.imgCapture = response.data.imgCapture;
-
-            if (this.imgCapture == false) {
-              this.imgUrl =
-                "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC";
-            } else {
-              this.imgUrl = this.imgCapture[0].image_url;
-            }
-
+            this.imgUrl = this.imgCapture == false ? "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC" : this.imgCapture[0].image_url;
             this.previous_value = response.data.billingInfo[0];
           } else {
             alert("ไม่พบข้อมูล");
@@ -327,21 +308,16 @@ export default {
     },
     parcelAddressList(zipcode) {
       axios.get("https://pos.945.report/billingPos/checkZipcode/?zipcode=" + zipcode)
-        .then(resultsZipCode => {
-          this.listZipcode = resultsZipCode.data;
-        })
-        .catch(error => {
-          console.log(error);
-        });
+      .then(resultsZipCode => {
+        this.listZipcode = resultsZipCode.data;
+      })
+      .catch(error => {
+        console.log(error);
+      });
     },
-
     getNewZipcode() {
       if (this.displayAddress.length > 2 && this.displayAddress.length < 6) {
-        axios
-          .get(
-            "https://pos.945.report/billingPos/checkZipcode/?zipcode=" +
-              this.displayAddress
-          )
+        axios.get("https://pos.945.report/billingPos/checkZipcode/?zipcode=" + this.displayAddress)
           .then(resultsZipCode => {
             this.listZipcode = resultsZipCode.data;
           })
@@ -353,7 +329,7 @@ export default {
     selectType(parcel_type) {
       this.bi_parcel_type = parcel_type;
       this.br_parcel_type = parcel_type;
-      this.cod_value = parcel_type=='NORMAL'? 0 :this.cod_value;
+      this.cod_value = parcel_type == "NORMAL" ? 0 : this.cod_value;
     },
     selectSize() {
       var dataSize = {
@@ -378,12 +354,12 @@ export default {
     confirmData() {
       const options = { okLabel: "ตกลง" };
       if (this.bi_parcel_type == "COD" && parseInt(this.cod_value) >= 10000) {
-        this.$dialogs.alert("กรุณาแน่ใจว่า ค่าเก็บเงินปลายทางเกิน 10000 หรือไม่",options);
+        this.$dialogs.alert("กรุณาแน่ใจว่า ค่าเก็บเงินปลายทางเกิน 10000 หรือไม่", options);
       }
       var phone = this.phone;
       if (this.receiver_first_name == "") {
         this.$dialogs.alert("กรุณากรอก ชื่อผู้รับ ให้ถูกต้อง", options);
-      } else if(this.receiver_last_name == ""){
+      } else if (this.receiver_last_name == "") {
         this.$dialogs.alert("กรุณากรอก นามสกุลผู้รับ ให้ถูกต้อง", options);
       } else if (
         phone[0] + phone[1] != "06" &&
@@ -398,9 +374,9 @@ export default {
       } else if (this.br_zipcode != this.bi_zipcode) {
         this.$dialogs.alert("กรุณากรอก รหัสไปรษณีย์ผู้รับ ให้ตรงกับหน้ากล่องผู้รับ", options);
       } else if (this.bi_parcel_type != this.br_parcel_type) {
-        this.$dialogs.alert( "กรุณากรอก ประเภทการจัดส่ง ให้ตรงกับหน้ากล่องผู้รับ", options);
+        this.$dialogs.alert("กรุณากรอก ประเภทการจัดส่ง ให้ตรงกับหน้ากล่องผู้รับ", options);
       } else if (this.cod_value == null) {
-        this.$dialogs.alert( "กรุณากรอก ค่าเก็บเงินปลายทาง ให้ถูกต้อง", options);
+        this.$dialogs.alert("กรุณากรอก ค่าเก็บเงินปลายทาง ให้ถูกต้อง", options);
       } else if (this.bi_parcel_type == "COD" && (this.cod_value == "" || parseInt(this.cod_value) == 0)) {
         this.$dialogs.alert("กรุณากรอก ค่าเก็บเงินปลายทาง ให้ถูกต้อง", options);
       } else if (this.bi_parcel_type == "NORMAL" && parseInt(this.cod_value) !== 0) {
@@ -416,7 +392,7 @@ export default {
             size_id: this.size_id,
             size_price: this.size_price,
             first_name: this.receiver_first_name,
-            last_name: (this.receiver_last_name == undefined || this.receiver_last_name == "") ? "": this.receiver_last_name,
+            last_name: this.receiver_last_name == undefined || this.receiver_last_name == "" ? "" : this.receiver_last_name,
             phone: this.phone,
             address: this.receiver_address,
             district_code: this.district_code,

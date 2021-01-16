@@ -2,14 +2,14 @@
   <div class="container" style="margin-top: 60px;">
     <div class="search">
       <b style="font-size:18px;">กรุณาใส่เลขที่บิล :</b>
-      <input maxlength="30" v-model="billingInput" autocomplete="false" style="width: 214px;"/>
+      <input maxlength="30" v-model="billingInput" autocomplete="false" style="width: 214px;" />
       <button v-on:click="getData" type="button">Search</button>
     </div>
     <div class="row">
       <div class="col-md-2"></div>
       <div class="col-md-8">
         <div class="center">
-          <table class="head-table"  style="width: 100%;">
+          <table class="head-table" style="width: 100%;">
             <tbody>
               <tr>
                 <td style="width: 15%;">เลขที่บิล:</td>
@@ -53,7 +53,9 @@
                 <td style="width: 15%;">Member Id:</td>
                 <td style="width: 25%;">{{ this.memberInfo.memberId }}</td>
                 <td style="width: 15%;">ชื่อ-นามสกุล:</td>
-                <td style="width: 25%;">{{ this.memberInfo.firstname }} {{ this.memberInfo.lastname }}</td>
+                <td
+                  style="width: 25%;"
+                >{{ this.memberInfo.firstname }} {{ this.memberInfo.lastname }}</td>
               </tr>
               <tr>
                 <td style="width: 15%;">เบอร์โทรศัพท์:</td>
@@ -72,7 +74,7 @@
                 <td style="width: 25%;">{{ status_lb }}</td>
                 <td style="width: 10%;"></td>
                 <td style="width: 25%;"></td>
-              </tr> -->
+              </tr>-->
             </tbody>
           </table>
         </div>
@@ -129,11 +131,11 @@ export default {
       billingInfo: {},
       memberCode: "",
       memberCodeInput: "",
-      memberInfo:{},
-      currentMemberCode:"",
-      currentSenderName:"",
-      currentSenderPhone:"",
-      currentSenderAddress:"",
+      memberInfo: {},
+      currentMemberCode: "",
+      currentSenderName: "",
+      currentSenderPhone: "",
+      currentSenderAddress: "",
       sender_name: "",
       reasonValue: "",
       remark: "",
@@ -155,8 +157,7 @@ export default {
         this.$dialogs.alert("กรุณาใส่เลขที่บิลให้ถูกต้อง", options);
         this.resetData();
       } else {
-        axios
-          .get(this.url+"/check/info/billing?billing=" + this.billingInput.trim())
+        axios.get(this.url + "/check/info/billing?billing=" + this.billingInput.trim())
           .then(response => {
             if (response.data.status == "SUCCESS") {
               this.resetData();
@@ -165,14 +166,10 @@ export default {
               this.billingInfo = this.responseData.billing;
               this.billingItem = this.responseData.billingItem;
               this.countTracking = this.responseData.billingItem.length;
-
               this.billing_no = this.billingInfo.billing_no;
               this.billingStatus = this.billingInfo.status;
-              
-              this.memberCode=this.billingInfo.member_code;
-
+              this.memberCode = this.billingInfo.member_code;
               this.sum = this.billingInfo.total;
-
               this.sender_name = this.billingItem[0].sender_name;
 
               if (this.billingStatus == "complete") {
@@ -204,24 +201,25 @@ export default {
       if (this.memberCodeInput.trim() == "") {
         this.$dialogs.alert("กรุณาใส่รหัสผู้ส่งให้ถูกต้อง", options);
         this.resetData();
-      } else if(this.memberCodeInput==this.memberCode){
+      } else if (this.memberCodeInput == this.memberCode) {
         this.$dialogs.alert("กรุณาใส่รหัสผู้ส่งให้ถูกต้อง เนื่องจากรหัสสมาชิกเป็นของบิลนี้อยู่แล้ว", options);
         this.resetData();
       } else {
         var data = {
           member_code: this.memberCodeInput.trim()
         };
-        axios.post("https://www.945api.com/parcel/select/member/api",JSON.stringify(data))
+        axios
+          .post("https://www.945api.com/parcel/select/member/api", JSON.stringify(data))
           .then(response => {
-            if(response.data.status=="SUCCESS"){
-              this.memberInfo=response.data.memberInfo
-                if (this.memberInfo.phoneregis[0] + this.memberInfo.phoneregis[1] == "66") {
-                  this.memberInfo.phoneregis = this.changeDoubleSix(this.memberInfo.phoneregis);
-                }
-              this.currentMemberCode=this.memberInfo.memberId;
-              this.currentSenderName=this.memberInfo.firstname+" "+this.memberInfo.lastname;
-              this.currentSenderPhone=this.memberInfo.phoneregis;
-              this.currentSenderAddress=this.memberInfo.refAddress;
+            if (response.data.status == "SUCCESS") {
+              this.memberInfo = response.data.memberInfo;
+              if (this.memberInfo.phoneregis[0] + this.memberInfo.phoneregis[1] == "66") {
+                this.memberInfo.phoneregis = this.changeDoubleSix(this.memberInfo.phoneregis);
+              }
+              this.currentMemberCode = this.memberInfo.memberId;
+              this.currentSenderName = this.memberInfo.firstname + " " + this.memberInfo.lastname;
+              this.currentSenderPhone = this.memberInfo.phoneregis;
+              this.currentSenderAddress = this.memberInfo.refAddress;
             } else {
               this.$dialogs.alert("กรุณาใส่รหัสผู้ส่ง(member code) ให้ถูกต้อง", options);
             }
@@ -249,7 +247,7 @@ export default {
       this.previous_value = {};
       this.billingInfo = {};
       this.memberCode = "";
-      this.memberInfo={};
+      this.memberInfo = {};
 
       this.sender_name = "";
       this.reasonValue = "";
@@ -266,7 +264,7 @@ export default {
       } else if (this.billingStatus == "cancel") {
         this.$dialogs.alert("รายการนี้ได้ถูกยกเลิกไปแล้ว", options);
       } else if (this.billingStatus == "pass") {
-        this.$dialogs.alert("รายการนี้กำลังถูกส่งข้อมูลไปยัง server หลัก กรุณารอ 2-3 นาที",options);
+        this.$dialogs.alert("รายการนี้กำลังถูกส่งข้อมูลไปยัง server หลัก กรุณารอ 2-3 นาที", options);
       } else if (this.currentMemberCode == "") {
         this.$dialogs.alert("กรุณาเลือกผู้ส่งให้ถูกต้อง", options);
       } else if (this.currentMemberCode == this.memberCode) {
@@ -280,7 +278,7 @@ export default {
       } else if (this.billingInfo.branch_id !== this.memberInfo.merid) {
         this.$dialogs.alert("กรุณาเลือกผู้ส่งที่อยู่ในสาขาเดียวกันเท่านั้น", options);
       } else {
-        let moduleName="change_member";
+        let moduleName = "change_member";
 
         var dataConfirm = {
           billingNo: this.billing_no,
@@ -299,27 +297,31 @@ export default {
           moduleName: moduleName
         };
 
-        axios.post(this.url+"/tools/void-billing", dataConfirm).then(response => {
+        axios
+          .post(this.url + "/tools/void-billing", dataConfirm)
+          .then(response => {
             if (response.data.status == "SUCCESS") {
-              let billingNo=response.data.billingNo;
-              if(billingNo!==""){
+              let billingNo = response.data.billingNo;
+              if (billingNo !== "") {
                 // const optionsDialog = {title: 'รายการที่คุณเลือกได้ถูกยกเลิกแล้ว', cancelLabel: 'cancel', okLabel: "ตกลง"}
-                const optionsDialog = {title: 'รายการที่คุณเลือกได้เปลี่ยนแปลงข้อมูลผู้ส่งแล้ว', okLabel: "ตกลง"}
-                this.$dialogs.alert('เลขที่บิลใหม่...'+ billingNo, optionsDialog)
-                .then(res => {
-                  // console.log(res) // {ok: true|false|undefined}
-                  if(res){
-                    this.$router.push("/");
-                  } else {
-                    this.$router.push("/");
-                  }
-                })
+                const optionsDialog = {
+                  title: "รายการที่คุณเลือกได้เปลี่ยนแปลงข้อมูลผู้ส่งแล้ว",
+                  okLabel: "ตกลง"
+                };
+                this.$dialogs.alert("เลขที่บิลใหม่..." + billingNo, optionsDialog).then(res => {
+                    // console.log(res) // {ok: true|false|undefined}
+                    if (res) {
+                      this.$router.push("/");
+                    } else {
+                      this.$router.push("/");
+                    }
+                  });
               } else {
                 this.$dialogs.alert("ยกเลิกรายการทั้งหมดแล้ว", options);
                 this.$router.push("/");
               }
             } else {
-              this.$dialogs.alert("ไม่สามารถยกเลิกรายการได้ เนื่องจาก..."+response.data.reason, options);
+              this.$dialogs.alert("ไม่สามารถยกเลิกรายการได้ เนื่องจาก..." + response.data.reason, options);
               this.$router.push("/");
             }
           })
