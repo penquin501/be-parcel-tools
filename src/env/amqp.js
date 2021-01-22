@@ -25,6 +25,7 @@ const MY_EXCHANGE_PREPARE_BOOKING = MY_AMQP_PREFIX + ".exchange.prepare-booking"
 const MY_EXCHANGE_VOID_BILLING = MY_AMQP_PREFIX + ".exchange.void-billing";
 const MY_EXCHANGE_RESTRUCTURE_BILLING = MY_AMQP_PREFIX + ".exchange.restructure-billing";
 const MY_EXCHANGE_RELABEL_BILLING = MY_AMQP_PREFIX + ".exchange.relabel-billing";
+const MY_EXCHANGE_PREPARE_BILLING = MY_AMQP_PREFIX + ".exchange.prepare-billing";
 
 const SHARE_EXCHANGE_VOID_BILLING = "share.exchange.void-billing";
 const SHARE_EXCHANGE_RESTRUCTURE_BILLING = "share.exchange.restructure-billing";
@@ -39,6 +40,8 @@ module.exports = async function() {
     await channel.assertExchange(MY_EXCHANGE_VOID_BILLING, "fanout", {durable: true});
     await channel.assertExchange(MY_EXCHANGE_RESTRUCTURE_BILLING, "fanout", {durable: true});
     await channel.assertExchange(MY_EXCHANGE_RELABEL_BILLING, "fanout", {durable: true});
+    await channel.assertExchange(MY_EXCHANGE_PREPARE_BILLING, "fanout", { durable: true });
+
     await channel.assertExchange(SHARE_EXCHANGE_VOID_BILLING, "fanout", {durable: true});
     await channel.assertExchange(SHARE_EXCHANGE_RESTRUCTURE_BILLING, "fanout", {durable: true});
     await channel.assertExchange(SHARE_EXCHANGE_RELABEL_BILLING, "fanout", {durable: true});

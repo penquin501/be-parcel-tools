@@ -381,39 +381,46 @@ export default {
         this.$dialogs.alert("กรุณากรอก ค่าเก็บเงินปลายทาง ให้ถูกต้อง", options);
       } else if (this.bi_parcel_type == "NORMAL" && parseInt(this.cod_value) !== 0) {
         this.$dialogs.alert("กรุณากรอก ค่าเก็บเงินปลายทาง ให้ถูกต้อง", options);
+      } else if (this.bi_parcel_type == "COD" && parseInt(this.cod_value) > 50000) {
+        this.$dialogs.alert("มูลค่า COD มากกว่า 50000 บาท ไม่สามารถทำรายการได้", options);
       } else {
-        var dataConfirm = {
-          tracking: this.tracking,
-          billing_no: this.billing_no,
-          previous_value: this.previous_value,
-          current_value: {
-            parcel_type: this.bi_parcel_type,
-            cod_value: parseInt(this.cod_value),
-            size_id: this.size_id,
-            size_price: this.size_price,
-            first_name: this.receiver_first_name,
-            last_name: this.receiver_last_name == undefined || this.receiver_last_name == "" ? "" : this.receiver_last_name,
-            phone: this.phone,
-            address: this.receiver_address,
-            district_code: this.district_code,
-            br_zipcode: this.br_zipcode
-          },
-          user: this.$session.get("session_username")
-        };
-        axios
-          .post("/confirm/match/data/info", dataConfirm)
-          .then(response => {
-            if (response.data.status == "SUCCESS") {
-              this.$dialogs.alert("แก้ไขข้อมูลผู้รับเรียบร้อยแล้ว", options);
-              this.$router.push("/listtracking");
-            } else {
-              this.$dialogs.alert("ข้อมูลไม่ถูกต้อง", options);
-              this.$router.push("/listtracking");
-            }
-          })
-          .catch(function(error) {
-            console.log(error);
-          });
+        if (parseInt(this.cod_value) > 10000) {
+          this.$dialogs.alert("มูลค่า COD มีมูลค่าที่สูงมาก ยืนยันการกรอกมูลค่า", optionsDialog)
+            .then(res => {
+              var dataConfirm = {
+              tracking: this.tracking,
+              billing_no: this.billing_no,
+              previous_value: this.previous_value,
+              current_value: {
+                parcel_type: this.bi_parcel_type,
+                cod_value: parseInt(this.cod_value),
+                size_id: this.size_id,
+                size_price: this.size_price,
+                first_name: this.receiver_first_name,
+                last_name: this.receiver_last_name == undefined || this.receiver_last_name == "" ? "" : this.receiver_last_name,
+                phone: this.phone,
+                address: this.receiver_address,
+                district_code: this.district_code,
+                br_zipcode: this.br_zipcode
+              },
+              user: this.$session.get("session_username")
+            };
+            axios
+              .post("/confirm/match/data/info", dataConfirm)
+              .then(response => {
+                if (response.data.status == "SUCCESS") {
+                  this.$dialogs.alert("แก้ไขข้อมูลผู้รับเรียบร้อยแล้ว", options);
+                  this.$router.push("/listtracking");
+                } else {
+                  this.$dialogs.alert("ข้อมูลไม่ถูกต้อง", options);
+                  this.$router.push("/listtracking");
+                }
+              })
+              .catch(function(error) {
+                console.log(error);
+              });
+            });
+        }
       }
     },
     rotateRight() {

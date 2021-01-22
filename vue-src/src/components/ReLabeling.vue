@@ -440,7 +440,14 @@ export default {
     },
     selectItem(item) {
       this.keyAddress = item;
-      this.displayAddress = item.zipcode + " " + item.DISTRICT_NAME + "  " + item.AMPHUR_NAME + "  " + item.PROVINCE_NAME;
+      this.displayAddress =
+        item.zipcode +
+        " " +
+        item.DISTRICT_NAME +
+        "  " +
+        item.AMPHUR_NAME +
+        "  " +
+        item.PROVINCE_NAME;
       this.openZipcode = false;
       this.bi_zipcode = item.zipcode;
       this.br_zipcode = item.zipcode;
@@ -454,21 +461,23 @@ export default {
         // zone: (this.branch_id !== 50 && this.branch_id !== 70)?2:1
         zone: 2
       };
-      axios.post(this.url + "/parcelPrice", dataSize)
-      .then(response => {
-        let parcelSizeSelect = response.data;
-        if (response.data != undefined) {
-          this.size_price = parcelSizeSelect[0].parcel_price;
-          this.size_id = parcelSizeSelect[0].size_id;
-        }
-      })
-      .catch(function(error) {
-        console.log(error);
-      });
+      axios
+        .post(this.url + "/parcelPrice", dataSize)
+        .then(response => {
+          let parcelSizeSelect = response.data;
+          if (response.data != undefined) {
+            this.size_price = parcelSizeSelect[0].parcel_price;
+            this.size_id = parcelSizeSelect[0].size_id;
+          }
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
     },
     emptyBox() {
       this.trackingInput = "";
-      this.imgUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC";
+      this.imgUrl =
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC";
 
       this.billing_no = "";
       this.tracking = "";
@@ -574,73 +583,83 @@ export default {
       } else if (this.br_zipcode != this.bi_zipcode) {
         this.$dialogs.alert("กรุณากรอก รหัสไปรษณีย์ผู้รับ ให้ตรงกับหน้ากล่องผู้รับ", options);
       } else if (this.bi_parcel_type != this.br_parcel_type) {
-        this.$dialogs.alert("กรุณากรอก ประเภทการจัดส่ง ให้ตรงกับหน้ากล่องผู้รับ", options);
-      } else if (this.bi_parcel_type == "COD" && (this.cod_value == "" || this.cod_value == 0)) {
-        this.$dialogs.alert("กรุณากรอก ค่าเก็บเงินปลายทาง ให้ถูกต้อง", options);
-      } else if (this.bi_parcel_type == "NORMAL" && this.cod_value !== 0) {
-        this.$dialogs.alert("กรุณากรอก ค่าเก็บเงินปลายทาง ให้ถูกต้อง", options);
+        this.$dialogs.alert("กรุณาระบุ ประเภทการจัดส่ง ให้ตรงกับหน้ากล่องผู้รับ", options);
+      } else if (this.bi_parcel_type == "COD" && (this.cod_value == "" || parseInt(this.cod_value) == 0)) {
+        this.$dialogs.alert("กรุณากรอก มูลค่า COD ให้ถูกต้อง", options);
+      } else if (this.bi_parcel_type == "NORMAL" && parseInt(this.cod_value) !== 0) {
+        this.$dialogs.alert("กรุณากรอก มูลค่า COD ให้ถูกต้อง", options);
+      } else if (this.bi_parcel_type == "COD" && parseInt(this.cod_value) > 50000) {
+        this.$dialogs.alert("มูลค่า COD มากกว่า 50000 บาท ไม่สามารถทำรายการได้", options);
       } else {
-        axios.get(this.url + "/check-available-tracking?tracking=" + this.newTrackingInput.toUpperCase())
-          .then(response => {
-            this.resultDuplicatedTracking = response.data;
-
-            if (!this.resultDuplicatedTracking) {
-              this.getNewTracking();
-            } else {
-              var moduleName = "relabeling_tracking";
-
-              var dataConfirm = {
-                billingNo: this.billing_no,
-                billingInfo: this.billingInfo,
-                billingStatus: this.status,
-                currentValue: {
-                  billingItem: {
-                    tracking: this.newTrackingInput.toUpperCase(),
-                    parcelType: this.bi_parcel_type.toUpperCase(),
-                    codValue: this.cod_value,
-                    sizeId: this.size_id,
-                    sizePrice: this.causeType == 1 ? 0 : this.size_price
-                  },
-                  receiverInfo: {
-                    receiverName: this.receiver_first_name + " " + this.receiver_last_name,
-                    phone: this.phone,
-                    receiverAddress: this.receiver_address,
-                    keyAddress: this.keyAddress
-                  }
-                },
-                causeType: this.causeType,
-                reason: this.reasonValue,
-                remark: this.remark,
-                user: this.$session.get("session_username"),
-                moduleName: moduleName
-              };
-
-              axios.post(this.url + "/tools/relabel-tracking", dataConfirm)
+        if (parseInt(this.cod_value) > 10000) {
+          this.$dialogs.alert("มูลค่า COD มีมูลค่าที่สูงมาก ยืนยันการกรอกมูลค่า", optionsDialog)
+            .then(res => {
+              axios
+                .get(this.url + "/check-available-tracking?tracking=" + this.newTrackingInput.toUpperCase())
                 .then(response => {
-                  if (response.data.status == "SUCCESS") {
-                    let billingNo = response.data.billingNo;
-                    const optionsDialog = {
-                      title: "รายการที่คุณเลือกได้ relabel แล้ว",
-                      okLabel: "ตกลง" 
+                  this.resultDuplicatedTracking = response.data;
+
+                  if (!this.resultDuplicatedTracking) {
+                    this.getNewTracking();
+                  } else {
+                    var moduleName = "relabeling_tracking";
+
+                    var dataConfirm = {
+                      billingNo: this.billing_no,
+                      billingInfo: this.billingInfo,
+                      billingStatus: this.status,
+                      currentValue: {
+                        billingItem: {
+                          tracking: this.newTrackingInput.toUpperCase(),
+                          parcelType: this.bi_parcel_type.toUpperCase(),
+                          codValue: this.cod_value,
+                          sizeId: this.size_id,
+                          sizePrice: this.causeType == 1 ? 0 : this.size_price
+                        },
+                        receiverInfo: {
+                          receiverName: this.receiver_first_name + " " + this.receiver_last_name,
+                          phone: this.phone,
+                          receiverAddress: this.receiver_address,
+                          keyAddress: this.keyAddress
+                        }
+                      },
+                      causeType: this.causeType,
+                      reason: this.reasonValue,
+                      remark: this.remark,
+                      user: this.$session.get("session_username"),
+                      moduleName: moduleName
                     };
-                    this.$dialogs.alert("เลขที่บิลใหม่..." + billingNo, optionsDialog).then(res => {
-                        // console.log(res) // {ok: true|false|undefined}
-                        if (res) {
-                          this.$router.push("/");
+
+                    axios
+                      .post(this.url + "/tools/relabel-tracking", dataConfirm)
+                      .then(response => {
+                        if (response.data.status == "SUCCESS") {
+                          let billingNo = response.data.billingNo;
+                          const optionsDialog = {
+                            title: "รายการที่คุณเลือกได้ relabel แล้ว",
+                            okLabel: "ตกลง"
+                          };
+                          this.$dialogs.alert("เลขที่บิลใหม่..." + billingNo, optionsDialog)
+                            .then(res => {
+                              // console.log(res) // {ok: true|false|undefined}
+                              if (res) {
+                                this.$router.push("/");
+                              } else {
+                                this.$router.push("/");
+                              }
+                            });
                         } else {
+                          this.$dialogs.alert("ไม่สามารถ relabel tracking ได้ เนื่องจาก..." + response.data.reason, options);
                           this.$router.push("/");
                         }
+                      })
+                      .catch(function(error) {
+                        console.log(error);
                       });
-                  } else {
-                    this.$dialogs.alert("ไม่สามารถ relabel tracking ได้ เนื่องจาก..." + response.data.reason, options);
-                    this.$router.push("/");
                   }
-                })
-                .catch(function(error) {
-                  console.log(error);
                 });
-            }
-          });
+            });
+        }
       }
     },
     rotateRight() {

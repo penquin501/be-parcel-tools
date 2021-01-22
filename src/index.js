@@ -376,6 +376,11 @@ Promise.all([initDb(), initAmqp()]).then(values => {
             item_valid = false;
           }
 
+          if (billingItem.parcelType.toUpperCase() == "COD" && parseInt(billingItem.codValue) > 50000) {
+            console.log("parcelType = COD, codValue = %d", billingItem.codValue);
+            item_valid = false;
+          }
+
           if (!item_valid) {
             return res.json({
               status: "ERROR",
@@ -1052,46 +1057,6 @@ Promise.all([initDb(), initAmqp()]).then(values => {
     });
   });
 
-  app.post("/generate-resend-bill", function(req, res) {
-    if (req.headers["apikey"] != "XbOiHrrpH8aQXObcWj69XAom1b0ac5eda2b") {
-      return res.send(401, "Unauthorized");
-    } else {
-      let billing_no = req.body.billing_no;
-
-      let module_name = "generate_resend_bill";
-      let reason = req.body.reason;
-      let remark = req.body.remark;
-      let user = req.body.user;
-
-      parcelServices.getBillingInfo(db, billing_no).then(function(data) {
-        if (data !== false) {
-          var billing_status = data.billing.status;
-          if (billing_status == "SUCCESS" || billing_status == "pass") {
-            let log_previous_value = billing_status;
-            let log_current_value = "booked";
-            parcelServices.updateResendBilling(db, billing_no, billing_status).then(function(data) {
-              if (data !== false) {
-                if (data.affectedRows > 0) {
-                  parcelServices.insertLog(db, billing_no, log_previous_value, log_current_value, reason, module_name, user, billing_no, remark).then(function(data) {
-                    res.json({ status: "SUCCESS" });
-                  });
-                } else {
-                  res.json({ status: "error_resend_bill" });
-                }
-              } else {
-                res.json({ status: "error_resend_bill" });
-              }
-            });
-          } else {
-            res.json({ status: "billing_status_can_not_resend" });
-          }
-        } else {
-          res.json({ status: "data_not_found" });
-        }
-      });
-    }
-  });
-
   app.post("/resume-booking-to-queue", function(req, res) {
     if (req.headers["apikey"] != "XbOiHrrpH8aQXObcWj69XAom1b0ac5eda2b") {
       return res.send(401, "Unauthorized");
@@ -1123,46 +1088,30 @@ Promise.all([initDb(), initAmqp()]).then(values => {
       let remark = req.body.remark;
       let user = req.body.user;
 
-      parcelServices.sendDataToServer(db, billing_no).then(function(data_to_945) {
-        if (data_to_945 !== false) {
-          let log_previous_value = billing_no + "/complete";
-          let log_current_value = billing_no + "/complete";
-          parcelServices.insertLog(db, billing_no, log_previous_value, log_current_value, reason, module_name, user, billing_no, remark).then(function(dataLog) {
-            // amqpChannel.publish(MY_AMQP_PREFIX+".exchange.event","",Buffer.from(JSON.stringify(data_to_945)),{persistent: true});
-            amqpChannel.publish("share.exchange.event", "", Buffer.from(JSON.stringify(data_to_945)), { persistent: true });
-            res.json(data_to_945);
-          });
-        } else {
-          res.json({ status: "data_not_found" });
-        }
+      parcelServices.insertLog(db, billing_no, log_previous_value, log_current_value, reason, module_name, user, billing_no, remark).then(function(dataLog) {
+        let dataBilling = {
+          billing_no: billing_no,
+          source: "POS"
+        };
+        console.log("send resend bill to prepare-billing exchange = %s", billing_no);
+        amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.prepare-billing", "", Buffer.from(JSON.stringify(dataBilling)), { persistent: true });
+        console.log("sent resend bill to prepare-billing exchange = %s", billing_no);
+        res.json(data_to_945);
       });
-    }
-  });
 
-  app.post("/resend-tracking-to-queue", function(req, res) {
-    if (req.headers["apikey"] != "XbOiHrrpH8aQXObcWj69XAom1b0ac5eda2b") {
-      return res.send(401, "Unauthorized");
-    } else {
-      let tracking = req.body.tracking;
-      let billing_no = req.body.billing_no;
-      let module_name = "resend_tracking_to_queue";
-      let reason = req.body.reason;
-      let remark = req.body.remark;
-      let user = req.body.user;
-
-      parcelServices.selectDataToExchangeUpdateBooking(db, tracking).then(function(data_to_945) {
-        if (data_to_945 !== false) {
-          let log_previous_value = tracking + "/booked";
-          let log_current_value = tracking + "/booked";
-          parcelServices.insertLog(db, billing_no, log_previous_value, log_current_value, reason, module_name, user, tracking, remark).then(function(dataLog) {
-            // amqpChannel.publish(EXCHANGE_UPDATE_BOOKING,"",Buffer.from(JSON.stringify(results)),{persistent: true});
-            amqpChannel.publish("share.exchange.task-update", "", Buffer.from(JSON.stringify(data_to_945)), { persistent: true });
-            res.json(data_to_945);
-          });
-        } else {
-          res.json({ status: "data_not_found" });
-        }
-      });
+      // parcelServices.sendDataToServer(db, billing_no).then(function(data_to_945) {
+      //   if (data_to_945 !== false) {
+      //     let log_previous_value = billing_no + "/complete";
+      //     let log_current_value = billing_no + "/complete";
+      //     parcelServices.insertLog(db, billing_no, log_previous_value, log_current_value, reason, module_name, user, billing_no, remark).then(function(dataLog) {
+      //       // amqpChannel.publish(MY_AMQP_PREFIX+".exchange.event","",Buffer.from(JSON.stringify(data_to_945)),{persistent: true});
+      //       amqpChannel.publish("share.exchange.event", "", Buffer.from(JSON.stringify(data_to_945)), { persistent: true });
+      //       res.json(data_to_945);
+      //     });
+      //   } else {
+      //     res.json({ status: "data_not_found" });
+      //   }
+      // });
     }
   });
 
@@ -1625,8 +1574,14 @@ Promise.all([initDb(), initAmqp()]).then(values => {
                         remark: remark
                       };
 
-                      amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.event", "", Buffer.from(JSON.stringify(result[1])), { persistent: true });
-                      amqpChannel.publish("share.exchange.event", "", Buffer.from(JSON.stringify(result[1])), { persistent: true });
+                      let dataBilling = {
+                        billing_no: newBillingNo,
+                        source: "RELABEL"
+                      };
+
+                      amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.prepare-billing", "", Buffer.from(JSON.stringify(dataBilling)), { persistent: true });
+                      // amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.event", "", Buffer.from(JSON.stringify(result[1])), { persistent: true });
+                      // amqpChannel.publish("share.exchange.event", "", Buffer.from(JSON.stringify(result[1])), { persistent: true });
 
                       amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.relabel-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
                       amqpChannel.publish("share.exchange.relabel-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
@@ -1698,6 +1653,9 @@ Promise.all([initDb(), initAmqp()]).then(values => {
       return false;
     }
     if (bi_type == "COD" && (parseInt(cod_value) == 0 || cod_value == undefined || cod_value == "")) {
+      return false;
+    }
+    if (bi_type == "COD" && parseInt(cod_value) > 50000) {
       return false;
     }
     return defaultValue;

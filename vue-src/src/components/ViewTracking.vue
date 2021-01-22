@@ -3,7 +3,7 @@
     <div style="overflow-x:auto;">
       <div class="row">
         <div class="col-ms-3 col-sm-3 col-xs-3"></div>
-        <div class="col-ms-3 col-sm-3 col-xs-3" style=" text-align: right;">
+        <div class="col-ms-3 col-sm-3 col-xs-3" style="text-align: right;">
           <b style="font-size:18px; margin-top: 10px;">ค้นหา :</b>
         </div>
         <div class="col-ms-3 col-sm-3 col-xs-3">
