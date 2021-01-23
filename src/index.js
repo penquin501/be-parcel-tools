@@ -1008,6 +1008,17 @@ Promise.all([initDb(), initAmqp()]).then(values => {
     });
   });
 
+  app.get("/log-booking-dhl", (req, res) => {
+    let tracking = req.query.tracking;
+    parcelServices.getBookingLog(db, tracking).then(function(data) {
+      if (data == false) {
+        res.json([]);
+      } else {
+        res.json(data);
+      }
+    });
+  });
+
   /******************************************** extra tools ********************************************/
   app.get("/check-data-item", function(req, res) {
     let tracking = req.query.tracking;

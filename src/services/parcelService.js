@@ -952,6 +952,24 @@ module.exports = {
       });
     });
   },
+  getBookingLog: (db, tracking) =>{
+    var sql = `SELECT * FROM booking_tracking_batch WHERE tracking=?`;
+    var data = [tracking];
+
+    return new Promise(function(resolve, reject) {
+      db.query(sql, data, (err, results) => {
+        if (err === null) {
+          if (results.length <= 0) {
+            resolve(false);
+          } else {
+            resolve(results);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
   updateStatusManual: (db, tracking) => {
     var sql = `UPDATE billing_receiver_info SET status='booked',booking_status=100 WHERE tracking=?`;
     var data = [tracking];
