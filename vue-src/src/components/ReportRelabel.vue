@@ -20,29 +20,27 @@
         <div class="col-ms-1 col-sm-1 col-xs-1" style="text-align: center; margin-top: 5px; padding-left: 0px; padding-right: 0px;"><button class="button-re" v-on:click="getReportBranch()"><i class="fa fa-refresh" aria-hidden="true"></i></button></div>
         <table class="table-branch">
           <tr>
-            <th style="text-align:center;">เวลา</th>
-            <th style="text-align:center;">สาขา</th>
-            <th style="text-align:center;">เลขที่บิล</th>
-            <th style="text-align:center;">tracking</th>
-            <th style="text-align:center;">ค่าปัจจุบัน</th>
-            <th style="text-align:center;">เหตุผล</th>
-            <th style="text-align:center;">รายละเอียดเพิ่มเติม</th>
-            <!-- <th style="text-align:center;">เครื่องมือที่ใช้</th> -->
+            <th style="text-align:center; width: 10%;">วันที่ เวลา</th>
+            <th style="text-align:center; width: 5%;">สาขา</th>
+            <th style="text-align:center; width: 20%;">เลขที่บิล</th>
+            <th style="text-align:center; width: 10%;">tracking</th>
+            <th style="text-align:center; width: 15%;">ค่าปัจจุบัน</th>
+            <th style="text-align:center; width: 10%;">เหตุผล</th>
+            <th style="text-align:center; width: 20%;">รายละเอียดเพิ่มเติม</th>
           </tr>
-          <tr v-for="(item) in data" v-bind:key="item.id">
-            <td style="text-align: center;">{{ item.time_to_system | moment("HH:mm:ss") }}</td>
+          <tr v-for="(item) in filteredResourcesBilling" v-bind:key="item.id">
+            <td style="text-align: center;">{{ item.time_to_system | moment("YYYY-MM-DD HH:mm:ss") }}</td>
             <td style="text-align: center;">{{ item.branch_name }}</td>
             <td style="text-align: center;">{{ item.billing_no }}</td>
             <td style="text-align: center;">{{ item.ref }}</td>
             <td style="text-align: center;">{{ item.current_value }}</td>
-            <!-- <td style="text-align: center;width: 200px;"> -->
             <td v-if="item.reason == 'change_cod_to_normal'">เปลี่ยนประเภท COD เป็น NORMAL</td>
             <td v-else-if="item.reason == 'change_normal_to_cod'">เปลี่ยนประเภท NORMAL เป็น COD</td>
             <td v-else-if="item.reason == 'change_codvalue'">เปลี่ยนมูลค่า COD</td>
             <td v-else-if="item.reason == 'change_address'">เปลี่ยนที่อยู่</td>
             <td v-else-if="item.reason == 'close_status_early_due'">ปิดสถานะก่อนกำหนด</td>
             <td v-else>ไม่ได้ระบุ เหตุผล</td>
-            <td style="text-align: center;">{{ item.remark }}</td>
+            <td style="text-align: center; word-wrap: break-word;">{{ item.remark }}</td>
             <!-- <td style="text-align: center;">{{ item.module_name }}</td> -->
           </tr>
         </table>
@@ -72,8 +70,9 @@ export default {
   },
   methods: {
     getReportBranch() {
+      this.data = [];
       const options = { okLabel: "ตกลง" };
-      axios.get(this.url + "/log-daily-tool?date_check=" + this.datePick)
+      axios.get(this.url + "/log-relabel-tool?date_check=" + this.datePick)
       .then(response => {
         if (response.data.length === 0) {
           this.$dialogs.alert("ไม่พบข้อมูล", options);
@@ -93,9 +92,7 @@ export default {
   },
   computed: {
     filteredResourcesBilling() {
-      return this.data
-        .slice(0)
-        .sort((a, b) => (a.id < b.id ? this.sorting : -this.sorting));
+      return this.data.slice(0).sort((a, b) => (a.id < b.id ? this.sorting : -this.sorting));
     }
   }
 };
@@ -164,6 +161,7 @@ input {
 }
 
 .table-branch {
+  table-layout: fixed;
   border-collapse: collapse;
   border-spacing: 0;
   width: 100%;

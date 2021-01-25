@@ -931,6 +931,33 @@ module.exports = {
       });
     });
   },
+  logRelabelTool: (db, dateCheck) =>{
+    var currentDay = moment(dateCheck + " 00:00:00").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+    var nextDay = moment(currentDay).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+    var previousMonth = moment(currentDay).add(-1, "month").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+    var moduleName = 'relabeling_tracking';
+
+    var sql = `SELECT log_tool.*, b_info.branch_name
+    FROM log_parcel_tool log_tool
+    JOIN billing b ON log_tool.billing_no = b.billing_no
+    JOIN branch_info b_info ON b.branch_id = b_info.branch_id
+    WHERE (time_to_system > ? AND time_to_system <= ?) AND module_name = ?`;
+    var data = [previousMonth, nextDay, moduleName];
+    
+    return new Promise(function(resolve, reject) {
+      db.query(sql, data, (err, results) => {
+        if (err === null) {
+          if (results.length <= 0) {
+            resolve(false);
+          } else {
+            resolve(results);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
   listCapture: (db, dateCheck) => {
     var currentDay = moment(dateCheck + " 00:00:00").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
     var nextDay = moment(currentDay).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");

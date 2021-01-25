@@ -287,7 +287,7 @@ export default {
         { code: "01", name: "945 เป็นฝ่ายผิด", value: 1 },
         { code: "02", name: "ลูกค้า/shop เป็นฝ่ายผิด", value: 2 }
       ],
-      url: ""
+      url: "http://localhost:3000"
     };
   },
   mounted() {
@@ -302,11 +302,7 @@ export default {
         this.$dialogs.alert("กรุณาใส่เลข Tracking ให้ถูกต้อง", options);
       } else {
         axios
-          .get(
-            this.url +
-              "/check/info/tracking?tracking=" +
-              this.trackingInput.toUpperCase()
-          )
+          .get(this.url + "/check/info/tracking?tracking=" + this.trackingInput.toUpperCase())
           .then(response => {
             if (response.data.status == "SUCCESS") {
               var responseData = response.data.billingInfo;
@@ -407,10 +403,7 @@ export default {
     getNewZipcode() {
       if (this.displayAddress.length > 2 && this.displayAddress.length < 6) {
         axios
-          .get(
-            "https://pos.945.report/billingPos/checkZipcode/?zipcode=" +
-              this.displayAddress
-          )
+          .get("https://pos.945.report/billingPos/checkZipcode/?zipcode=" + this.displayAddress)
           .then(resultsZipCode => {
             this.listZipcode = resultsZipCode.data;
           })
@@ -440,14 +433,7 @@ export default {
     },
     selectItem(item) {
       this.keyAddress = item;
-      this.displayAddress =
-        item.zipcode +
-        " " +
-        item.DISTRICT_NAME +
-        "  " +
-        item.AMPHUR_NAME +
-        "  " +
-        item.PROVINCE_NAME;
+      this.displayAddress = item.zipcode + " " + item.DISTRICT_NAME + "  " + item.AMPHUR_NAME + "  " + item.PROVINCE_NAME;
       this.openZipcode = false;
       this.bi_zipcode = item.zipcode;
       this.br_zipcode = item.zipcode;
@@ -532,6 +518,7 @@ export default {
     },
     confirmSelectTools() {
       const options = { okLabel: "ตกลง" };
+      const optionsDialog = { title: "มูลค่า COD", okLabel: "ตกลง" };
 
       var regTracking = /^[T|t][D|d][Z|z]+[0-9]{8}[A-Z]?$/i;
       var phone = this.phone;
@@ -542,15 +529,9 @@ export default {
         this.$dialogs.alert("กรุณาระบุ Tracking เพื่อทำรายการ", options);
       } else if (this.billing_no == "") {
         this.$dialogs.alert("ไม่สามารถยกเลิกได้ เนื่องจากทางร้านยังไม่ได้ทำรายการ", options);
-      } else if (
-        this.receiver_first_name == "" ||
-        this.receiver_first_name == undefined
-      ) {
+      } else if (this.receiver_first_name == "" || this.receiver_first_name == undefined) {
         this.$dialogs.alert("กรุณาใส่ชื่อผู้รับให้ถูกต้อง", options);
-      } else if (
-        this.receiver_last_name == "" ||
-        this.receiver_last_name == undefined
-      ) {
+      } else if (this.receiver_last_name == "" || this.receiver_last_name == undefined) {
         this.$dialogs.alert("กรุณาใส่นามสกุลผู้รับให้ถูกต้อง", options);
       } else if (this.reasonValue == "") {
         this.$dialogs.alert("กรุณาระบุ เหตุผล", options);
@@ -570,11 +551,7 @@ export default {
         this.$dialogs.alert("รายการนี้ได้ถูกยกเลิกไปแล้ว", options);
       } else if (this.status == "relabel") {
         this.$dialogs.alert("ไม่สามารถเปลี่ยนเลขนี้ได้ เนื่องจากเลขนี้ได้ถูกเปลี่ยนเลขไปแล้ว", options);
-      } else if (
-        phone[0] + phone[1] != "06" &&
-        phone[0] + phone[1] != "08" &&
-        phone[0] + phone[1] != "09"
-      ) {
+      } else if (phone[0] + phone[1] != "06" && phone[0] + phone[1] != "08" && phone[0] + phone[1] != "09") {
         this.$dialogs.alert("กรุณากรอก เบอร์โทรศัทพ์ผู้รับ เท่านั้น", options);
       } else if (phone.length < 10) {
         this.$dialogs.alert("กรุณากรอก เบอร์โทรศัพท์ ให้ถูกต้อง", options);
@@ -593,8 +570,9 @@ export default {
       } else {
         if (parseInt(this.cod_value) > 10000) {
           this.$dialogs.alert("มูลค่า COD มีมูลค่าที่สูงมาก ยืนยันการกรอกมูลค่า", optionsDialog)
-            .then(res => {
-              axios
+            .then(resCod => {
+              if(resCod){
+                axios
                 .get(this.url + "/check-available-tracking?tracking=" + this.newTrackingInput.toUpperCase())
                 .then(response => {
                   this.resultDuplicatedTracking = response.data;
@@ -635,11 +613,8 @@ export default {
                       .then(response => {
                         if (response.data.status == "SUCCESS") {
                           let billingNo = response.data.billingNo;
-                          const optionsDialog = {
-                            title: "รายการที่คุณเลือกได้ relabel แล้ว",
-                            okLabel: "ตกลง"
-                          };
-                          this.$dialogs.alert("เลขที่บิลใหม่..." + billingNo, optionsDialog)
+                          const optionsDialog2 = { title: "รายการที่คุณเลือกได้ relabel แล้ว", okLabel: "ตกลง" };
+                          this.$dialogs.alert("เลขที่บิลใหม่..." + billingNo, optionsDialog2)
                             .then(res => {
                               // console.log(res) // {ok: true|false|undefined}
                               if (res) {
@@ -658,6 +633,7 @@ export default {
                       });
                   }
                 });
+              }
             });
         }
       }

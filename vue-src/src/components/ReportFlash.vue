@@ -195,7 +195,7 @@ export default {
               this.$dialogs.alert("ข้อมูลได้ update เข้าระบบแล้ว", options);
               this.$router.push("/report-flash-booking");
             } else {
-              this.$dialogs.alert("ไม่สามารถแก้ไข ได้ เนื่องจาก..." + response.data.status, ptions);
+              this.$dialogs.alert("ไม่สามารถแก้ไข ได้ เนื่องจาก..." + response.data.status, options);
               this.$router.push("/");
             }
           })

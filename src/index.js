@@ -986,6 +986,17 @@ Promise.all([initDb(), initAmqp()]).then(values => {
     });
   });
 
+  app.get("/log-relabel-tool", (req, res) => {
+    let dateCheck = req.query.date_check;
+    parcelServices.logRelabelTool(db, dateCheck).then(function(data) {
+      if (data == false) {
+        res.json([]);
+      } else {
+        res.json(data);
+      }
+    });
+  });
+
   app.get("/log-daily-qlchecker", (req, res) => {
     let dateCheck = req.query.date_check;
     parcelServices.logDailyQlChecker(db, dateCheck).then(function(data) {
