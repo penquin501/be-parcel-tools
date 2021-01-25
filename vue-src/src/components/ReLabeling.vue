@@ -287,7 +287,7 @@ export default {
         { code: "01", name: "945 เป็นฝ่ายผิด", value: 1 },
         { code: "02", name: "ลูกค้า/shop เป็นฝ่ายผิด", value: 2 }
       ],
-      url: "http://localhost:3000"
+      url: ""
     };
   },
   mounted() {
