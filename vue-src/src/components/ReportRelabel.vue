@@ -10,15 +10,15 @@
       </div>
       <div class="row">
         <div class="col-ms-4 col-sm-4 col-xs-4" style="text-align: center; margin-top: 5px; padding-left: 0px;padding-right: 0px;">
-          <div>
+          <!-- <div>
             <input type="date" id="datePick" v-model="datePick" name="datePick" />
             <span><button class="button-re" v-on:click="getReportBranch()"><i class="fa fa-search" aria-hidden="true"></i></button></span>
-          </div>
+          </div> -->
         </div>
         <div class="col-ms-5 col-sm-5 col-xs-5" style=" text-align: center; margin-top: 5px;"></div>
         <div class="col-ms-2 col-sm-2 col-xs-2" style="text-align: right; margin-top: 5px; padding-left: 0px; padding-right: 0px;"><label style="margin-top: 5px;">Refresh</label></div>
         <div class="col-ms-1 col-sm-1 col-xs-1" style="text-align: center; margin-top: 5px; padding-left: 0px; padding-right: 0px;"><button class="button-re" v-on:click="getReportBranch()"><i class="fa fa-refresh" aria-hidden="true"></i></button></div>
-        <table class="table-branch">
+        <table class="table-branch" style="margin-top: 10px;">
           <tr>
             <th style="text-align:center; width: 10%;">วันที่ เวลา</th>
             <th style="text-align:center; width: 5%;">สาขา</th>

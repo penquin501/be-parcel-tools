@@ -164,6 +164,7 @@ export default {
       trackingIn: "",
 
       radio_parcel_type: "",
+      url: ""
     };
   },
   mounted() {
@@ -182,7 +183,7 @@ export default {
         this.$dialogs.alert("กรุณาเลือกสาขาที่ต้องการตรวจสอบให้ถูกต้อง", options);
       } else {
         axios
-          .get("/select/tracking/check?branch_id=" + branch_id)
+          .get(this.url + "/select/tracking/check?branch_id=" + branch_id)
           .then((response) => {
             if (response.data.status == "SUCCESS" && response.data.tracking !== false) {
               resTracking = response.data.tracking[0].tracking;
@@ -194,7 +195,7 @@ export default {
     getData(trackingIn) {
       this.trackingIn = trackingIn;
       axios
-        .get("/check/info/tracking?tracking=" + this.trackingIn.toUpperCase())
+        .get(this.url + "/check/info/tracking?tracking=" + this.trackingIn.toUpperCase())
         .then((response) => {
           if (response.data.status == "SUCCESS") {
             this.billingInfo = response.data.billingInfo;
@@ -288,7 +289,7 @@ export default {
         zone: 2,
       };
       axios
-        .post("/parcelPrice", dataSize)
+        .post(this.url + "/parcelPrice", dataSize)
         .then((response) => {
           let parcelSizeSelect = response.data;
           if (response.data != undefined) {
@@ -302,10 +303,8 @@ export default {
     },
     confirmData() {
       const options = { okLabel: "ตกลง" };
-      const optionsDialog = { title: "มูลค่า COD", okLabel: "ตกลง" };
-      if (this.bi_parcel_type == "COD" && parseInt(this.cod_value) >= 10000) {
-        this.$dialogs.alert("กรุณาแน่ใจว่า ค่าเก็บเงินปลายทางเกิน 10000 หรือไม่", options);
-      }
+      const optionsDialog = { title: "มูลค่า COD", okLabel: "ตกลง", cancelLabel: "ยกเลิก" };
+
       var phone = this.phone;
       if (this.receiver_first_name == "") {
         this.$dialogs.alert("กรุณากรอก ชื่อผู้รับ ให้ถูกต้อง", options);
@@ -330,46 +329,52 @@ export default {
       } else if (this.bi_parcel_type == "COD" && parseInt(this.cod_value) > 50000) {
         this.$dialogs.alert("มูลค่า COD มากกว่า 50000 บาท ไม่สามารถทำรายการได้", options);
       } else {
-        if (parseInt(this.cod_value) >= 10000) {
-          this.$dialogs.alert("มูลค่า COD มีมูลค่าที่สูงมาก ยืนยันการกรอกมูลค่า", optionsDialog)
-            .then((res) => {
-              if (res) {
-                var dataConfirm = {
-                  tracking: this.tracking,
-                  billing_no: this.billing_no,
-                  previous_value: this.previous_value,
-                  current_value: {
-                    parcel_type: this.bi_parcel_type,
-                    cod_value: parseInt(this.cod_value),
-                    size_id: this.size_id,
-                    size_price: this.size_price,
-                    first_name: this.receiver_first_name,
-                    last_name: this.receiver_last_name == undefined || this.receiver_last_name == "" ? "" : this.receiver_last_name,
-                    phone: this.phone,
-                    address: this.receiver_address,
-                    district_code: this.district_code,
-                    br_zipcode: this.br_zipcode,
-                  },
-                  user: this.$session.get("session_username"),
-                };
-                axios
-                  .post("/confirm/match/data/info", dataConfirm)
-                  .then((response) => {
-                    if (response.data.status == "SUCCESS") {
-                      this.$dialogs.alert("แก้ไขข้อมูลผู้รับเรียบร้อยแล้ว", options);
-                      this.$router.push("/listtracking");
-                    } else {
-                      this.$dialogs.alert("ข้อมูลไม่ถูกต้อง", options);
-                      this.$router.push("/listtracking");
-                    }
-                  })
-                  .catch(function (error) {
-                    console.log(error);
-                  });
+        if (this.bi_parcel_type == "COD" && parseInt(this.cod_value) >= 10000) {
+          this.$dialogs.confirm("มูลค่า COD มีมูลค่าที่สูงมาก ยืนยันการกรอกมูลค่า", optionsDialog)
+            .then((resCod) => {
+              if (resCod.ok) {
+                this.saveData();
               }
             });
+        } else {
+          this.saveData();
         }
       }
+    },
+    saveData() {
+      const options = { okLabel: "ตกลง" };
+      var dataConfirm = {
+        tracking: this.tracking,
+        billing_no: this.billing_no,
+        previous_value: this.previous_value,
+        current_value: {
+          parcel_type: this.bi_parcel_type,
+          cod_value: parseInt(this.cod_value),
+          size_id: this.size_id,
+          size_price: this.size_price,
+          first_name: this.receiver_first_name,
+          last_name: this.receiver_last_name == undefined || this.receiver_last_name == "" ? "" : this.receiver_last_name,
+          phone: this.phone,
+          address: this.receiver_address,
+          district_code: this.district_code,
+          br_zipcode: this.br_zipcode,
+        },
+        user: this.$session.get("session_username"),
+      };
+    axios
+      .post(this.url + "/confirm/match/data/info", dataConfirm)
+      .then((response) => {
+        if (response.data.status == "SUCCESS") {
+          this.$dialogs.alert("แก้ไขข้อมูลผู้รับเรียบร้อยแล้ว", options);
+          this.$router.push("/listtracking");
+        } else {
+          this.$dialogs.alert("ข้อมูลไม่ถูกต้อง", options);
+          this.$router.push("/listtracking");
+        }
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
     },
     rotateRight() {
       this.rotation += 90;

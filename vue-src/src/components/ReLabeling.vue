@@ -95,11 +95,7 @@
 
         <div>
           <b>ชื่อผู้รับ:</b>
-          <input
-            :disabled="receiverFNameEdit"
-            ref="receiverFNameEdit"
-            v-model="receiver_first_name"
-          />
+          <input :disabled="receiverFNameEdit" ref="receiverFNameEdit" v-model="receiver_first_name" />
         </div>
         <div>
           <b>นามสกุลผู้รับ:</b>
@@ -108,20 +104,11 @@
 
         <div>
           <b>เบอร์โทรศัพท์ผู้รับ:</b>
-          <input
-            maxlength="10"
-            :disabled="receiverPhoneEdit"
-            ref="receiverPhoneEdit"
-            v-model="phone"
-          />
+          <input maxlength="10" :disabled="receiverPhoneEdit" ref="receiverPhoneEdit" v-model="phone" />
         </div>
         <div>
           <b>ที่อยู่ผู้รับ:</b>
-          <input
-            :disabled="receiverAddressEdit"
-            ref="receiverAddressEdit"
-            v-model="receiver_address"
-          />
+          <input :disabled="receiverAddressEdit" ref="receiverAddressEdit" v-model="receiver_address" />
         </div>
         <div>
           <b>รหัสไปรษณีย์:</b>
@@ -136,7 +123,7 @@
           />
           <div class="dropdownZipcode" v-if="this.openZipcode == true">
             <ol v-for="(item, index) in listZipcode" :key="item.id" v-on:click="selectItem(item)">
-              <li>{{listZipcode[index].zipcode}} {{listZipcode[index].DISTRICT_NAME}} {{listZipcode[index].AMPHUR_NAME}} {{listZipcode[index].PROVINCE_NAME}}</li>
+              <li>{{ listZipcode[index].zipcode }} {{ listZipcode[index].DISTRICT_NAME }} {{ listZipcode[index].AMPHUR_NAME }} {{ listZipcode[index].PROVINCE_NAME }}</li>
             </ol>
           </div>
         </div>
@@ -153,11 +140,7 @@
           <td style="width: 30%;" rowspan="4"></td>
           <td style="width: 15%;">ระบุสาเหตุ:</td>
           <div class="radio-inline">
-            <td
-              v-for="(item) in listSelectedType"
-              v-on:change="selectCause(item.value)"
-              v-bind:key="item.id"
-            >
+            <td v-for="item in listSelectedType" v-on:change="selectCause(item.value)" v-bind:key="item.id">
               <label>
                 <input type="radio" :value="item.value" v-model="causeType" />
                 {{ item.name }}
@@ -179,24 +162,10 @@
             />
           </td>
         </tr>
-        <!-- <tr>
-            <td style="width: 15%;">Tools ที่ใช้:</td>
-            <td style="width: 25%;">
-                <select style="margin-left: 0px; margin-right: 0px;" class="select" v-model="selectValue" v-on:change="selectTools">
-                    <option value="0" disabled="disabled" selected="selected">----- เลือก Tools -----</option>
-                    <option value="1">ยกเลิก Tracking</option>
-                    <option value="2">เปลี่ยนแปลงข้อมูลผู้รับ</option>
-                </select>
-            </td>
-        </tr>-->
         <tr>
           <td style="width: 15%;">เหตุผล:</td>
           <td style="width: 25%;">
-            <select
-              style="margin-left: 0px; margin-right: 0px;"
-              class="select"
-              v-model="reasonValue"
-            >
+            <select style="margin-left: 0px; margin-right: 0px;" class="select" v-model="reasonValue">
               <option value disabled="disabled" selected="selected">----- เลือกเหตุผล -----</option>
               <option value="change_cod_to_normal">เปลี่ยนประเภท COD เป็น NORMAL</option>
               <option value="change_normal_to_cod">เปลี่ยนประเภท NORMAL เป็น COD</option>
@@ -328,12 +297,7 @@ export default {
               this.phone = this.billingInfo.phone;
               this.receiver_address = this.billingInfo.receiver_address;
 
-              this.location =
-                this.billingInfo.district_name +
-                " " +
-                this.billingInfo.amphur_name +
-                " " +
-                this.billingInfo.province_name;
+              this.location = this.billingInfo.district_name + " " + this.billingInfo.amphur_name + " " + this.billingInfo.province_name;
               this.br_zipcode = this.billingInfo.br_zipcode;
               this.displayAddress = this.br_zipcode + " " + this.location;
               this.parcelAddressList(this.br_zipcode);
@@ -350,8 +314,7 @@ export default {
               } else if (this.status == "cancel") {
                 this.order_status_lb = "ข้อมูลถูกยกเลิกแล้ว";
               } else if (this.status == "success") {
-                this.order_status_lb =
-                  "ข้อมูลกำลังถูกส่งข้อมูลไปที่ server หลัก";
+                this.order_status_lb = "ข้อมูลกำลังถูกส่งข้อมูลไปที่ server หลัก";
               } else if (this.status == "relabel") {
                 this.order_status_lb = "ข้อมูลถูกย้ายไปที่ tracking ใหม่แล้ว";
               } else {
@@ -518,7 +481,7 @@ export default {
     },
     confirmSelectTools() {
       const options = { okLabel: "ตกลง" };
-      const optionsDialog = { title: "มูลค่า COD", okLabel: "ตกลง" };
+      const optionsDialog = { title: "มูลค่า COD", okLabel: "ตกลง", cancelLabel: "ยกเลิก" };
 
       var regTracking = /^[T|t][D|d][Z|z]+[0-9]{8}[A-Z]?$/i;
       var phone = this.phone;
@@ -568,75 +531,82 @@ export default {
       } else if (this.bi_parcel_type == "COD" && parseInt(this.cod_value) > 50000) {
         this.$dialogs.alert("มูลค่า COD มากกว่า 50000 บาท ไม่สามารถทำรายการได้", options);
       } else {
-        if (parseInt(this.cod_value) > 10000) {
-          this.$dialogs.alert("มูลค่า COD มีมูลค่าที่สูงมาก ยืนยันการกรอกมูลค่า", optionsDialog)
-            .then(resCod => {
-              if(resCod){
-                axios
-                .get(this.url + "/check-available-tracking?tracking=" + this.newTrackingInput.toUpperCase())
-                .then(response => {
-                  this.resultDuplicatedTracking = response.data;
-
-                  if (!this.resultDuplicatedTracking) {
-                    this.getNewTracking();
-                  } else {
-                    var moduleName = "relabeling_tracking";
-
-                    var dataConfirm = {
-                      billingNo: this.billing_no,
-                      billingInfo: this.billingInfo,
-                      billingStatus: this.status,
-                      currentValue: {
-                        billingItem: {
-                          tracking: this.newTrackingInput.toUpperCase(),
-                          parcelType: this.bi_parcel_type.toUpperCase(),
-                          codValue: this.cod_value,
-                          sizeId: this.size_id,
-                          sizePrice: this.causeType == 1 ? 0 : this.size_price
-                        },
-                        receiverInfo: {
-                          receiverName: this.receiver_first_name + " " + this.receiver_last_name,
-                          phone: this.phone,
-                          receiverAddress: this.receiver_address,
-                          keyAddress: this.keyAddress
-                        }
-                      },
-                      causeType: this.causeType,
-                      reason: this.reasonValue,
-                      remark: this.remark,
-                      user: this.$session.get("session_username"),
-                      moduleName: moduleName
-                    };
-
-                    axios
-                      .post(this.url + "/tools/relabel-tracking", dataConfirm)
-                      .then(response => {
-                        if (response.data.status == "SUCCESS") {
-                          let billingNo = response.data.billingNo;
-                          const optionsDialog2 = { title: "รายการที่คุณเลือกได้ relabel แล้ว", okLabel: "ตกลง" };
-                          this.$dialogs.alert("เลขที่บิลใหม่..." + billingNo, optionsDialog2)
-                            .then(res => {
-                              // console.log(res) // {ok: true|false|undefined}
-                              if (res) {
-                                this.$router.push("/");
-                              } else {
-                                this.$router.push("/");
-                              }
-                            });
-                        } else {
-                          this.$dialogs.alert("ไม่สามารถ relabel tracking ได้ เนื่องจาก..." + response.data.reason, options);
-                          this.$router.push("/");
-                        }
-                      })
-                      .catch(function(error) {
-                        console.log(error);
-                      });
-                  }
-                });
+        if (this.bi_parcel_type == "COD" && parseInt(this.cod_value) >= 10000) {
+          this.$dialogs.confirm("มูลค่า COD มีมูลค่าที่สูงมาก ยืนยันการกรอกมูลค่า", optionsDialog)
+            .then(resCod => {           
+              if (resCod.ok) {
+                this.saveData();
               }
             });
+        } else {
+          this.saveData();
         }
       }
+    },
+    saveData() {
+      const options = { okLabel: "ตกลง" };
+
+      axios
+      .get(this.url + "/check-available-tracking?tracking=" + this.newTrackingInput.toUpperCase())
+      .then(response => {
+        this.resultDuplicatedTracking = response.data;
+
+        if (!this.resultDuplicatedTracking) {
+          this.getNewTracking();
+        } else {
+          var moduleName = "relabeling_tracking";
+
+          var dataConfirm = {
+            billingNo: this.billing_no,
+            billingInfo: this.billingInfo,
+            billingStatus: this.status,
+            currentValue: {
+              billingItem: {
+                tracking: this.newTrackingInput.toUpperCase(),
+                parcelType: this.bi_parcel_type.toUpperCase(),
+                codValue: this.cod_value,
+                sizeId: this.size_id,
+                sizePrice: this.causeType == 1 ? 0 : this.size_price
+              },
+              receiverInfo: {
+                receiverName: this.receiver_first_name + " " + this.receiver_last_name,
+                phone: this.phone,
+                receiverAddress: this.receiver_address,
+                keyAddress: this.keyAddress
+              }
+            },
+            causeType: this.causeType,
+            reason: this.reasonValue,
+            remark: this.remark,
+            user: this.$session.get("session_username"),
+            moduleName: moduleName
+          };
+
+          axios
+            .post(this.url + "/tools/relabel-tracking", dataConfirm)
+            .then(response => {
+              if (response.data.status == "SUCCESS") {
+                let billingNo = response.data.billingNo;
+                const optionsDialog2 = { title: "รายการที่คุณเลือกได้ relabel แล้ว", okLabel: "ตกลง" };
+                this.$dialogs.alert("เลขที่บิลใหม่..." + billingNo, optionsDialog2)
+                  .then(res => {
+                    // console.log(res) // {ok: true|false|undefined}
+                    if (res) {
+                      this.$router.push("/");
+                    } else {
+                      this.$router.push("/");
+                    }
+                  });
+              } else {
+                this.$dialogs.alert("ไม่สามารถ relabel tracking ได้ เนื่องจาก..." + response.data.reason, options);
+                this.$router.push("/");
+              }
+            })
+            .catch(function(error) {
+              console.log(error);
+            });
+        }
+      });
     },
     rotateRight() {
       this.rotation += 90;
