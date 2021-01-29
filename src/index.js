@@ -1029,6 +1029,7 @@ Promise.all([initDb(), initAmqp()]).then(values => {
       }
     });
   });
+  
 
   /******************************************** extra tools ********************************************/
   app.get("/check-data-item", function(req, res) {
