@@ -158,7 +158,19 @@ const routes = [
     name: "ReportFlash",
     component: () => import("../components/ReportFlash.vue"),
     hidden: true
-  }
+  },
+  {
+    path: "/report-capture-monitor",
+    name: "ReportCaptureMonitor",
+    component: () => import("../components/ListCaptureMonitor.vue"),
+    hidden: true
+  },
+  {
+    path: "/list-capture",
+    name: "ListCapture",
+    component: () => import("../components/ListCapture.vue"),
+    hidden: true
+  },
 ];
 
 export default new Router({

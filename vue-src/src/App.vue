@@ -61,6 +61,7 @@
                   <router-link to="/report-relabel"><a v-on:click="toView" class="dropdown-item">Report Relabel</a></router-link>
                   <router-link to="/report-ql-checker"><a v-on:click="toView" class="dropdown-item">Report QL Checker</a></router-link>
                   <router-link to="/report-tool-log"><a v-on:click="toView" class="dropdown-item">Report Tools Log</a></router-link>
+                  <router-link to="/report-capture-monitor"><a v-on:click="toView" class="dropdown-item">Report Capture Monitor</a></router-link>
                 </div>
               </li>
               <li class="nav-item dropdown">

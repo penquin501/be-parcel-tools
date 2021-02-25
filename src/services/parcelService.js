@@ -23,7 +23,7 @@ module.exports = {
       WHERE bi.tracking=?`;
     let data = [tracking];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (error, results) => {
         if (error == null) {
           if (results.length <= 0) {
@@ -48,7 +48,7 @@ module.exports = {
     let sql = "SELECT image_url FROM parcel_capture_data WHERE barcode=?";
     let data = [tracking];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
         if (error == null) {
           if (results.length > 0) {
@@ -71,30 +71,30 @@ module.exports = {
 
     var sqlCapture = "SELECT barcode FROM parcel_capture_data WHERE barcode=?";
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sqlItem, [tracking], (err_item, results_item) => {
         if (err_item === null) {
           if (results_item.length <= 0) {
             db.query(sqlItemTemp, [tracking], (err_item_temp, results_item_temp) => {
-                if (err_item_temp == null) {
-                  if (results_item_temp.length <= 0) {
-                    db.query(sqlCapture, [tracking], (err_capture, results_capture) => {
-                        if (err_capture == null) {
-                          if (results_capture.length <= 0) {
-                            resolve(true);
-                          } else {
-                            resolve(false);
-                          }
-                        } else {
-                          resolve(false);
-                        }
-                    });
-                  } else {
-                    resolve(false);
-                  }
+              if (err_item_temp == null) {
+                if (results_item_temp.length <= 0) {
+                  db.query(sqlCapture, [tracking], (err_capture, results_capture) => {
+                    if (err_capture == null) {
+                      if (results_capture.length <= 0) {
+                        resolve(true);
+                      } else {
+                        resolve(false);
+                      }
+                    } else {
+                      resolve(false);
+                    }
+                  });
                 } else {
                   resolve(false);
                 }
+              } else {
+                resolve(false);
+              }
             });
           } else {
             resolve(false);
@@ -121,7 +121,7 @@ module.exports = {
     WHERE bi.billing_no=?`;
     let dataItem = [billing];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (errBilling, resultsBilling) => {
         if (errBilling === null) {
           if (resultsBilling.length <= 0) {
@@ -168,7 +168,7 @@ module.exports = {
     WHERE (b.billing_date >= ? AND b.billing_date < ?) AND (br.status != 'cancel' OR br.status is null)`;
     let data = [weekAgo, current_date];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
         if (error === null) {
           if (results.length <= 0) {
@@ -208,7 +208,7 @@ module.exports = {
         (br.status not in ('cancel','SUCCESS','success') OR br.status is null) AND b.branch_id=? LIMIT 1`;
     let data = [branch_id];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
         if (error === null) {
           if (results.length == 0) {
@@ -227,7 +227,7 @@ module.exports = {
     let sql = `SELECT * FROM billing WHERE billing_no=?`;
     let data = [billing_no];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
         if (error === null) {
           resolve(results);
@@ -237,7 +237,8 @@ module.exports = {
   },
   parcelSizeList: (db, zone) => {
     let sql = `SELECT alias_size FROM size_info GROUP BY alias_size ORDER BY min(parcel_price) ASC`;
-    return new Promise(function(resolve, reject) {
+
+    return new Promise(function (resolve, reject) {
       db.query(sql, (error, results, fields) => {
         if (error === null) {
           if (results.length == 0) {
@@ -256,7 +257,7 @@ module.exports = {
     var sql = `SELECT district_code FROM postinfo_zipcodes WHERE zipcode = ?`;
     var data = [zipcode];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (err, results) => {
         if (err === null) {
           if (results.length == 0) {
@@ -272,7 +273,7 @@ module.exports = {
     var sql = `SELECT size_id,parcel_price FROM size_info where location_zone=? and alias_size= ? and zone=?`;
     var data = [code, size_name, zone];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (err, results) => {
         resolve(results);
       });
@@ -284,20 +285,21 @@ module.exports = {
     let updateStatusReceiver = `UPDATE billing_receiver_info SET status='cancel' WHERE tracking=?`;
     let dataBilling = [billing_no];
 
-    return new Promise(function(resolve, reject) {
-      db.query(updateBilling, dataBilling, (error, results, fields) => {});
+    return new Promise(function (resolve, reject) {
+      db.query(updateBilling, dataBilling, (error, results, fields) => { });
       db.query(selectBillingItem, dataBilling, (error, resListTracking, fields) => {
-          for (i = 0; i < resListTracking.length; i++) {
-            let dataTracking = [resListTracking[i].tracking];
-            db.query(updateStatusReceiver, dataTracking, (error, results2, fields) => {});
-          }
+        for (i = 0; i < resListTracking.length; i++) {
+          let dataTracking = [resListTracking[i].tracking];
+          db.query(updateStatusReceiver, dataTracking, (error, results2, fields) => { });
+        }
       });
     });
   },
   updateStatusReceiver: (db, status, tracking) => {
     let sql = `UPDATE billing_receiver_info SET status=? WHERE tracking=?`;
     let data = [status, tracking];
-    return new Promise(function(resolve, reject) {
+
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
         if (error === null) {
           if (results.affectedRows > 0) {
@@ -314,7 +316,8 @@ module.exports = {
   selectParcelSize: (db, billingNo) => {
     let sql = `SELECT b.size_price FROM billing_item b JOIN billing_receiver_info br ON b.tracking=br.tracking WHERE b.billing_no=? AND (br.status!='cancel' OR br.status is null)`;
     let data = [billingNo];
-    return new Promise(function(resolve, reject) {
+
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
         if (results.length <= 0) {
           resolve(0);
@@ -330,7 +333,8 @@ module.exports = {
 
     let sqlStatus = `UPDATE billing SET status=? WHERE billing_no=?`;
     let dataStatus = ["cancel", billing_no];
-    return new Promise(function(resolve, reject) {
+
+    return new Promise(function (resolve, reject) {
       if (current_total == 0) {
         db.query(sqlStatus, dataStatus, (error, results, fields) => {
           resolve(results);
@@ -348,7 +352,8 @@ module.exports = {
 
     let sqlLog = `UPDATE response_flash_log SET status=? WHERE tracking=?`;
     let dataLog = [99, tracking];
-    return new Promise(function(resolve, reject) {
+
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
         if (error == null) {
           if (results.affectedRows > 0) {
@@ -380,7 +385,8 @@ module.exports = {
       JOIN postinfo_province p ON d.PROVINCE_ID=p.PROVINCE_ID 
       WHERE d.DISTRICT_CODE=?`;
     let data = [district_code];
-    return new Promise(function(resolve, reject) {
+
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
         if (error === null) {
           resolve(results);
@@ -396,13 +402,14 @@ module.exports = {
     let dataBillingItem = [zipcode, size_id, size_price, parcel_type, cod_value, tracking];
 
     let sqlReceiver = `UPDATE billing_receiver_info SET parcel_type=?, receiver_name=?, phone=?, receiver_address=?, district_id=?, district_name=?, amphur_id=?, amphur_name=?, province_id=?, province_name=?, zipcode=? WHERE tracking=?`;
-    let dataReceiver = [parcel_type, receiver_name, phone,address, district_id, district_name, amphur_id, amphur_name, province_id, province_name, zipcode, tracking];
+    let dataReceiver = [parcel_type, receiver_name, phone, address, district_id, district_name, amphur_id, amphur_name, province_id, province_name, zipcode, tracking];
 
     let sqlSizeItem = `SELECT size_price FROM billing_item WHERE billing_no=?`;
     let dataSizeItem = [billing_no];
 
     let total = 0;
-    return new Promise(function(resolve, reject) {
+
+    return new Promise(function (resolve, reject) {
       db.query(sqlBillingItem, dataBillingItem, (error1, resultsItem, fields) => {
         if (error1 === null) {
           if (resultsItem.affectedRows > 0) {
@@ -438,7 +445,8 @@ module.exports = {
   updateBilling: (db, billing_no, current_total) => {
     let sql = `UPDATE billing SET total=? WHERE billing_no=?`;
     let data = [current_total, billing_no];
-    return new Promise(function(resolve, reject) {
+
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
         resolve(results);
       });
@@ -447,7 +455,8 @@ module.exports = {
   updateResendBilling: (db, billing_no, status) => {
     let sql = `UPDATE billing SET status='booked', prepare_raw_data=null WHERE billing_no=? AND status=?`;
     let data = [billing_no, status];
-    return new Promise(function(resolve, reject) {
+
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
         if (error == null) {
           resolve(results);
@@ -460,7 +469,8 @@ module.exports = {
   updateMemberBilling: (db, billing_no, member_code) => {
     let sql = `UPDATE billing SET member_code=? WHERE billing_no=?`;
     let data = [member_code, billing_no];
-    return new Promise(function(resolve, reject) {
+
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
         if (error == null) {
           if (results.affectedRows > 0) {
@@ -477,7 +487,8 @@ module.exports = {
   updateSenderInfo: (db, sender_name, sender_phone, sender_address, tracking) => {
     let sql = `UPDATE billing_receiver_info SET sender_name=?,sender_phone=?,sender_address=? WHERE tracking=?`;
     let data = [sender_name, sender_phone, sender_address, tracking];
-    return new Promise(function(resolve, reject) {
+
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
         if (error == null) {
           if (results.affectedRows > 0) {
@@ -494,7 +505,8 @@ module.exports = {
   saveLogQlChecker: (db, branch_id, user_id, billing_no, error_code, error_maker, cs_name, tracking, operation_key) => {
     let sql = `INSERT INTO log_ql_checker(branch_id, user_id, billing_no, error_code, error_maker, cs_name, tracking, operation_key, record_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     let data = [branch_id, user_id, billing_no, error_code, error_maker, cs_name, tracking, operation_key, new Date()];
-    return new Promise(function(resolve, reject) {
+
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
         if (error === null) {
           resolve(results);
@@ -508,7 +520,8 @@ module.exports = {
   findOperator: (db, tracking) => {
     let sql = `SELECT operator_id FROM parcel_keyin_data_temp WHERE barcode=?`;
     let data = [tracking];
-    return new Promise(function(resolve, reject) {
+
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
         if (error === null) {
           resolve(results);
@@ -519,7 +532,7 @@ module.exports = {
   insertLog: (db, billing_no, previous_value, current_value, reason, module_name, user, ref, remark) => {
     let sql = `INSERT INTO log_parcel_tool(billing_no, time_to_system, previous_value, current_value,reason, module_name, user, ref,remark) VALUES (?,?,?,?,?,?,?,?,?)`;
     let data = [billing_no, new Date(), previous_value, current_value, reason, module_name, user, ref, remark];
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
         resolve(results);
       });
@@ -531,7 +544,8 @@ module.exports = {
 
     let sql = `INSERT INTO test_dhl_response(tracking) VALUES (?)`;
     let data = [tracking];
-    return new Promise(function(resolve, reject) {
+
+    return new Promise(function (resolve, reject) {
       db.query(sqlCheck, dataCheck, (error, results, fields) => {
         if (error === null) {
           if (results.length > 0) {
@@ -559,7 +573,8 @@ module.exports = {
     JOIN billing_receiver_info br ON bi.tracking=br.tracking
     WHERE (b.billing_date>=? AND b.billing_date<?)`;
     var data = [current_date, nextDay];
-    return new Promise(function(resolve, reject) {
+
+    return new Promise(function (resolve, reject) {
       db.query(sqlBilling, data, (error, results, fields) => {
         if (error === null) {
           if (results.length <= 0) {
@@ -584,7 +599,8 @@ module.exports = {
     JOIN billing_receiver_info br ON bi.tracking=br.tracking
     WHERE (b.billing_date>=? AND b.billing_date<?) AND (br.booking_status != 100 OR br.booking_status is null)`;
     var data = [current_date, nextDay];
-    return new Promise(function(resolve, reject) {
+
+    return new Promise(function (resolve, reject) {
       db.query(sqlBilling, data, (error, results, fields) => {
         if (error === null) {
           if (results.length <= 0) {
@@ -611,7 +627,7 @@ module.exports = {
     WHERE (b.billing_date>=? AND b.billing_date<?) AND (br.status != 'cancel' OR br.status is null) AND (b.status!='cancel' OR b.status is null)`;
     var data = [current_date, nextDay];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (err, results) => {
         if (err === null) {
           resolve(results);
@@ -633,7 +649,7 @@ module.exports = {
     WHERE (b.billing_date>=? AND b.billing_date<?) AND (br.status != 'cancel' OR br.status is null) AND b.status NOT IN ('cancel','SUCCESS')`;
     var data = [current_date, nextDay];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (err, results) => {
         if (err === null) {
           resolve(results);
@@ -653,7 +669,8 @@ module.exports = {
     JOIN size_info s ON bi.size_id = s.size_id
     WHERE bi.billing_no=?`;
     var data = [billing_no];
-    return new Promise(function(resolve, reject) {
+
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (err, results) => {
         if (err === null) {
           if (results.length <= 0) {
@@ -677,12 +694,67 @@ module.exports = {
     WHERE (b.billing_date>=? AND b.billing_date<?) AND (br.status != 'cancel' OR br.status is null)`;
     var dataListTracking = [current_date, nextDay];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sqlListTracking, dataListTracking, (err, results) => {
         if (err == null) {
           resolve(results);
         } else {
           resolve(false);
+        }
+      });
+    });
+  },
+  getCaptureData: (db, date_check) => {
+    var current_date = moment(date_check + " 00:00:00").format("YYYY-MM-DD HH:mm:ss");
+    var nextDay = moment(current_date).add(1, "day").format("YYYY-MM-DD HH:mm:ss");
+
+    var sql = `SELECT phone_number, barcode, record_created_at, raw_data FROM parcel_capture_data WHERE record_created_at >= ? AND record_created_at < ?`;
+    var data = [current_date, nextDay];
+
+    return new Promise(function (resolve, reject) {
+      db.query(sql, data, async (err, results) => {
+        if (err == null) {
+          if (results.length > 0) {
+            var listTrackingInfo = [];
+            for (let item of results) {
+              let enRawData = JSON.parse(item.raw_data);
+              if (enRawData.dataType == "API_JSON_TEXT") {
+                item.data_type = "AUTOLABEL";
+              } else {
+                item.data_type = "CAPTURE";
+              }
+              listTrackingInfo.push({
+                phone_number: item.phone_number,
+                barcode: item.barcode,
+                record_created_at: item.record_created_at,
+                data_type: item.data_type,
+              });
+            }
+            resolve(listTrackingInfo);
+          } else {
+            resolve(null);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
+  getBillingItem: (db, data) => {
+    let sql = `SELECT tracking, source FROM billing_item WHERE tracking=?`;
+    let dataToDb = [data.barcode];
+
+    return new Promise(function (resolve, reject) {
+      db.query(sql, dataToDb, (error, results, fields) => {
+        if (error == null) {
+          if (results.length > 0) {
+            data.billing_source = results[0].source;
+            resolve(data);
+          } else {
+            resolve(data);
+          }
+        } else {
+          resolve(data);
         }
       });
     });
@@ -694,7 +766,7 @@ module.exports = {
     var sql = `SELECT branch_id, user_id, billing_no, error_code, error_maker, cs_name, tracking, operation_key, record_date FROM log_ql_checker WHERE (record_date >= ? AND record_date < ?)`;
     var data = [today, nextDay];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (err, results) => {
         if (err === null) {
           if (results.length <= 0) {
@@ -711,7 +783,8 @@ module.exports = {
   bookingFlashReport: db => {
     var sql = `SELECT * FROM response_flash_log WHERE status != ? AND status != ?`;
     var data = [100, 99];
-    return new Promise(function(resolve, reject) {
+
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (err, results) => {
         if (err === null) {
           if (results.length <= 0) {
@@ -740,7 +813,8 @@ module.exports = {
 
     let saveDistrict = `INSERT INTO postinfo_district_flash(DISTRICT_ID, DISTRICT_CODE, DISTRICT_NAME, AMPHUR_ID, PROVINCE_ID, GEO_ID) VALUES (?, ?, ?, ?, ?, ?)`;
     let dataDistrict = [district_id, district_code, district_name, amphur_id, parseInt(province_id), geo_id];
-    return new Promise(function(resolve, reject) {
+
+    return new Promise(function (resolve, reject) {
       db.query(selectDistrict, [district_id], (error, result) => {
         if (error == null) {
           if (result.length > 0) {
@@ -787,7 +861,8 @@ module.exports = {
 
     let saveAmphur = `INSERT INTO postinfo_amphur_flash(AMPHUR_ID, AMPHUR_CODE, AMPHUR_NAME, GEO_ID, PROVINCE_ID) VALUES (?, ?, ?, ?, ?)`;
     let dataAmphur = [amphur_id, amphur_code, amphur_name, geo_id, parseInt(province_id)];
-    return new Promise(function(resolve, reject) {
+
+    return new Promise(function (resolve, reject) {
       db.query(selectAmphur, [amphur_id], (error, result) => {
         if (error == null) {
           if (result.length > 0) {
@@ -833,7 +908,8 @@ module.exports = {
 
     let saveZipcode = `INSERT INTO postinfo_zipcodes_flash(district_code, dhl_zipcode, zipcode) VALUES (?, ?, ?)`;
     let dataZipcode = [district_code, dhlZipcode, zipcode];
-    return new Promise(function(resolve, reject) {
+
+    return new Promise(function (resolve, reject) {
       db.query(selectZipcode, [district_code, dhlZipcode], (error, result) => {
         if (error == null) {
           if (result.length > 0) {
@@ -870,7 +946,8 @@ module.exports = {
   log_parcel_tool: (db, ref) => {
     var sql = `SELECT billing_no, time_to_system, previous_value, current_value,reason, module_name, user, ref,remark FROM log_parcel_tool WHERE ref=?`;
     var data = [ref];
-    return new Promise(function(resolve, reject) {
+
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (err, results) => {
         if (err === null) {
           if (results.length <= 0) {
@@ -888,11 +965,10 @@ module.exports = {
     var currentDay = moment(dateCheck + " 00:00:00").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
     var nextDay = moment(currentDay).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
-    var sql = `SELECT log_ql.*, b_info.branch_name FROM log_ql_checker log_ql JOIN branch_info b_info ON log_ql.branch_id=b_info.branch_id 
-    WHERE record_date >= ? AND record_date < ?`;
+    var sql = `SELECT log_ql.*, b_info.branch_name FROM log_ql_checker log_ql JOIN branch_info b_info ON log_ql.branch_id=b_info.branch_id WHERE record_date >= ? AND record_date < ?`;
     var data = [currentDay, nextDay];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (err, results) => {
         if (err === null) {
           if (results.length <= 0) {
@@ -917,7 +993,7 @@ module.exports = {
     WHERE (time_to_system >=? AND time_to_system < ?)`;
     var data = [currentDay, nextDay];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (err, results) => {
         if (err === null) {
           if (results.length <= 0) {
@@ -931,7 +1007,7 @@ module.exports = {
       });
     });
   },
-  logRelabelTool: (db, dateCheck) =>{
+  logRelabelTool: (db, dateCheck) => {
     var currentDay = moment(dateCheck + " 00:00:00").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
     var nextDay = moment(currentDay).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
     var previousMonth = moment(currentDay).add(-1, "month").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
@@ -943,8 +1019,8 @@ module.exports = {
     JOIN branch_info b_info ON b.branch_id = b_info.branch_id
     WHERE (time_to_system > ? AND time_to_system <= ?) AND module_name = ?`;
     var data = [previousMonth, nextDay, moduleName];
-    
-    return new Promise(function(resolve, reject) {
+
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (err, results) => {
         if (err === null) {
           if (results.length <= 0) {
@@ -965,7 +1041,7 @@ module.exports = {
     var sql = `SELECT phone_number, barcode FROM parcel_capture_data WHERE record_created_at >= ? AND record_created_at < ?`;
     var data = [currentDay, nextDay];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (err, results) => {
         if (err === null) {
           if (results.length <= 0) {
@@ -979,11 +1055,73 @@ module.exports = {
       });
     });
   },
-  getBookingLog: (db, tracking) =>{
+  listCaptureCheckBillingItem: (db, dataToCheck, dateCheck) => {
+    var currentDay = moment(dateCheck + " 00:00:00").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+    var nextDay = moment(currentDay).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+
+    var sql = `SELECT phone_number, barcode, image_url, image_path FROM parcel_capture_data WHERE phone_number = ? AND record_created_at >= ? AND record_created_at < ?`;
+    var data = [dataToCheck.phoneNumber, currentDay, nextDay];
+
+    return new Promise(function (resolve, reject) {
+      db.query(sql, data, async (err, results) => {
+        if (err === null) {
+          if (results.length <= 0) {
+            resolve(false);
+          } else {
+            let countQl = 0;
+            let countQQ = 0;
+
+            for(let item of results){
+              let billItem = await getBillingItemInfo(db, item);
+
+              if (billItem.billing_source !== undefined) {
+                if (billItem.billing_source == "QUICKLINK") {
+                  countQl++;
+                }
+                if (billItem.billing_source == "QUICKQUICK") {
+                  countQQ++;
+                }
+              } else {
+                countQl = 0;
+                countQQ = 0;
+              }
+            }
+            dataToCheck.countQl = countQl;
+            dataToCheck.countQQ = countQQ;
+            resolve(dataToCheck);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
+  listCaptureByPhone: (db, phoneNumber, dateCheck) => {
+    var currentDay = moment(dateCheck + " 00:00:00").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+    var nextDay = moment(currentDay).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+
+    var sql = `SELECT phone_number, barcode, image_url, image_path FROM parcel_capture_data WHERE phone_number = ? AND record_created_at >= ? AND record_created_at < ?`;
+    var data = [phoneNumber, currentDay, nextDay];
+
+    return new Promise(function (resolve, reject) {
+      db.query(sql, data, (err, results) => {
+        if (err === null) {
+          if (results.length <= 0) {
+            resolve(false);
+          } else {
+            resolve(results);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
+  getBookingLog: (db, tracking) => {
     var sql = `SELECT * FROM booking_tracking_batch WHERE tracking=?`;
     var data = [tracking];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (err, results) => {
         if (err === null) {
           if (results.length <= 0) {
@@ -1001,7 +1139,7 @@ module.exports = {
     var sql = `UPDATE billing_receiver_info SET status='booked',booking_status=100 WHERE tracking=?`;
     var data = [tracking];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (err, results) => {
         resolve(results);
       });
@@ -1017,7 +1155,7 @@ module.exports = {
               WHERE b.billing_date >= ? AND b.billing_date < ?`;
     var data = [current_date, nextDay];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sql, data, (err, results) => {
         if (err == null) {
           if (results.length > 0) {
@@ -1038,7 +1176,7 @@ module.exports = {
     var sqlItemTemp = `SELECT * FROM billing_item_temp WHERE tracking=?`;
     var dataItemTemp = [tracking];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sqlItem, dataItem, (err_item, results_item) => {
         if (err_item == null) {
           db.query(sqlItemTemp, dataItemTemp, (err_item_temp, results_item_temp) => {
@@ -1065,7 +1203,7 @@ module.exports = {
     var sqlReceiverTemp = `SELECT * FROM billing_receiver_info_temp WHERE tracking=?`;
     var dataReceiverTemp = [tracking];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sqlReceiver, dataReceiver, (err_receiver, results_receiver) => {
         if (err_receiver == null) {
           db.query(sqlReceiverTemp, dataReceiverTemp, (err_receiver_temp, results_receiver_temp) => {
@@ -1092,7 +1230,7 @@ module.exports = {
     let sqlBillingItem = `SELECT bItem.tracking, bItem.size_id, bItem.size_price, bItem.parcel_type, bItem.cod_value FROM billing_item bItem WHERE bItem.billing_no=?`;
     var dataBillItem = [billing_no];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sqlBilling, dataBilling, (error_billing, result_billing, fields) => {
         if (error_billing == null) {
           if (result_billing.length > 0) {
@@ -1158,12 +1296,12 @@ module.exports = {
                     }
                   };
                   resolve(data);
-                  } else {
-                      resolve(false);
-                  }
                 } else {
-                    resolve(false);
+                  resolve(false);
                 }
+              } else {
+                resolve(false);
+              }
             });
           } else {
             resolve(false);
@@ -1181,7 +1319,7 @@ module.exports = {
     let sqlBillingItem = `SELECT bItem.tracking, bItem.size_id, bItem.size_price, bItem.parcel_type, bItem.cod_value FROM billing_item bItem WHERE bItem.billing_no=? AND bItem.tracking=?`;
     var dataBillItem = [billing_no, tracking];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sqlBillingItem, dataBillItem, (error_item, result_items, fields) => {
         if (error_item == null) {
           if (result_items.length > 0) {
@@ -1249,10 +1387,10 @@ module.exports = {
     var dataUpdateBilling = [billing.billing_no];
 
     var sqlSaveBilling = `INSERT INTO billing(user_id, mer_authen_level, member_code, carrier_id, billing_date, billing_no, branch_id, total, timestamp, img_url, status, ref_billing_no) 
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     var dataSaveBilling = [billing.user_id, billing.mer_authen_level, currentMember.memberCode, billing.carrier_id, new Date(), newBillingNo, billing.branch_id, total, dateTimestamp2, billing.img_url, status, billing.billing_no];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sqlUpdateBilling, dataUpdateBilling, (errorUpdateBilling, resultUpdateBilling, fields) => {
         if (errorUpdateBilling == null) {
           if (resultUpdateBilling.affectedRows > 0) {
@@ -1285,7 +1423,7 @@ module.exports = {
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     var dataSaveBilling = [billing.user_id, billing.mer_authen_level, billing.member_code, billing.carrier_id, new Date(), newBillingNo, billing.branch_id, total, dateTimestamp2, billing.img_url, status, billing.billing_no];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sqlSaveBilling, dataSaveBilling, (errorSaveBilling, resultSaveBilling, fields) => {
         if (errorSaveBilling == null) {
           if (resultSaveBilling.affectedRows > 0) {
@@ -1311,7 +1449,7 @@ module.exports = {
     var sqlReceiver = `INSERT INTO billing_receiver_info(tracking, parcel_type, sender_name, sender_phone, sender_address, receiver_name, phone, receiver_address, district_id, district_name, amphur_id, amphur_name, province_id, province_name, zipcode, remark, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     var dataReceiver = [data.tracking, data.parcelType, billingItemInfo.sender_name, billingItemInfo.sender_phone, billingItemInfo.sender_address, address.receiverName, address.phone, address.receiverAddress, keyAddress.DISTRICT_ID, keyAddress.DISTRICT_NAME, keyAddress.AMPHUR_ID, keyAddress.AMPHUR_NAME, keyAddress.PROVINCE_ID, keyAddress.PROVINCE_NAME, keyAddress.zipcode, source, new Date()];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sqlSaveBillingItem, dataBillingItem, (error_item, results_item, fields) => {
         if (error_item == null) {
           if (results_item.affectedRows > 0) {
@@ -1342,7 +1480,7 @@ module.exports = {
     var sqlUpdateReceiver = `UPDATE billing_receiver_info SET sender_name=?, sender_phone=?,sender_address=? WHERE tracking=?`;
     var dataReceiver = [currentMember.senderName, currentMember.senderPhone, currentMember.senderAddress, item.tracking];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sqlSaveItem, data, (errorItem, resultItem, fields) => {
         if (errorItem == null) {
           if (resultItem.affectedRows > 0) {
@@ -1370,7 +1508,7 @@ module.exports = {
     var updateStatusBilling = `UPDATE billing SET status=? WHERE billing_no=? AND status=?`;
     var dataStatusBilling = ["complete", billingNo, "drafting"];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(updateStatusBilling, dataStatusBilling, (error, results, fields) => {
         if (error == null) {
           if (results.affectedRows > 0) {
@@ -1388,7 +1526,7 @@ module.exports = {
     var updateStatusBilling = `UPDATE billing SET status=? WHERE billing_no=? AND status=?`;
     var dataStatusBilling = ["cancel", billingNo, "complete"];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(updateStatusBilling, dataStatusBilling, (error, results, fields) => {
         if (error == null) {
           if (results.affectedRows > 0) {
@@ -1421,7 +1559,7 @@ module.exports = {
     WHERE bItem.tracking=?`;
     var dataItem = [tracking];
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       db.query(sqlReceiver, dataReceiver, (err_receiver, result_receiver) => {
         if (err_receiver == null) {
           if (result_receiver.length > 0) {
@@ -1524,6 +1662,32 @@ module.exports = {
 };
 
 /*******************************************************************************************************************************/
+function getBillingItemInfo(db, data) {
+  let sql = `SELECT tracking, source FROM billing_item WHERE tracking=?`;
+  let dataToDb = [data.barcode];
+
+  return new Promise(function (resolve, reject) {
+    db.query(sql, dataToDb, (error, results, fields) => {
+      if (error == null) {
+        if (results.length > 0) {
+          if (results[0].source == "QUICKLINK") {
+            data.billing_source = "QUICKLINK";
+            resolve(data);
+          }
+          if (results[0].source == "QUICKQUICK") {
+            data.billing_source = "QUICKQUICK";
+            resolve(data);
+          }
+        } else {
+          resolve(data);
+        }
+      } else {
+        resolve(data);
+      }
+    });
+  });
+}
+
 function selectReceiverData(db, dataItem) {
   let sqlReceiver = `SELECT br.tracking,br.sender_name,br.sender_phone,br.sender_address,br.receiver_name,br.phone,br.receiver_address,d.DISTRICT_CODE,
                     a.AMPHUR_CODE,p.PROVINCE_CODE,br.zipcode,br.remark,br.courirer_id,br.booking_date,g.GEO_ID,g.GEO_NAME, br.booking_status
@@ -1534,7 +1698,7 @@ function selectReceiverData(db, dataItem) {
                     JOIN postinfo_geography g ON d.GEO_ID=g.GEO_ID 
                     WHERE br.tracking=?`;
   let dataReceiver = [dataItem.tracking];
-  return new Promise(function(resolve, reject) {
+  return new Promise(function (resolve, reject) {
     db.query(sqlReceiver, dataReceiver, (error_receiver, results_receiver, fields) => {
       if (error_receiver == null) {
         if (results_receiver.length > 0) {
@@ -1554,7 +1718,7 @@ function getSizeInfo(db, data) {
   var sqlSizeInfo = `SELECT * FROM size_info WHERE size_id=?`;
   var sqlGlobalSize = `SELECT * FROM global_parcel_size WHERE alias_name=? AND area=? AND type=?`;
 
-  return new Promise(function(resolve, reject) {
+  return new Promise(function (resolve, reject) {
     db.query(sqlSizeInfo, [data.size_id], (errSizeInfo, resultSizeInfo) => {
       if (errSizeInfo == null) {
         if (resultSizeInfo.length > 0) {

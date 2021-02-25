@@ -28,7 +28,7 @@
         <th style="text-align: center;">สถานะ</th>
         <th style="text-align: center;">Action</th>
       </tr>
-      <tr v-bind:key="item.id" v-for="item  in dataBranch">
+      <tr v-bind:key="item.id" v-for="item in dataBranch">
         <td style="text-align: center;">{{ item.branch_id }}</td>
         <td style="text-align: center;">{{ item.prefix_branch }}</td>
         <td style="text-align: center;">{{ item.branch_name }}</td>
