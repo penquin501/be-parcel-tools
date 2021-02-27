@@ -1022,7 +1022,7 @@ Promise.all([initDb(), initAmqp()]).then(values => {
     let phone_number = req.query.phone_number;
     let date_check = req.query.date_check;
 
-    parcelServices.listCaptureByPhone(db, phone_number, date_check).then(function (data) {
+    parcelServices.listCaptureByPhone(db, phone_number, moment(date_check).format("YYYY-MM-DD")).then(function (data) {
       if (data == false) {
         res.json([]);
       } else {

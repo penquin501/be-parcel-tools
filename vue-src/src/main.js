@@ -15,12 +15,15 @@ import SlimDialog from "v-slim-dialog";
 import VueSession from "vue-session";
 import VueMoment from "vue-moment";
 import moment from "moment-timezone";
+import Viewer from 'v-viewer';
+import 'viewerjs/dist/viewer.css';
 // import moment from 'moment';
 // const moment = require('moment')
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 Vue.use(VueSession);
 Vue.use(SlimDialog);
+Vue.use(Viewer);
 library.add(faUserSecret);
 
 Vue.component("font-awesome-icon", FontAwesomeIcon);

@@ -1071,7 +1071,7 @@ module.exports = {
             let countQl = 0;
             let countQQ = 0;
 
-            for(let item of results){
+            for (let item of results) {
               let billItem = await getBillingItemInfo(db, item);
 
               if (billItem.billing_source !== undefined) {
@@ -1097,19 +1097,26 @@ module.exports = {
     });
   },
   listCaptureByPhone: (db, phoneNumber, dateCheck) => {
-    var currentDay = moment(dateCheck + " 00:00:00").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
-    var nextDay = moment(currentDay).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+    var currentDay = moment(dateCheck + " 00:00:00").format("YYYY-MM-DD HH:mm:ss");
+    var nextDay = moment(currentDay).add(1, "day").format("YYYY-MM-DD HH:mm:ss");
 
     var sql = `SELECT phone_number, barcode, image_url, image_path FROM parcel_capture_data WHERE phone_number = ? AND record_created_at >= ? AND record_created_at < ?`;
     var data = [phoneNumber, currentDay, nextDay];
 
     return new Promise(function (resolve, reject) {
-      db.query(sql, data, (err, results) => {
+      db.query(sql, data, async (err, results) => {
         if (err === null) {
           if (results.length <= 0) {
             resolve(false);
           } else {
-            resolve(results);
+            var output = [];
+            for (let e of results) {
+              if (e.image_path == "") {
+                e.image_url = await removeCharacter(e.image_url);
+                output.push(e);
+              }
+            }
+            resolve(output);
           }
         } else {
           resolve(false);
@@ -1662,6 +1669,31 @@ module.exports = {
 };
 
 /*******************************************************************************************************************************/
+function removeCharacter(text) {
+  var newText = "";
+  for (i = 0; i < text.length; i++) {
+    if (text[i] == "#") {
+      newCha = text[i].replace('#', '');
+      newText += newCha;
+    } else if(text[i] == "<"){
+      newCha = text[i].replace('<', ' ');
+      newText += newCha;
+    } else if(text[i] == "b"){
+      newCha = text[i].replace('b', ' ');
+      newText += newCha;
+    } else if(text[i] == "r"){
+      newCha = text[i].replace('r', ' ');
+      newText += newCha;
+    } else if(text[i] == ">"){
+      newCha = text[i].replace('>', ' ');
+      newText += newCha;
+    } else {
+      newText += text[i];
+    }
+  }
+  return newText;
+}
+
 function getBillingItemInfo(db, data) {
   let sql = `SELECT tracking, source FROM billing_item WHERE tracking=?`;
   let dataToDb = [data.barcode];

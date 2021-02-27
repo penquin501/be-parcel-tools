@@ -24,13 +24,13 @@
             <option v-for="item in dataBranch" v-bind:key="item.branch_id" :value="item" >{{ item.branch_name }}</option>
           </select>
         </div>
-        <div class="col-ms-2 col-sm-2 col-xs-2" style="text-align: right; margin-top: 5px; padding-left: 0px;padding-right: 0px;">
+        <div class="col-ms-2 col-sm-2 col-xs-2" style="text-align: right; margin-top: 5px; padding-left: 0px;padding-right: 0px;" >
           <label style="margin-top: 5px;">Refresh</label>
         </div>
-        <div class="col-ms-1 col-sm-1 col-xs-1" style="text-align: center; margin-top: 5px; padding-left: 0px; padding-right: 0px;">
+        <div class="col-ms-1 col-sm-1 col-xs-1" style="text-align: center; margin-top: 5px; padding-left: 0px; padding-right: 0px;" >
           <button class="button-re" v-on:click="getData()"><i class="fa fa-refresh" aria-hidden="true"></i></button>
         </div>
-        <table class="table-branch">
+        <table class="table-branch" style="margin-top: 20px;">
           <tr>
             <th style="text-align: center; width: 10%;">รหัสสมาชิก</th>
             <th style="text-align: center; width: 25%;">ชื่อ-นามสกุล</th>
@@ -47,7 +47,7 @@
           <tr v-for="item in data" v-bind:key="item.id">
             <td style="text-align: center;">{{ item.member_id }}</td>
             <td style="text-align: center;">{{ item.firstname }} {{ item.lastname }}</td>
-            <td style="text-align: center;">{{ changeDoubleSix2Zero(item.phoneregis) }}</td>
+            <td style="text-align: center;">{{ item.phoneNumber }}</td>
             <td style="text-align: center;">{{ item.totalCapture }}</td>
             <td style="text-align: center;">{{ item.countCapture }}</td>
             <td style="text-align: center;">{{ item.countAutolabel }}</td>
@@ -99,11 +99,16 @@ export default {
       axios
         .get(this.url + "/list-capture-monitor?date_check=" + moment(this.datePick).format("YYYY-MM-DD") + "&branch_id=" + this.branchInfo.branch_id)
         .then(response => {
-          if (response.data.length === 0) {
+          if (response.data.status !== "SUCCESS") {
             this.$dialogs.alert("ไม่พบข้อมูล", options);
             this.data = [];
           } else {
-            this.data = response.data.data;
+            if (response.data.data.length === 0) {
+              this.$dialogs.alert("ไม่พบข้อมูล", options);
+              this.data = [];
+            } else {
+              this.data = response.data.data;
+            }
           }
         })
         .catch(function(error) {
@@ -113,11 +118,11 @@ export default {
     getTracking(item) {
       let data = {
         memberId: item.member_id,
-        phoneNumber: this.changeDoubleSix2Zero(item.phoneregis),
-        memberName: item.firstname+ " " + item.lastname,
+        phoneNumber: item.phoneNumber,
+        memberName: item.firstname + " " + item.lastname,
         dateSelect: moment(this.datePick).format("YYYY-MM-DD")
       };
-       this.$router.push({ name: "ListCapture", params: data });
+      this.$router.push({ name: "ListCapture", params: data });
     },
     getBranch() {
       const options = { okLabel: "ตกลง" };
@@ -133,18 +138,7 @@ export default {
         .catch(function(error) {
           console.log(error);
         });
-    },
-    changeDoubleSix2Zero(phoneregis) {
-      var phone = phoneregis;
-      this.displayPhone = "0";
-      for (let i = 2; i < phone.length; i++) {
-        this.displayPhone += phone[i];
-      }
-      return this.displayPhone;
-    },
-    // addBranch(branch_id) {
-    //   this.$router.push({ name: "AddBranch", params: { branchId: branch_id } });
-    // }
+    }
   },
   computed: {}
 };
