@@ -1114,6 +1114,8 @@ module.exports = {
               if (e.image_path == "") {
                 e.image_url = await removeCharacter(e.image_url);
                 output.push(e);
+              } else {
+                output.push(e);
               }
             }
             resolve(output);
