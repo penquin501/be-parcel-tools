@@ -1059,7 +1059,7 @@ module.exports = {
     var currentDay = moment(dateCheck + " 00:00:00").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
     var nextDay = moment(currentDay).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
-    var sql = `SELECT phone_number, barcode, image_url, image_path FROM parcel_capture_data WHERE phone_number = ? AND record_created_at >= ? AND record_created_at < ?`;
+    var sql = `SELECT barcode FROM parcel_capture_data WHERE phone_number = ? AND record_created_at >= ? AND record_created_at < ?`;
     var data = [dataToCheck.phoneNumber, currentDay, nextDay];
 
     return new Promise(function (resolve, reject) {
@@ -1068,27 +1068,53 @@ module.exports = {
           if (results.length <= 0) {
             resolve(false);
           } else {
+            let dataToCheckBillingItem = [];
+            results.forEach(item => {
+              dataToCheckBillingItem.push(item.barcode);
+            });
+
             let countQl = 0;
             let countQQ = 0;
 
-            for (let item of results) {
-              let billItem = await getBillingItemInfo(db, item);
+            let billItem = await getBillingItemInfo(db, dataToCheckBillingItem);
 
-              if (billItem.billing_source !== undefined) {
-                if (billItem.billing_source == "QUICKLINK") {
+            if(billItem == false){
+              countQl = 0;
+              countQQ = 0;
+            } else if(billItem == null) {
+              countQl = 0;
+              countQQ = 0;
+            } else {
+              billItem.forEach(e => {
+                if(e.source == "QUICKLINK"){
                   countQl++;
                 }
-                if (billItem.billing_source == "QUICKQUICK") {
+                if(e.source == "QUICKQUICK"){
                   countQQ++;
                 }
-              } else {
-                countQl = 0;
-                countQQ = 0;
-              }
+              });
             }
             dataToCheck.countQl = countQl;
             dataToCheck.countQQ = countQQ;
             resolve(dataToCheck);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
+  testSelectIn: (db) =>{
+    var sql = `SELECT * FROM billing_item WHERE tracking in (?)`;
+    var data = [["TDZ20315814","TDZ203158130"]];
+
+    return new Promise(function (resolve, reject) {
+      db.query(sql, data, (err, results) => {
+        if (err === null) {
+          if (results.length <= 0) {
+            resolve(false);
+          } else {
+            resolve(results);
           }
         } else {
           resolve(false);
@@ -1697,26 +1723,19 @@ function removeCharacter(text) {
 }
 
 function getBillingItemInfo(db, data) {
-  let sql = `SELECT tracking, source FROM billing_item WHERE tracking=?`;
-  let dataToDb = [data.barcode];
+  let sql = `SELECT tracking, source FROM billing_item WHERE tracking in (?)`;
+  let dataToDb = [data];
 
   return new Promise(function (resolve, reject) {
     db.query(sql, dataToDb, (error, results, fields) => {
       if (error == null) {
         if (results.length > 0) {
-          if (results[0].source == "QUICKLINK") {
-            data.billing_source = "QUICKLINK";
-            resolve(data);
-          }
-          if (results[0].source == "QUICKQUICK") {
-            data.billing_source = "QUICKQUICK";
-            resolve(data);
-          }
+          resolve(results);
         } else {
-          resolve(data);
+          resolve(null);
         }
       } else {
-        resolve(data);
+        resolve(false);
       }
     });
   });
