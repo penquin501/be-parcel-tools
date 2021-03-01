@@ -986,7 +986,7 @@ Promise.all([initDb(), initAmqp()]).then(values => {
             });
           }
 
-          let url945 = "https://api-key-tool.945holding.com";
+          let url945 = "https://www.945api.com";
           request(
             {
               url: url945 + "/parcel/capture/get-member-info",

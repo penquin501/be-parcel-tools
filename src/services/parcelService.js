@@ -1059,62 +1059,33 @@ module.exports = {
     var currentDay = moment(dateCheck + " 00:00:00").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
     var nextDay = moment(currentDay).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
-    var sql = `SELECT barcode FROM parcel_capture_data WHERE phone_number = ? AND record_created_at >= ? AND record_created_at < ?`;
+    let countQl = 0;
+    let countQQ = 0;
+
+    var sql = `SELECT pc.barcode, bi.source FROM parcel_capture_data pc
+    JOIN billing_item bi ON pc.barcode=bi.tracking
+    WHERE pc.phone_number = ? AND pc.record_created_at >= ? AND pc.record_created_at < ?`;
     var data = [dataToCheck.phoneNumber, currentDay, nextDay];
-
-    return new Promise(function (resolve, reject) {
-      db.query(sql, data, async (err, results) => {
-        if (err === null) {
-          if (results.length <= 0) {
-            resolve(false);
-          } else {
-            let dataToCheckBillingItem = [];
-            results.forEach(item => {
-              dataToCheckBillingItem.push(item.barcode);
-            });
-
-            let countQl = 0;
-            let countQQ = 0;
-
-            let billItem = await getBillingItemInfo(db, dataToCheckBillingItem);
-
-            if(billItem == false){
-              countQl = 0;
-              countQQ = 0;
-            } else if(billItem == null) {
-              countQl = 0;
-              countQQ = 0;
-            } else {
-              billItem.forEach(e => {
-                if(e.source == "QUICKLINK"){
-                  countQl++;
-                }
-                if(e.source == "QUICKQUICK"){
-                  countQQ++;
-                }
-              });
-            }
-            dataToCheck.countQl = countQl;
-            dataToCheck.countQQ = countQQ;
-            resolve(dataToCheck);
-          }
-        } else {
-          resolve(false);
-        }
-      });
-    });
-  },
-  testSelectIn: (db) =>{
-    var sql = `SELECT * FROM billing_item WHERE tracking in (?)`;
-    var data = [["TDZ20315814","TDZ203158130"]];
 
     return new Promise(function (resolve, reject) {
       db.query(sql, data, (err, results) => {
         if (err === null) {
           if (results.length <= 0) {
-            resolve(false);
+            dataToCheck.countQl = 0;
+            dataToCheck.countQQ = 0;
+            resolve(dataToCheck);
           } else {
-            resolve(results);
+            results.forEach(e => {
+              if(e.source == "QUICKLINK"){
+                countQl++;
+              }
+              if(e.source == "QUICKQUICK"){
+                countQQ++;
+              }
+            });
+            dataToCheck.countQl = countQl;
+            dataToCheck.countQQ = countQQ;
+            resolve(dataToCheck);
           }
         } else {
           resolve(false);
