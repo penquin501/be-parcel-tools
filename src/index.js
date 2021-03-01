@@ -981,8 +981,8 @@ Promise.all([initDb(), initAmqp()]).then(values => {
               totalCapture: items.length,
               countAutolabel: countAutolabel,
               countCapture: countCapture,
-              startCapture: moment(startCapture).format("YYYY-MM-DD HH:mm:ss"),
-              lastCapture: moment(lastCapture).format("YYYY-MM-DD HH:mm:ss")
+              startCapture: moment(startCapture).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss"),
+              lastCapture: moment(lastCapture).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss")
             });
           }
 
