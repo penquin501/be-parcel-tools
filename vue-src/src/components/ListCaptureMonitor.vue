@@ -19,7 +19,7 @@
         </div>
         <div class="col-ms-5 col-sm-5 col-xs-5" style=" text-align: center; margin-top: 15px;">
           <label style="font-size:16px;">กรุณาเลือกสาขา :</label>
-          <select style="margin-left: 10px; margin-right: 0px;" class="select" v-model="branchInfo" >
+          <select style="margin-left: 10px; margin-right: 0px;" class="select" v-model="branchInfo" @change="selectBranch()">
             <option value="0">-----เลือก shop-----</option>
             <option v-for="item in dataBranch" v-bind:key="item.branch_id" :value="item" >{{ item.branch_name }}</option>
           </select>
@@ -138,7 +138,10 @@ export default {
         .catch(function(error) {
           console.log(error);
         });
-    }
+    },
+    selectBranch(){
+      this.getData();
+    },
   },
   computed: {}
 };
