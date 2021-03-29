@@ -10,7 +10,7 @@
       </div>
 
       <div class="row">
-        <div class="col-ms-4 col-sm-4 col-xs-4" style=" text-align: center; margin-top: 5px; padding-left: 0px; padding-right: 0px;">
+        <div class="col-ms-4 col-sm-4 col-xs-4" style="text-align: center; margin-top: 5px; padding-left: 0px; padding-right: 0px;">
           <div>
             <input type="date" id="datePick" v-model="datePick" name="datePick"/>
             <span>
