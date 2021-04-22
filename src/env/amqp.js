@@ -1,11 +1,18 @@
 var amqplib = require("amqplib");
+// const AMQP_URL = process.env.AMQP_URL || "";
+// const AMQP_PROTOCOL = process.env.AMQP_PROTOCOL;
+// const AMQP_HOST = process.env.AMQP_HOST;
+// const AMQP_PORT = parseInt(process.env.AMQP_PORT);
+// const AMQP_USERNAME = process.env.AMQP_USERNAME;
+// const AMQP_PASSWORD = process.env.AMQP_PASSWORD;
+// const AMQP_VHOST = process.env.AMQP_VHOST;
 const AMQP_URL = process.env.AMQP_URL || "";
-const AMQP_PROTOCOL = process.env.AMQP_PROTOCOL;
-const AMQP_HOST = process.env.AMQP_HOST;
-const AMQP_PORT = parseInt(process.env.AMQP_PORT);
-const AMQP_USERNAME = process.env.AMQP_USERNAME;
-const AMQP_PASSWORD = process.env.AMQP_PASSWORD;
-const AMQP_VHOST = process.env.AMQP_VHOST;
+const AMQP_PROTOCOL = process.env.AMQP_PROTOCOL || "amqps";
+const AMQP_HOST = process.env.AMQP_HOST || "rmq.945holding.dev";
+const AMQP_PORT = parseInt(process.env.AMQP_PORT || "5671");
+const AMQP_USERNAME = process.env.AMQP_USERNAME || "parcel-inter-dev";
+const AMQP_PASSWORD = process.env.AMQP_PASSWORD || "Y9cKHdsNPBseq2jywcLH";
+const AMQP_VHOST = process.env.AMQP_VHOST || "inter-dev";
 
 let AMQP_CONNECTION_CONFIG = {
     protocol: AMQP_PROTOCOL,
