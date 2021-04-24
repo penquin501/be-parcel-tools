@@ -112,9 +112,10 @@ module.exports = {
     WHERE billing_no=?`;
     let data = [billing];
 
-    let sqlItem = `SELECT bi.tracking, bi.size_id, bi.size_price,bi.parcel_type,bi.cod_value, bi.source, 
+    let sqlItem = `SELECT bi.tracking, bi.size_id, bi.size_price, bi.parcel_type, bi.cod_value, bi.source, 
     br.sender_name, br.sender_phone, br.sender_address, br.receiver_name, br.phone, br.receiver_address, 
-    br.district_id, br.district_name, br.amphur_id, br.amphur_name, br.province_id, br.province_name, br.zipcode,br.status, br.remark, s.alias_size
+    br.district_id, br.district_name, br.amphur_id, br.amphur_name, br.province_id, br.province_name, br.zipcode, br.status, br.remark, 
+    br.booking_status, br.booking_flash_status, br.booking_date, br.booking_flash_date, s.alias_size
     FROM billing_item bi
     LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
     JOIN size_info s ON bi.size_id=s.size_id
@@ -230,7 +231,15 @@ module.exports = {
     return new Promise(function (resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
         if (error === null) {
-          resolve(results);
+          if(results.length > 0){
+            resolve(results);
+          } else {
+            console.log("no data, %s", billing_no);
+            resolve(null);
+          }
+        } else {
+          console.log(error);
+          resolve(false);
         }
       });
     });

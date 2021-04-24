@@ -1184,17 +1184,34 @@ Promise.all([initDb(), initAmqp()]).then(values => {
       return res.send(401, "Unauthorized");
     } else {
       let tracking = req.body.tracking;
-      parcelServices.updateStatusReceiver(db, null, tracking).then(function (resultUpdateStatus) {
-        if (resultUpdateStatus !== false) {
-          var data = {
-            tracking: tracking.toUpperCase(),
-            source: "re_booking"
-          };
-
-          amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.prepare-booking", "", Buffer.from(JSON.stringify(data)), { persistent: true });
-          return res.json(data);
+      parcelServices.selectDataReceiver(db, tracking).then(function (dataReceiver) {
+        if (dataReceiver == false) {
+          return res.json({ status: "ERROR_CONNECT_DB" });
         } else {
-          return res.json({ status: "ERROR" });
+          let receiverInfo = dataReceiver.receiverInfo[0];
+          if(receiverInfo.booking_status !== 100){
+            parcelServices.updateStatusReceiver(db, null, tracking).then(function (resultUpdateStatus) {
+              if (resultUpdateStatus !== false) {
+                var data = {
+                  tracking: tracking.toUpperCase(),
+                  source: "re_booking"
+                };
+  
+                amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.prepare-booking", "", Buffer.from(JSON.stringify(data)), { persistent: true });
+                return res.json(data);
+              } else {
+                return res.json({ status: "ERROR" });
+              }
+            });
+          } else {
+            parcelServices.selectDataToExchangeUpdateBooking(db, tracking).then(function (dataTo945) {
+              amqpChannel.publish("share.exchange.task-update", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
+              return res.json({
+                tracking: tracking.toUpperCase(),
+                source: "re_send_to_945"
+              });
+            });
+          }
         }
       });
     }
@@ -1210,17 +1227,29 @@ Promise.all([initDb(), initAmqp()]).then(values => {
       let remark = req.body.remark;
       let user = req.body.user;
 
-      parcelServices.insertLog(db, billing_no, log_previous_value, log_current_value, reason, module_name, user, billing_no, remark).then(function (dataLog) {
-        let dataBilling = {
-          billing_no: billing_no,
-          source: "resend_bill"
-        };
-        console.log("send resend bill to prepare-billing exchange = %s", billing_no);
-        amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.prepare-billing", "", Buffer.from(JSON.stringify(dataBilling)), { persistent: true });
-        console.log("sent resend bill to prepare-billing exchange = %s", billing_no);
-        res.json(data_to_945);
-      });
+      parcelServices.selectBillingInfo(db, billing_no).then(function (billingInfo) {
+        if (billingInfo == false) {
+          return res.json({ status: "ERROR_CONNECT_DB" });
+        } else {
+          if (billingInfo == null) {
+            return res.json({ status: "ERROR_NO_DATA" });
+          } else {
+            let log_previous_value = billing_no + "/" + billingInfo[0].status;
+            let log_current_value = billing_no + "/resend_bill";
 
+            parcelServices.insertLog(db, billing_no, log_previous_value, log_current_value, reason, module_name, user, billing_no, remark).then(function (dataLog) {
+              let dataBilling = {
+                billing_no: billing_no,
+                source: "resend_bill"
+              };
+              console.log("send resend bill to prepare-billing exchange = %s", billing_no);
+              amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.prepare-billing", "", Buffer.from(JSON.stringify(dataBilling)), { persistent: true });
+              console.log("sent resend bill to prepare-billing exchange = %s", billing_no);
+              res.json(dataBilling);
+            });
+          }
+        }
+      });
       // parcelServices.sendDataToServer(db, billing_no).then(function(data_to_945) {
       //   if (data_to_945 !== false) {
       //     let log_previous_value = billing_no + "/complete";

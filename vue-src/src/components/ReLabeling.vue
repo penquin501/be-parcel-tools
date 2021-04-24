@@ -8,23 +8,24 @@
     <div class="mycontent">
       <div class="left">
         <div class="item2">
-          <v-zoomer class="v-zoomer">
-            <img
-              :src="imgUrl"
-              style="object-fit: contain; width: 100%; height: 100%; "
-              :style="`transform: rotate(${rotation}deg);`"
-            />
-          </v-zoomer>
-          <div class="btnOption">
-            <!-- <button v-on:click="rotateLeft"><i class="fa fa-undo" style="font-size: 20px;"></i></button> -->
-            <button v-on:click="rotateLeft">
-              <img style="width: 20px" src="../assets/left.png" />
-            </button>
-            &nbsp;
-            <!-- <button v-on:click="rotateRight"><i class="fa fa-repeat" style="font-size: 20px;"></i></button> -->
-            <button v-on:click="rotateRight">
-              <img style="width: 20px" src="../assets/right.png" />
-            </button>
+          <div v-if="this.capture_text == ''">
+            <v-zoomer class="v-zoomer">
+              <img :src="imgUrl" style="object-fit: contain; width: 100%; height: 100%; " :style="`transform: rotate(${rotation}deg);`" />
+            </v-zoomer>
+            <div class="btnOption">
+              <!-- <button v-on:click="rotateLeft"><i class="fa fa-undo" style="font-size: 20px;"></i></button> -->
+              <button v-on:click="rotateLeft">
+                <img style="width: 20px" src="../assets/left.png" />
+              </button>
+              &nbsp;
+              <!-- <button v-on:click="rotateRight"><i class="fa fa-repeat" style="font-size: 20px;"></i></button> -->
+              <button v-on:click="rotateRight">
+                <img style="width: 20px" src="../assets/right.png" />
+              </button>
+            </div>
+          </div>
+          <div class="capture_text" v-else>
+            <label>{{ capture_text }}</label>
           </div>
         </div>
       </div>
@@ -229,9 +230,9 @@ export default {
       causeType: 0,
       reasonValue: "",
       remark: "",
-      imgUrl:
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC",
+      imgUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC",
       rotation: 0,
+      capture_text: "",
 
       receiverFNameEdit: true,
       receiverLNameEdit: true,
@@ -320,14 +321,20 @@ export default {
               } else {
                 this.order_status_lb = "";
               }
+              var regex_img = /http:\/\/|https:\/\//g;
 
               this.imgCapture = response.data.imgCapture;
 
               if (this.imgCapture == false) {
-                this.imgUrl =
-                  "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC";
+                this.imgUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC";
               } else {
-                this.imgUrl = this.imgCapture[0].image_url;
+                if (this.imgCapture[0].image_url.match(regex_img) == null) {
+                  this.capture_text = this.imgCapture[0].image_url;
+                  this.imgUrl = "";
+                } else {
+                  this.imgUrl = this.imgCapture[0].image_url;
+                  this.capture_text = "";
+                }
               }
               this.getNewTracking();
 
@@ -425,8 +432,8 @@ export default {
     },
     emptyBox() {
       this.trackingInput = "";
-      this.imgUrl =
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC";
+      this.imgUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC";
+      this.capture_text = "";
 
       this.billing_no = "";
       this.tracking = "";
@@ -819,6 +826,13 @@ export default {
   &:hover {
     background-color: #ff8c00 !important;
     color: #fff !important;
+  }
+}
+
+div.capture_text {
+  width: 150px;
+  label {
+    word-wrap: break-word;
   }
 }
 </style>

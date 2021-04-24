@@ -7,17 +7,22 @@
             <b>Tracking:</b>
             <input style="width: 95%;" :disabled="billingInfo" v-model="tracking" />
           </div>
-          <v-zoomer class="v-zoomer">
-            <img :src="imgUrl" style="object-fit: contain; width: 100%; height: 100%;" :style="`transform: rotate(${rotation}deg);`"/>
-          </v-zoomer>
-          <div class="btnOption">
-            <button v-on:click="rotateLeft">
-              <img style="width: 20px;" src="../assets/left.png" />
-            </button>
-            &nbsp;
-            <button v-on:click="rotateRight">
-              <img style="width: 20px;" src="../assets/right.png" />
-            </button>
+          <div v-if="this.capture_text == ''">
+            <v-zoomer class="v-zoomer">
+              <img :src="imgUrl" style="object-fit: contain; width: 100%; height: 100%;" :style="`transform: rotate(${rotation}deg);`"/>
+            </v-zoomer>
+            <div class="btnOption">
+              <button v-on:click="rotateLeft">
+                <img style="width: 20px;" src="../assets/left.png" />
+              </button>
+              &nbsp;
+              <button v-on:click="rotateRight">
+                <img style="width: 20px;" src="../assets/right.png" />
+              </button>
+            </div>
+          </div>
+          <div class="capture_text" v-else>
+            <label>{{ capture_text }}</label>
           </div>
         </div>
       </div>
@@ -118,6 +123,7 @@ export default {
     return {
       imgUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC",
       rotation: 0,
+      capture_text: "",
       menu: 1,
       tracking: "",
       billingInfo: [],
@@ -225,8 +231,21 @@ export default {
             this.displayAddress = this.br_zipcode + " " + this.location;
             this.parcelAddressList(this.br_zipcode);
             this.br_parcel_type = this.billingInfo[0].br_parcel_type;
+
+            var regex_img = /http:\/\/|https:\/\//g;
             this.imgCapture = response.data.imgCapture;
-            this.imgUrl = this.imgCapture == false ? "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC" : this.imgCapture[0].image_url;
+
+            if (this.imgCapture == false) {
+                this.imgUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC";
+            } else {
+                if (this.imgCapture[0].image_url.match(regex_img) == null) {
+                  this.capture_text = this.imgCapture[0].image_url;
+                  this.imgUrl = "";
+                } else {
+                  this.imgUrl = this.imgCapture[0].image_url;
+                  this.capture_text = "";
+                }
+            }
             this.previous_value = response.data.billingInfo[0];
           } else {
             alert("ไม่พบข้อมูล");
@@ -559,6 +578,12 @@ export default {
   &:hover {
     background-color: #ff8c00 !important;
     color: #fff !important;
+  }
+}
+div.capture_text {
+  width: 150px;
+  label {
+    word-wrap: break-word;
   }
 }
 </style>
