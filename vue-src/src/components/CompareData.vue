@@ -237,6 +237,7 @@ export default {
 
             if (this.imgCapture == false) {
                 this.imgUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC";
+                this.capture_text = "";
             } else {
                 if (this.imgCapture[0].image_url.match(regex_img) == null) {
                   this.capture_text = this.imgCapture[0].image_url;
