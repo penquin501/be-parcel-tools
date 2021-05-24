@@ -137,26 +137,27 @@ Promise.all([initDb(), initAmqp()]).then(values => {
         return res.json({ status: "ERROR", reason: "data_cancelled" });
       } else {
         if (billingNo !== undefined && billingNo !== null && billingNo !== "") {
+
+          var listLogTracking = [];
+          var previous_value_log = billingStatus;
+          var current_value_log = "cancel";
+
           if (selectItems.length <= 0) {
-            /*change member */
+            /* change member */
             voidBilling(billingNo).then(resultVoidBilling => {
               if (resultVoidBilling) {
                 let listCancelTracking = billingInfo.billingItem;
-                createBilling(billingInfo, billingInfo.billingItem, currentMember).then(resultCreateBilling => {
+                createBilling(billingInfo, billingInfo.billingItem, currentMember).then(async resultCreateBilling => {
                   if (resultCreateBilling !== false) {
-                    async function saveLogItem() {
-                      var listLogTracking = [];
-                      var previous_value_log = billingStatus;
-                      var current_value_log = "cancel";
-                      await listCancelTracking.forEach(async (val, index) => {
-                        listLogTracking.push(parcelServices.insertLog(db, billingNo, previous_value_log, current_value_log, reason, moduleName, user, val.tracking, remark));
-                      });
-                      var resultArr = await Promise.all(listLogTracking);
-                      return resultArr;
+                    /* save log */
+                    for(let val of listCancelTracking){
+                      listLogTracking.push(await parcelServices.insertLog(db, billingNo, previous_value_log, current_value_log, reason, moduleName, user, val.tracking, remark));
                     }
-                    saveLogItem().then(function (result) {
+                    if(listLogTracking.length == listCancelTracking.length){
                       return res.json({ status: "SUCCESS", billingNo: resultCreateBilling.billingNo });
-                    });
+                    } else {
+                      return res.json({ status: "ERROR", reason: "cannot_save_log" });
+                    }
                   } else {
                     return res.json({ status: "ERROR", reason: "cannot_restructure_billing" });
                   }
@@ -170,9 +171,7 @@ Promise.all([initDb(), initAmqp()]).then(values => {
 
             listCheckItem = [];
             selectItems.forEach(selectItem => {
-              var checkItem = billingItems.find(
-                item => selectItem.tracking == item.tracking
-              );
+              var checkItem = billingItems.find(item => selectItem.tracking == item.tracking);
               if (checkItem == undefined) {
                 // ไม่เจอใน billing
                 listCheckItem.push(false);
@@ -204,78 +203,56 @@ Promise.all([initDb(), initAmqp()]).then(values => {
 
               if (listCreateTracking.length <= 0) {
                 /* cancel billing */
-                voidBilling(billingNo).then(resultVoidBilling => {
+                voidBilling(billingNo).then(async resultVoidBilling => {
                   if (resultVoidBilling) {
-                    async function cancelItem() {
-                      var listTracking = [];
-                      await listCancelTracking.forEach(async (val, index) => {
-                        listTracking.push(parcelServices.updateStatusReceiver(db, "cancel", val.tracking));
-                      });
-                      var resultArr = await Promise.all(listTracking);
-                      return resultArr;
+                    var listTracking = [];
+                    for(let val of listCancelTracking) {
+                      listTracking.push(await parcelServices.updateStatusReceiver(db, "cancel", val.tracking));
                     }
-                    cancelItem().then(function (result) {
-                      parcelServices.updateCancelBilling(db, billingNo).then(resultBilling => {
-                        if (resultBilling) {
-                          async function saveLogItem() {
-                            var listLogTracking = [];
-                            var previous_value_log = billingStatus;
-                            var current_value_log = "cancel";
-
-                            await listCancelTracking.forEach(async (val, index) => {
-                              listLogTracking.push(parcelServices.insertLog(db, billingNo, previous_value_log, current_value_log, reason, moduleName, user, val.tracking, remark));
-                            });
-
-                            var resultArr = await Promise.all(listLogTracking);
-                            return resultArr;
-                          }
-                          saveLogItem().then(function (result) {
-                            return res.json({ status: "SUCCESS", billingNo: "" });
-                          });
-                        } else {
-                          return res.json({ status: "ERROR", reason: "cannot_cancel_billing" });
-                        }
-                      });
-                    });
+                    if(listTracking.length == listCancelTracking.length){
+                      /* save log */
+                      for(let val of listCancelTracking){
+                        listLogTracking.push(await parcelServices.insertLog(db, billingNo, previous_value_log, current_value_log, reason, moduleName, user, val.tracking, remark));
+                      }
+                      if(listLogTracking.length == listCancelTracking.length){
+                        return res.json({ status: "SUCCESS", billingNo: "" });
+                      } else {
+                        return res.json({ status: "ERROR", reason: "cannot_save_log" });
+                      }
+                    } else {
+                      return res.json({ status: "ERROR", reason: "cannot_void_billing_item" });
+                    }
                   } else {
                     return res.json({ status: "ERROR", reason: "cannot_void_billing" });
                   }
                 });
               } else {
                 /* cancel tracking */
-                voidBilling(billingNo).then(resultVoidBilling => {
+                voidBilling(billingNo).then(async resultVoidBilling => {
                   if (resultVoidBilling) {
-                    async function cancelItem() {
-                      var listTracking = [];
-                      await listCancelTracking.forEach(async (val, index) => {
-                        listTracking.push(parcelServices.updateStatusReceiver(db, "cancel", val.tracking));
-                      });
-                      var resultArr = await Promise.all(listTracking);
-                      return resultArr;
+                    var listTracking = [];
+                    for(let val of listCancelTracking) {
+                      listTracking.push(await parcelServices.updateStatusReceiver(db, "cancel", val.tracking));
                     }
-                    cancelItem().then(function (result) {
-                      createBilling(billingInfo, listCreateTracking, currentMember).then(resultCreateBilling => {
+                    if(listTracking.length == listCancelTracking.length) {
+                      createBilling(billingInfo, listCreateTracking, currentMember).then(async resultCreateBilling => {
                         if (resultCreateBilling !== false) {
-                          async function saveLogItem() {
-                            var listLogTracking = [];
-                            var previous_value_log = billingStatus;
-                            var current_value_log = "cancel";
-
-                            await listCancelTracking.forEach(async (val, index) => {
-                              listLogTracking.push(parcelServices.insertLog(db, billingNo, previous_value_log, current_value_log, reason, moduleName, user, val.tracking, remark));
-                            });
-
-                            var resultArr = await Promise.all(listLogTracking);
-                            return resultArr;
+                          /* save log */
+                          for(let val of listCancelTracking){
+                            listLogTracking.push(await parcelServices.insertLog(db, billingNo, previous_value_log, current_value_log, reason, moduleName, user, val.tracking, remark));
                           }
-                          saveLogItem().then(function (result) {
+                          if(listLogTracking.length == listCancelTracking.length){
                             return res.json({ status: "SUCCESS", billingNo: resultCreateBilling.billingNo });
-                          });
+                          } else {
+                            return res.json({ status: "ERROR", reason: "cannot_save_log" });
+                          }
                         } else {
                           return res.json({ status: "ERROR", reason: "cannot_restructure_billing" });
                         }
                       });
-                    });
+                    } else {
+                      return res.json({ status: "ERROR", reason: "cannot_void_billing_item" });
+                    }
                   } else {
                     return res.json({ status: "ERROR", reason: "cannot_void_billing" });
                   }
@@ -1065,7 +1042,7 @@ Promise.all([initDb(), initAmqp()]).then(values => {
 
   app.get("/log-parcel-tool", (req, res) => {
     let ref = req.query.ref;
-    parcelServices.log_parcel_tool(db, ref).then(function (data) {
+    parcelServices.logListParcelTool(db, ref).then(function (data) {
       if (data == false) {
         res.json([]);
       } else {
@@ -1250,19 +1227,6 @@ Promise.all([initDb(), initAmqp()]).then(values => {
           }
         }
       });
-      // parcelServices.sendDataToServer(db, billing_no).then(function(data_to_945) {
-      //   if (data_to_945 !== false) {
-      //     let log_previous_value = billing_no + "/complete";
-      //     let log_current_value = billing_no + "/complete";
-      //     parcelServices.insertLog(db, billing_no, log_previous_value, log_current_value, reason, module_name, user, billing_no, remark).then(function(dataLog) {
-      //       // amqpChannel.publish(MY_AMQP_PREFIX+".exchange.event","",Buffer.from(JSON.stringify(data_to_945)),{persistent: true});
-      //       amqpChannel.publish("share.exchange.event", "", Buffer.from(JSON.stringify(data_to_945)), { persistent: true });
-      //       res.json(data_to_945);
-      //     });
-      //   } else {
-      //     res.json({ status: "data_not_found" });
-      //   }
-      // });
     }
   });
 
@@ -1566,18 +1530,25 @@ Promise.all([initDb(), initAmqp()]).then(values => {
 
   function voidBilling(billingNo) {
     return new Promise(function (resolve, reject) {
+      console.log("start void billing = %s", billingNo);
       parcelServices.sendDataToServer(db, billingNo).then(dataTo945 => {
         if (dataTo945 == false) {
           resolve(false);
         } else {
-          console.log("send to parcel exchange void-billing = %s", billingNo);
-          amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.void-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
-          console.log("sent to parcel exchange void-billing = %s", billingNo);
-
-          console.log("send to share exchange void-billing = %s", billingNo);
-          amqpChannel.publish("share.exchange.void-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
-          console.log("sent to share exchange void-billing = %s", billingNo);
-          resolve(true);
+          parcelServices.updateVoidBilling(db, billingNo).then(resultVoidBilling => {
+            if (resultVoidBilling) {
+              console.log("send to parcel exchange void-billing = %s", billingNo);
+              amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.void-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
+              console.log("sent to parcel exchange void-billing = %s", billingNo);
+    
+              console.log("send to share exchange void-billing = %s", billingNo);
+              amqpChannel.publish("share.exchange.void-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
+              console.log("sent to share exchange void-billing = %s", billingNo);
+              resolve(true);
+            } else {
+              resolve(false);
+            }
+          });
         }
       });
     });
@@ -1603,45 +1574,39 @@ Promise.all([initDb(), initAmqp()]).then(values => {
             } else {
               var newBillingNo = res2.body.billing_no;
 
+              console.log("restructure billing = %s", newBillingNo);
               var total = 0;
               listCreateTracking.forEach(value => {
                 total += value.size_price;
               });
 
-              parcelServices.saveDataBilling(db, billingInfo.billing, currentMember, total, newBillingNo).then(data => {
+              parcelServices.saveDataBilling(db, billingInfo.billing, currentMember, total, newBillingNo).then(async data => {
                 if (data) {
-                  async function item() {
-                    var listTracking = [];
-                    await listCreateTracking.forEach(async (item, index) => {
-                      listTracking.push(parcelServices.updateBillingNoItem(db, newBillingNo, item, currentMember));
-                    });
-                    var resultArr = await Promise.all(listTracking);
-                    return resultArr;
+                  listTracking = [];
+                  for(let item of listCreateTracking){
+                    listTracking.push(await parcelServices.updateBillingNoItem(db, newBillingNo, item, currentMember));
                   }
-                  item().then(function (result) {
-                    if (result.length == listCreateTracking.length) {
-                      parcelServices.updateStatusBilling(db, newBillingNo).then(resultUpdateBilling => {
-                        if (resultUpdateBilling) {
-                          parcelServices.sendDataToServer(db, newBillingNo).then(async dataTo945 => {
-                            console.log("send to parcel exchange restructure-billing = %s", newBillingNo);
-                            amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.restructure-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
-                            console.log("sent to parcel exchange restructure-billing = %s", newBillingNo);
+                  if (listTracking.length == listCreateTracking.length) {
+                    parcelServices.updateCompleteStatusBilling(db, newBillingNo).then(resultUpdateBilling => {
+                      if (resultUpdateBilling) {
+                        parcelServices.sendDataToServer(db, newBillingNo).then(async dataTo945 => {
+                          console.log("send to parcel exchange restructure-billing = %s", newBillingNo);
+                          amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.restructure-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
+                          console.log("sent to parcel exchange restructure-billing = %s", newBillingNo);
 
-                            console.log("send to share exchange restructure-billing = %s", newBillingNo);
-                            amqpChannel.publish("share.exchange.restructure-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
-                            console.log("sent to share exchange restructure-billing = %s", newBillingNo);
+                          console.log("send to share exchange restructure-billing = %s", newBillingNo);
+                          amqpChannel.publish("share.exchange.restructure-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
+                          console.log("sent to share exchange restructure-billing = %s", newBillingNo);
 
-                            console.log("restructure billing = %s", newBillingNo);
-                            resolve({ status: "success", billingNo: newBillingNo });
-                          });
-                        } else {
-                          resolve(false);
-                        }
-                      });
-                    } else {
-                      resolve(false);
-                    }
-                  });
+                          resolve({ status: "success", billingNo: newBillingNo });
+                        });
+                      } else {
+                        resolve(false);
+                      }
+                    });
+                  } else {
+                    resolve(false);
+                  }
                 } else {
                   resolve(false);
                 }
@@ -1687,7 +1652,7 @@ Promise.all([initDb(), initAmqp()]).then(values => {
                 if (dataBilling) {
                   parcelServices.saveDataBillingItemRelabel(db, newBillingNo, billingItemInfo, currentValue).then(dataBillingItem => {
                     if (dataBillingItem) {
-                      parcelServices.updateStatusBilling(db, newBillingNo).then(resultUpdateBilling => {
+                      parcelServices.updateCompleteStatusBilling(db, newBillingNo).then(resultUpdateBilling => {
                         if (resultUpdateBilling) {
                           /* start relabel to main server */
                           var listBilling = [
@@ -1741,14 +1706,18 @@ Promise.all([initDb(), initAmqp()]).then(values => {
                               billing_no: newBillingNo,
                               source: "RELABEL"
                             };
-
+                            console.log("send relabel to parcel exchange prepare-billing = %s", newBillingNo);
                             amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.prepare-billing", "", Buffer.from(JSON.stringify(dataBilling)), { persistent: true });
-                            // amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.event", "", Buffer.from(JSON.stringify(result[1])), { persistent: true });
-                            // amqpChannel.publish("share.exchange.event", "", Buffer.from(JSON.stringify(result[1])), { persistent: true });
+                            console.log("sent relabel to parcel exchange prepare-billing = %s", newBillingNo);
 
+                            console.log("send to parcel exchange relabel-billing = %s", newBillingNo);
                             amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.relabel-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
-                            amqpChannel.publish("share.exchange.relabel-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
+                            console.log("sent to parcel exchange relabel-billing = %s", newBillingNo);
 
+                            console.log("send to share exchange relabel-billing = %s", newBillingNo);
+                            amqpChannel.publish("share.exchange.relabel-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
+                            console.log("sent to share exchange relabel-billing = %s", newBillingNo);
+                            
                             resolve({
                               status: "success",
                               billingNo: newBillingNo
