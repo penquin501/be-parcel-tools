@@ -5,7 +5,7 @@
     </div>
 
     <div class="row">
-      `<div class="col-ms-2 col-sm-2 col-xs-2">
+      <div class="col-ms-2 col-sm-2 col-xs-2">
         <button class="button-add" v-on:click="addSize(0)">
           <i class="fa fa-plus" aria-hidden="true"></i>เพิ่มข้อมูล Size
         </button>
@@ -18,7 +18,7 @@
         <button class="button-re" v-on:click="getSize()">
           <i class="fa fa-refresh" aria-hidden="true"></i>
         </button>
-      </div>`
+      </div>
     </div>
     <div class="row">
       <div class="col-ms-2 col-sm-2 col-xs-2">Zone :</div>
