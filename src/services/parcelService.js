@@ -890,7 +890,7 @@ module.exports = {
 
     var sql = `SELECT pc.barcode, bi.source FROM parcel_capture_data pc
     JOIN billing_item bi ON pc.barcode=bi.tracking
-    WHERE pc.phone_number = ? AND pc.record_created_at >= ? AND pc.record_created_at < ?`;
+    WHERE pc.phone_number = ? AND (pc.record_created_at >= ? AND pc.record_created_at < ?)`;
     var data = [dataToCheck.phoneNumber, currentDay, nextDay];
 
     return new Promise(function (resolve, reject) {

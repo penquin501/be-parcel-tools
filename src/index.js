@@ -424,9 +424,10 @@ Promise.all([initDb(), initAmqp()]).then(values => {
 
     var dataJson = currentValue;
 
+    var url945 = "https://api-key-tool.945holding.com";
     request(
       {
-        url: "https://api-key-tool.945holding.com/update/member-info/api",
+        url: url945 + "/update/member-info/api",
         method: "POST",
         body: dataJson,
         json: true
@@ -442,9 +443,7 @@ Promise.all([initDb(), initAmqp()]).then(values => {
 
           request(
             {
-              url:
-                "https://api-key-tool.945holding.com/check/member-info?memberId=" +
-                currentValue.memberId,
+              url: url945 + "/check/member-info?memberId=" + currentValue.memberId,
               method: "GET"
             },
             (err, res3, body) => {
@@ -468,7 +467,7 @@ Promise.all([initDb(), initAmqp()]).then(values => {
     let user = req.body.user;
 
     var dataJson = currentValue;
-    // var url945 = "https://admin-pc-tool.945.report";
+
     var url945 = "https://api-key-tool.945holding.com";
     request(
       {
@@ -963,10 +962,10 @@ Promise.all([initDb(), initAmqp()]).then(values => {
             });
           }
 
-          let url945 = "https://www.945api.com";
+          var url945api = "https://www.945api.com";
           request(
             {
-              url: url945 + "/parcel/capture/get-member-info",
+              url: url945api + "/parcel/capture/get-member-info",
               method: "POST",
               body: listMember,
               json: true
@@ -1507,9 +1506,10 @@ Promise.all([initDb(), initAmqp()]).then(values => {
       trackingList: trackings
     };
     return new Promise(function (resolve, reject) {
+      var url945api = "https://www.945api.com";
       request(
         {
-          url: "https://www.945api.com/parcel/check/tracking/list/api",
+          url: url945api + "/parcel/check/tracking/list/api",
           method: "POST",
           body: data2,
           json: true

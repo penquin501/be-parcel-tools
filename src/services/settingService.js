@@ -324,5 +324,109 @@ module.exports = {
         resolve(results);
       });
     });
-  }
+  },
+  checkGlobalParcelSize: (db, data) => {
+    let sqlCheckGlobalSize = `SELECT * FROM global_parcel_size WHERE product_id = ?`;
+
+    let saveGlobalSize = `INSERT INTO global_parcel_size(product_id, alias_name, product_name, area, type, zone) VALUES (?, ?, ?, ?, ?, ?)`;
+    let dataGlobalSize = [data.productid, data.size_name.toLowerCase(), data.productname, data.area.toUpperCase(), data.box_type.toUpperCase(), parseInt(data.pricing_zone)];
+
+    let updateGlobalSize = `UPDATE global_parcel_size SET alias_name = ?, product_name = ?, area = ?, type = ?, zone = ? WHERE product_id = ?`;
+    let dataUpdateGlobalSize = [data.size_name.toLowerCase(), data.productname, data.area.toUpperCase(), data.box_type.toUpperCase(), parseInt(data.pricing_zone), data.productid];
+
+    return new Promise(function (resolve, reject) {
+      db.query(sqlCheckGlobalSize, [data.productid], (error, results, fields) => {
+        if (error == null) {
+          if (results.length > 0) {
+            /* update */
+            db.query(updateGlobalSize, dataUpdateGlobalSize, (errorUpdate, resultsUpdate, fields) => {
+              if (errorUpdate == null) {
+                if (resultsUpdate.affectedRows > 0) {
+                  resolve(true);
+                } else {
+                  console.log("error update global size = %s", data.productid);
+                  resolve(null);
+                }
+              } else {
+                console.log("error connect db, update global size ", errorUpdate);
+                resolve(false);
+              }
+            });
+          } else {
+            /* save */
+            db.query(saveGlobalSize, dataGlobalSize, (errorSave, resultSave, fields) => {
+              if (errorSave == null) {
+                if (resultSave.affectedRows > 0) {
+                  resolve(true);
+                } else {
+                  console.log("error save global size = %s", data.productid);
+                  resolve(null);
+                }
+              } else {
+                console.log("error connect db, save global size ", errorSave);
+                resolve(false);
+              }
+            });
+          }
+        } else {
+          console.log("error connect db ", error);
+          resolve(false);
+        }
+      });
+    });
+  },
+  checkSizeInfo: (db, data) => {
+    let sqlCheckSizeInfo = `SELECT * FROM size_info WHERE alias_size=? AND location_zone=? AND zone=?`;
+    let dataCheckSizeInfo = [data.size_name.toLowerCase(), data.area.toLowerCase(), parseInt(data.pricing_zone)];
+
+    let size_name = "พัสดุ SIZE " + data.size_name.toUpperCase();
+    let saveSizeInfo = `INSERT INTO size_info(size_name, location_zone, parcel_price, parcel_cost, alias_size, sold_to_account_id, pickup_account_id, customer_account_id, zone) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    let dataSizeInfo = [size_name, data.area.toLowerCase(), parseInt(data.delivery_fee), parseInt(data.cost), data.size_name.toLowerCase(), data.soldto, data.pickup, data.customer, parseInt(data.pricing_zone)];
+
+    let updateSizeInfo = `UPDATE size_info SET size_name=?, location_zone=?, parcel_price=?, parcel_cost=?, sold_to_account_id=?, pickup_account_id=?, customer_account_id=?, zone=? 
+    WHERE alias_size=? AND location_zone=? AND zone=?`;
+    let dataUpdateSizeInfo = [size_name, data.area.toLowerCase(), parseInt(data.delivery_fee), parseInt(data.cost), data.soldto, data.pickup, data.customer, parseInt(data.pricing_zone), data.size_name.toLowerCase(), data.area.toLowerCase(), parseInt(data.pricing_zone)];
+
+    return new Promise(function (resolve, reject) {
+      db.query(sqlCheckSizeInfo, dataCheckSizeInfo, (error, results, fields) => {
+        if (error == null) {
+          if (results.length > 0) {
+            /* update */
+            db.query(updateSizeInfo, dataUpdateSizeInfo, (errorUpdate, resultsUpdate, fields) => {
+              if (errorUpdate == null) {
+                if (resultsUpdate.affectedRows > 0) {
+                  resolve(true);
+                } else {
+                  console.log("error update size info = %s %s %s", data.size_name.toLowerCase(), data.area.toLowerCase(), data.pricing_zone);
+                  resolve(null);
+                }
+              } else {
+                console.log("error connect db, update size info ", errorUpdate);
+                resolve(false);
+              }
+            });
+          } else {
+            /* save */
+            db.query(saveSizeInfo, dataSizeInfo, (errorSave, resultSave, fields) => {
+              if (errorSave == null) {
+                if (resultSave.affectedRows > 0) {
+                  resolve(true);
+                } else {
+                  console.log("error save size info = %s %s %s", data.size_name.toLowerCase(), data.area.toLowerCase(), data.pricing_zone);
+                  resolve(null);
+                }
+              } else {
+                console.log("error connect db, save size info ", errorSave);
+                resolve(false);
+              }
+            });
+          }
+        } else {
+          console.log("error connect db ", error);
+          resolve(false);
+        }
+      });
+    });
+  },
 };

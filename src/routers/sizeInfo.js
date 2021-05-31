@@ -1,4 +1,6 @@
 const express = require("express");
+const request = require("request");
+const { resolve } = require("path");
 const router = express.Router();
 const settingService = require("../services/settingService.js");
 
@@ -123,6 +125,42 @@ module.exports = function(app, appCtx) {
         }
       });
     }
+  });
+
+  router.get("/sync-global-size", (req, res) => {
+    var url945api = "https://www.945api.com";
+    request(
+      {
+        url: url945api + "/parcel/global-product",
+        method: "GET"
+      },
+      async (err, res2, body) => {
+        if (err == null) {
+          let data = JSON.parse(res2.body);
+          if (data.status !== undefined) {
+            if (data.status == "SUCCESS") {
+              let resultGlobal = [];
+              let resultSizeInfo = [];
+              for (let item of data.listProduct) {
+                resultGlobal.push(await settingService.checkGlobalParcelSize(db, item));
+                resultSizeInfo.push(await settingService.checkSizeInfo(db, item));
+              }
+              if (data.listProduct.length == resultGlobal.length) {
+                let sizeInfo = await settingService.sizeInfo(db);
+                return res.json({ status: "SUCCESS", globalSize: data.listProduct, sizeInfo: sizeInfo });
+              } else {
+                return res.json({ status: "ERROR_SAVE/UPDATE_SIZE" });
+              }
+            } else {
+              return res.json({ status: "ERROR_LIST_GLOBAL_SIZE_API" });
+            }
+          } else {
+            return res.json({ status: "ERROR_GLOBAL_SIZE_API" });
+          }
+        } else {
+          return res.json({ status: "ERROR_CONNECT_GLOBAL_SIZE_API" });
+        }
+      });
   });
 
   function isGenericValid(data, key, defaultValue, resultList = null, check_tracking) {
