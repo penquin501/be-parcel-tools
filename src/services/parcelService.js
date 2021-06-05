@@ -1425,29 +1425,33 @@ module.exports = {
     var sqlBillingItem = `SELECT * FROM billing_item WHERE tracking=?`;
     var dataBillingItem = [data.tracking];
 
-    var sqlSizeInfo = `SELECT * FROM size_info WHERE size_id=?`;
-
     return new Promise(function (resolve, reject) {
-      db.query(sqlBillingItem, dataBillingItem, (errorItem, resultItem, fields) => {
+      db.query(sqlBillingItem, dataBillingItem, async (errorItem, resultItem, fields) => {
         if (errorItem == null) {
           if (resultItem.length > 0) {
-            db.query(sqlSizeInfo, [resultItem[0].size_id], (errorSizeInfo, resultSizeInfo, fields) => {
-              if (errorSizeInfo == null) {
-                if (resultSizeInfo.length > 0) {
-                  data.billingNo = resultItem[0].billing_no;
-                  data.billingItem = resultItem[0];
-                  data.billingItem.location_zone = resultSizeInfo[0].location_zone;
+            let trackingInfo = [];
 
-                  resolve(data);
-                } else {
-                  resolve(null);
-                }
-              } else {
-                resolve(false);
+            for (let item of resultItem) {
+              let billing = await checkBillingInfo(db, item);
+
+              if (billing !== false) {
+                let sizing = await checkSizeById(db, item);
+
+                data.billingNo = billing[0].billing_no;
+                data.billingItem = item;
+                data.billingItem.location_zone = sizing[0].location_zone;
+
+                trackingInfo.push(data);
               }
-            });
+            }
+
+            if (trackingInfo.length == 0) {
+              resolve(false);
+            } else {
+              resolve(trackingInfo[0]);
+            }
           } else {
-            resolve(null);
+            resolve(false);
           }
         } else {
           resolve(false);
@@ -1791,4 +1795,46 @@ function isGenericValid(data, key, defaultValue, resultList = null, check_tracki
     return false;
   }
   return defaultValue;
+}
+
+function checkBillingInfo(db, data) {
+  var sqlBilling = `SELECT billing_no, status FROM billing WHERE billing_no=?`;
+
+  return new Promise(function (resolve, reject) {
+    db.query(sqlBilling, [data.billing_no], (err, result) => { 
+      if(err == null){
+        if(result.length > 0){
+          if(result[0].status !== "cancel"){
+            // data.billingInfo = result;
+            resolve(result);
+          } else {
+            resolve(false);
+          }
+        } else {
+          resolve(false);
+        }
+      } else {
+        resolve(false);
+      }
+    });
+  });
+}
+
+function checkSizeById(db, data) {
+  var sqlSizeInfo = `SELECT * FROM size_info WHERE size_id=?`;
+
+  return new Promise(function (resolve, reject) {
+    db.query(sqlSizeInfo, [data.size_id], (err, result) => { 
+      if(err == null){
+        if(result.length > 0){
+          // data.sizeInfo = result;
+          resolve(result);
+        } else {
+          resolve(false);
+        }
+      } else {
+        resolve(false);
+      }
+    });
+  });
 }

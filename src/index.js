@@ -104,7 +104,7 @@ Promise.all([initDb(), initAmqp()]).then(values => {
           code = "upc";
         }
         parcelServices.checkPrice(db, code, size_name, zone).then(function (data) {
-          if(data == false){
+          if (data == false) {
             return res.json([]);
           } else {
             return res.json(data);
@@ -567,7 +567,14 @@ Promise.all([initDb(), initAmqp()]).then(values => {
 
     var resultsFile = req.body.resultsFile;
     if (resultsFile.length <= 0) {
-      return res.json({ status: "ERROR_NO_DATA" });
+      // return res.json({ status: "ERROR_NO_DATA" });
+      return res.json({
+        status: "ERROR_NO_DATA",
+        listBilling: [],
+        listRemainBilling: [],
+        listBillingError: [],
+        listTrackingError: []
+      });
     } else {
       let listInputData = [];
       resultsFile.forEach(element => {
@@ -591,77 +598,96 @@ Promise.all([initDb(), initAmqp()]).then(values => {
       }
 
       if (!validItem) {
-        return res.json({ status: "ERROR_DATA_NOT_VALID" });
+        // return res.json({ status: "ERROR_DATA_NOT_VALID" });
+        return res.json({
+          status: "ERROR_DATA_NOT_VALID",
+          listBilling: [],
+          listRemainBilling: [],
+          listBillingError: [],
+          listTrackingError: []
+        });
       } else {
         let listTrackingInfo = [];
+        let listTrackingError = [];
         for (let item of listInputData) {
           /* เก็บข้อมูลของ tracking เดิม */
-          listTrackingInfo.push(await parcelServices.getTrackingInfo(db, item));
-        }
-        billing = {};
-        listTrackingInfo.forEach(value => {
-          if (!(value.billingNo in billing)) {
-            billing[String(value.billingNo)] = [];
+          let checkTrackingInfo = await parcelServices.getTrackingInfo(db, item);
+          if (checkTrackingInfo !== false) {
+            listTrackingInfo.push(checkTrackingInfo);
+          } else {
+            listTrackingError.push({ tracking: item.tracking });
           }
-          billing[String(value.billingNo)].push(value);
-        });
+        }
 
-        let listBilling = [];
-        let listRemainBilling = [];
-        let listBillingError = [];
-        let listTrackingError = [];
+        if (listTrackingInfo.length !== 0) {
+          billing = {};
+          listTrackingInfo.forEach(value => {
+            if (!(value.billingNo in billing)) {
+              billing[String(value.billingNo)] = [];
+            }
+            billing[String(value.billingNo)].push(value);
+          });
 
-        for (const [billingNo, items] of Object.entries(billing)) {
-          var billingInfo = await parcelServices.getBillingInfo(db, billingNo);
-          let listTrackingInFile = [];
-          let listTrackingNotInFile = [];
+          let listBilling = [];
+          let listRemainBilling = [];
+          let listBillingError = [];
 
-          let listError = [];
+          for (const [billingNo, items] of Object.entries(billing)) {
+            var billingInfo = await parcelServices.getBillingInfo(db, billingNo);
+            let listTrackingInFile = [];
+            let listTrackingNotInFile = [];
 
-          for (let item of billingInfo.billingItem) {
-            for (let e of items) {
-              if (item.tracking == e.tracking) {
-                let getNewSizeInfo = await parcelServices.checkPrice(db, e.billingItem.location_zone, e.size.toLowerCase(), parseInt(e.zone));
+            for (let item of billingInfo.billingItem) {
+              for (let e of items) {
+                if (item.tracking == e.tracking) {
+                  let getNewSizeInfo = await parcelServices.checkPrice(db, e.billingItem.location_zone, e.size.toLowerCase(), parseInt(e.zone));
 
-                if (getNewSizeInfo == false) {
-                  listError.push(e);
+                  if (getNewSizeInfo == false) {
+                    listTrackingError.push({ tracking: e.tracking });
+                  } else {
+                    e.sizeInfo = getNewSizeInfo[0];
+                  }
+                  listTrackingInFile.push(e);
                 } else {
-                  e.sizeInfo = getNewSizeInfo[0];
+                  listTrackingNotInFile.push(item);
                 }
-                listTrackingInFile.push(e);
-              } else {
-                listTrackingNotInFile.push(item);
               }
             }
-          }
-          listTrackingError = listError;
 
-          let resultVoidBilling = await voidBilling(billingInfo.billing.billing_no);
-          let resultRemainBilling = {};
-          if (resultVoidBilling) {
-            let resultCreateBilling = await createReCalBilling(billingInfo.billing, listTrackingInFile, moduleName, user);
+            let resultVoidBilling = await voidBilling(billingInfo.billing.billing_no);
+            let resultRemainBilling = {};
+            if (resultVoidBilling) {
+              let resultCreateBilling = await createReCalBilling(billingInfo.billing, listTrackingInFile, moduleName, user);
 
-            if(listTrackingNotInFile.length !== 0) {
-              resultRemainBilling = await createRemainBilling(billingInfo.billing, listTrackingNotInFile);
+              if (listTrackingNotInFile.length !== 0) {
+                resultRemainBilling = await createRemainBilling(billingInfo.billing, listTrackingNotInFile);
+                listRemainBilling.push(resultRemainBilling);
+              }
+
+              listBilling.push(resultCreateBilling);
+            } else {
+              listBillingError.push({
+                status: billingInfo.billing.status,
+                billingNo: billingInfo.billing.billing_no
+              });
             }
-
-            listBilling.push(resultCreateBilling);
-            listRemainBilling.push(resultRemainBilling);
-          } else {
-            listBillingError.push({
-              status: billingInfo.billing.status,
-              billingNo: billingInfo.billing.billing_no
-            });
           }
+          return res.json({
+            status: "SUCCESS",
+            listBilling: listBilling,
+            listRemainBilling: listRemainBilling,
+            listBillingError: listBillingError,
+            listTrackingError: listTrackingError
+          });
+        } else {
+          return res.json({
+            status: "ERROR_NO_DATA_TO_RECAL_BILLING",
+            listBilling: [],
+            listRemainBilling: [],
+            listBillingError: [],
+            listTrackingError: listTrackingError
+          });
         }
-
-        return res.json({
-          status: "SUCCESS",
-          listBilling: listBilling,
-          listRemainBilling: listRemainBilling,
-          listBillingError: listBillingError,
-          listTrackingError: listTrackingError
-        });
       }
     }
   });
@@ -1884,18 +1910,19 @@ Promise.all([initDb(), initAmqp()]).then(values => {
                 //   amqpChannel.publish("share.exchange.restructure-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
                 //   console.log("sent to share exchange restructure-billing = %s", newBillingNo);
 
-                //   /* save log */
-                //   var listLogTracking = [];
-                //   var previous_value_log = billingInfo.status + "/" + billingInfo.billing_no;
-                //   var current_value_log = "re-cal billing" + "/" + newBillingNo;
+                /* save log */
+                var listLogTracking = [];
+                var previous_value_log = billingInfo.status + "/" + billingInfo.billing_no;
+                var current_value_log = "re-cal billing" + "/" + newBillingNo;
 
-                //   for (let val of listTracking) {
-                //     listLogTracking.push(await parcelServices.insertLog(db, billingInfo.billing_no, previous_value_log, current_value_log, reason, moduleName, user, val.tracking, remark));
-                //   }
+                for (let val of listTracking) {
+                  listLogTracking.push(await parcelServices.insertLog(db, billingInfo.billing_no, previous_value_log, current_value_log, "re-cal size", moduleName, user, val.tracking, "คำนวน size ใหม่"));
+                }
 
-                  resolve({ status: "success", billingNo: newBillingNo });
+                resolve({ status: "success", billingNo: newBillingNo });
                 // });
               } else {
+                console.log("error cannot update complete ReCalDataBilling = %s", newBillingNo);
                 resolve(false);
               }
             });
@@ -1903,6 +1930,7 @@ Promise.all([initDb(), initAmqp()]).then(values => {
             resolve(false);
           }
         } else {
+          console.log("error cannot save ReCalDataBilling = %s", newBillingNo);
           resolve(false);
         }
       });
@@ -1939,9 +1967,10 @@ Promise.all([initDb(), initAmqp()]).then(values => {
                 //   amqpChannel.publish("share.exchange.restructure-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
                 //   console.log("sent to share exchange restructure-billing = %s", newBillingNo);
 
-                  resolve({ status: "success", billingNo: newBillingNo });
+                resolve({ status: "success", billingNo: newBillingNo });
                 // });
               } else {
+                console.log("error cannot update remain billing = %s", newBillingNo);
                 resolve(false);
               }
             });
@@ -1949,6 +1978,7 @@ Promise.all([initDb(), initAmqp()]).then(values => {
             resolve(false);
           }
         } else {
+          console.log("error cannot save remain billing = %s", newBillingNo);
           resolve(false);
         }
       });
@@ -1973,7 +2003,7 @@ Promise.all([initDb(), initAmqp()]).then(values => {
     }
     return defaultValue;
   }
-  
+
   function isMatched(defaultValue, bi_type, br_type, bi_zipcode, br_zipcode, cod_value, resultList = null, check_tracking) {
     var out = [];
     if (resultList != null) {
