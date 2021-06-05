@@ -171,6 +171,12 @@ const routes = [
     component: () => import("../components/ListCapture.vue"),
     hidden: true
   },
+  {
+    path: "/recal-billing",
+    name: "ReCalBilling",
+    component: () => import("../components/ReCalBilling.vue"),
+    hidden: true
+  },
 ];
 
 export default new Router({

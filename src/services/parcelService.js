@@ -238,12 +238,20 @@ module.exports = {
     });
   },
   checkPrice: (db, code, size_name, zone) => {
-    var sql = `SELECT size_id,parcel_price FROM size_info where location_zone=? and alias_size= ? and zone=?`;
+    var sql = `SELECT size_id, parcel_price FROM size_info where location_zone=? and alias_size= ? and zone=?`;
     var data = [code, size_name, zone];
 
     return new Promise(function (resolve, reject) {
       db.query(sql, data, (err, results) => {
-        resolve(results);
+        if(err == null){
+          if(results.length > 0){
+            resolve(results);
+          } else {
+            resolve(false);
+          }
+        } else {
+          resolve(false);
+        }
       });
     });
   },
@@ -505,23 +513,24 @@ module.exports = {
     });
   },
   dailyListTracking: (db, billing_no) => {
-    var sql = `SELECT bi.tracking,s.alias_size,bi.size_price,bi.parcel_type as bi_parcel_type,bi.zipcode as bi_zipcode,bi.cod_value,bi.source, 
-    br.parcel_type as br_parcel_type,br.sender_name,br.sender_phone,br.sender_address,br.receiver_name,br.phone,br.receiver_address,
-    br.district_name,br.amphur_name,br.province_name,br.zipcode as br_zipcode,br.status,br.sending_date,
-    br.booking_status,br.booking_date,br.booking_flash_status,br.booking_flash_date 
-    FROM billing_item bi 
-    JOIN billing_receiver_info br ON bi.tracking = br.tracking 
-    JOIN size_info s ON bi.size_id = s.size_id
-    WHERE bi.billing_no=?`;
-    var data = [billing_no];
+    var sqlBillingItem = `SELECT tracking, size_id, size_price, parcel_type as bi_parcel_type, zipcode as bi_zipcode, cod_value, source FROM billing_item WHERE billing_no = ?`;
+    var dataBillingItem = [billing_no];
 
     return new Promise(function (resolve, reject) {
-      db.query(sql, data, (err, results) => {
-        if (err === null) {
-          if (results.length <= 0) {
-            resolve(false);
+      db.query(sqlBillingItem, dataBillingItem, async (errBillingItem, resultsBillingItem) => {
+        if (errBillingItem === null) {
+          if (resultsBillingItem.length > 0) {
+            let listTrackingInfo = [];
+            for(let item of resultsBillingItem){
+              let dataItem = await getReceiverInfo(db, item);
+              let sizeItem = await checkSizeInfo(db, dataItem);
+
+              listTrackingInfo.push(sizeItem);
+            }
+            
+            resolve(listTrackingInfo);
           } else {
-            resolve(results);
+            resolve(false);
           }
         } else {
           resolve(false);
@@ -1246,6 +1255,31 @@ module.exports = {
       });
     });
   },
+  saveReCalDataBilling: (db, billing, total, newBillingNo) => {
+    let dateBilling = m(billing.billing_date).tz("Asia/Bangkok").format("YYYY-MM-DD", true);
+    let timeBilling = m().tz("Asia/Bangkok").format("HH:mm:ss", true);
+    let recordDatetimeBilling = moment(dateBilling+" "+timeBilling).unix();
+
+    var status = "drafting";
+
+    var sqlSaveBilling = `INSERT INTO billing(user_id, mer_authen_level, member_code, carrier_id, billing_date, billing_no, branch_id, total, timestamp, img_url, status, ref_billing_no) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    var dataSaveBilling = [billing.user_id, billing.mer_authen_level, billing.member_code, billing.carrier_id, billing.billing_date, newBillingNo, billing.branch_id, total, recordDatetimeBilling, billing.img_url, status, billing.billing_no];
+
+    return new Promise(function (resolve, reject) {
+      db.query(sqlSaveBilling, dataSaveBilling, (errorSaveBilling, resultSaveBilling, fields) => {
+        if (errorSaveBilling == null) {
+          if (resultSaveBilling.affectedRows > 0) {
+            resolve(true);
+          } else {
+            resolve(false);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
   saveDataBillingItemRelabel: (db, billing_no, billingItemInfo, currentValue) => {
     let source = "RELABEL";
     var data = currentValue.billingItem;
@@ -1313,6 +1347,44 @@ module.exports = {
       });
     });
   },
+  saveReCalBillingItem: (db, newBillingNo, item) => {
+    let source = "RECAL";
+    var sqlSaveItem = `INSERT INTO billing_item(billing_no, tracking, zipcode, size_id, size_price, parcel_type, cod_value, source, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)`;
+    var data = [newBillingNo, item.tracking, item.billingItem.zipcode, item.sizeInfo.size_id, item.sizeInfo.parcel_price, item.billingItem.parcel_type.toUpperCase(), item.billingItem.cod_value, source, new Date()];
+
+    return new Promise(function (resolve, reject) {
+      db.query(sqlSaveItem, data, (errorItem, resultItem, fields) => {
+        if (errorItem == null) {
+          if (resultItem.affectedRows > 0) {
+            resolve(true);
+          } else {
+            resolve(false);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
+  saveRemainBillingItem: (db, newBillingNo, item) => {
+    let source = "QUICKQUICK";
+    var sqlSaveItem = `INSERT INTO billing_item(billing_no, tracking, zipcode, size_id, size_price, parcel_type, cod_value, source, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)`;
+    var data = [newBillingNo, item.tracking, item.zipcode, item.size_id, item.size_price, item.parcel_type.toUpperCase(), item.cod_value, source, new Date()];
+
+    return new Promise(function (resolve, reject) {
+      db.query(sqlSaveItem, data, (errorItem, resultItem, fields) => {
+        if (errorItem == null) {
+          if (resultItem.affectedRows > 0) {
+            resolve(true);
+          } else {
+            resolve(false);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
   updateCompleteStatusBilling: (db, billingNo) => {
     var updateStatusBilling = `UPDATE billing SET status=? WHERE billing_no=? AND status=?`;
     var dataStatusBilling = ["complete", billingNo, "drafting"];
@@ -1342,6 +1414,40 @@ module.exports = {
             resolve(true);
           } else {
             resolve(false);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
+  getTrackingInfo: (db, data) => {
+    var sqlBillingItem = `SELECT * FROM billing_item WHERE tracking=?`;
+    var dataBillingItem = [data.tracking];
+
+    var sqlSizeInfo = `SELECT * FROM size_info WHERE size_id=?`;
+
+    return new Promise(function (resolve, reject) {
+      db.query(sqlBillingItem, dataBillingItem, (errorItem, resultItem, fields) => {
+        if (errorItem == null) {
+          if (resultItem.length > 0) {
+            db.query(sqlSizeInfo, [resultItem[0].size_id], (errorSizeInfo, resultSizeInfo, fields) => {
+              if (errorSizeInfo == null) {
+                if (resultSizeInfo.length > 0) {
+                  data.billingNo = resultItem[0].billing_no;
+                  data.billingItem = resultItem[0];
+                  data.billingItem.location_zone = resultSizeInfo[0].location_zone;
+
+                  resolve(data);
+                } else {
+                  resolve(null);
+                }
+              } else {
+                resolve(false);
+              }
+            });
+          } else {
+            resolve(null);
           }
         } else {
           resolve(false);
@@ -1467,7 +1573,38 @@ module.exports = {
         }
       });
     });
-  }
+  },
+  checkDuplicateBillingNo: (db, billingNo) => {
+    var sql = `SELECT billing_no FROM billing WHERE billing_no=?`;
+    var data = [billingNo];
+
+    var sqlSaveBillingNo = `INSERT INTO global_generate_billing_no (billing_no, record_at) VALUES (?, ?);`;
+    var dataSaveBillingNo = [billingNo, new Date()];
+
+    return new Promise(function(resolve, reject) {
+      db.query(sql, data, (err, results) => {
+        if (err === null) {
+          if (results.length > 0) {
+            resolve(false);
+          } else {
+            db.query(sqlSaveBillingNo, dataSaveBillingNo, (errSave, resultsSave) => {
+              if(errSave == null){
+                if(resultsSave.affectedRows > 0) {
+                  resolve(true);
+                } else {
+                  resolve(false);
+                }
+              } else {
+                resolve(false);
+              }
+            });
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
 };
 
 /*******************************************************************************************************************************/
@@ -1496,6 +1633,27 @@ function removeCharacter(text) {
   return newText;
 }
 
+function getReceiverInfo(db, data) {
+  let sqlReceiver = `SELECT * FROM billing_receiver_info WHERE tracking = ?`;
+  let dataReceiver = [data.tracking];
+  return new Promise(function (resolve, reject) {
+    db.query(sqlReceiver, dataReceiver, (error_receiver, results_receiver, fields) => {
+      if (error_receiver == null) {
+        if (results_receiver.length > 0) {
+          results_receiver[0].br_parcel_type = results_receiver[0].parcel_type;
+          results_receiver[0].br_zipcode = results_receiver[0].zipcode;
+          data.receiverInfo = results_receiver[0];
+          resolve(data);
+        } else {
+          resolve(data);
+        }
+      } else {
+        resolve(data);
+      }
+    });
+  });
+}
+
 function selectReceiverData(db, dataItem) {
   let sqlReceiver = `SELECT br.tracking,br.sender_name,br.sender_phone,br.sender_address,br.receiver_name,br.phone,br.receiver_address,d.DISTRICT_CODE,
                     a.AMPHUR_CODE,p.PROVINCE_CODE,br.zipcode,br.remark,br.courirer_id,br.booking_date,g.GEO_ID,g.GEO_NAME, br.booking_status
@@ -1519,6 +1677,44 @@ function selectReceiverData(db, dataItem) {
         resolve(dataItem);
       }
     });
+  });
+}
+
+function checkSizeInfo(db, data) {
+  return new Promise(function (resolve, reject) {
+    if (data.size_id == undefined || data.size_id == null || data.size_id == "") {
+      var sqlBillingQQInfo = `SELECT * FROM billing_quickquick WHERE tracking=?`;
+      db.query(sqlBillingQQInfo, [data.tracking], (errBillingQQInfo, resultBillingQQInfo) => {
+        if (errBillingQQInfo == null) {
+          if (resultBillingQQInfo.length > 0) {
+            data.alias_size = resultBillingQQInfo[0].size.toUpperCase();
+            data.size_price = 0;
+            data.product_name = "-";
+
+            resolve(data);
+          } else {
+            resolve(data);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    } else {
+      var sqlSizeInfo = `SELECT * FROM size_info WHERE size_id=?`;
+      db.query(sqlSizeInfo, [data.size_id], (errSizeInfo, resultSizeInfo) => {
+        if (errSizeInfo == null) {
+          if (resultSizeInfo.length > 0) {
+            data.alias_size = resultSizeInfo[0].alias_size.toUpperCase();
+
+            resolve(data);
+          } else {
+            resolve(data);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    }
   });
 }
 
@@ -1556,7 +1752,22 @@ function getSizeInfo(db, data) {
             }
           });
         } else {
-          resolve(false);
+          var sqlBillingQQInfo = `SELECT * FROM billing_quickquick WHERE tracking=?`;
+          db.query(sqlBillingQQInfo, [data.tracking], (errBillingQQInfo, resultBillingQQInfo) => {
+            if (errBillingQQInfo == null) {
+              if (resultBillingQQInfo.length > 0) {
+                data.alias_size = resultBillingQQInfo[0].size.toUpperCase();
+                data.size_price = 0;
+                data.product_name = "-";
+
+                resolve(data);
+              } else {
+                resolve(false);
+              }
+            } else {
+              resolve(false);
+            }
+          });
         }
       } else {
         resolve(false);

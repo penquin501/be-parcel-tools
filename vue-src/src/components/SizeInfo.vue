@@ -7,10 +7,15 @@
     <div class="row">
       <div class="col-ms-2 col-sm-2 col-xs-2">
         <button class="button-add" v-on:click="addSize(0)">
-          <i class="fa fa-plus" aria-hidden="true"></i>เพิ่มข้อมูล Size
+          <i class="fa fa-plus" aria-hidden="true"></i> เพิ่มข้อมูล Size
         </button>
       </div>
-      <div class="col-ms-7 col-sm-7 col-xs-7"></div>
+      <div class="col-ms-2 col-sm-2 col-xs-2">
+        <button class="button-add" v-on:click="syncSize()">
+          <i class="fa fa-exchange" aria-hidden="true"></i> Sync Size
+        </button>
+      </div>
+      <div class="col-ms-5 col-sm-5 col-xs-5"></div>
       <div class="col-ms-2 col-sm-2 col-xs-2" style="text-align: right;">
         <label style="margin-top: 5px;">Refresh</label>
       </div>
@@ -21,9 +26,11 @@
       </div>
     </div>
     <div class="row">
-      <div class="col-ms-2 col-sm-2 col-xs-2">Zone :</div>
-      <div class="radio-inline" v-for="(item) in listZone" v-on:change="selectedZone(item.zone)" v-bind:key="item.id">
-        <label><input type="radio" :value="item.zone" v-model="selectZone" />{{ item.zone }}</label>
+      <div class="col-ms-12 col-sm-12 col-xs-12" style="text-align: center;">
+        <label>Zone :</label>
+        <div class="form-check form-check-inline" v-for="item in listZone" @change="selectedZone(item.zone)" v-bind:key="item.id" >
+          <input style="margin-right: 0px; margin-left: 0px; width: 50px;" type="radio" name="inlineRadioOptions" id="inlineRadio1" :value="item.zone" v-model="selectZone" />{{ item.zone }}
+        </div>
       </div>
     </div>
 
@@ -44,6 +51,7 @@
         <td style="text-align: center;"><button v-on:click="addSize(item.size_id)" class="button-set"><i class="fa fa-pencil" aria-hidden="true"></i></button></td>
       </tr>
     </table>
+    <b-spinner :variant="variant" :key="variant"></b-spinner>∂
     <div style="margin-top: 50px; text-align: center;"></div>
   </div>
 </template>
@@ -57,7 +65,8 @@ export default {
       listZone: [],
       selectZone: 0,
       sizeId: 0,
-      url: ""
+      showSpinner: false,
+      url: "http://localhost:3000"
     };
   },
   mounted() {
@@ -111,6 +120,21 @@ export default {
     selectedZone(zone) {
       this.selectZone = zone;
       this.getSize();
+    },
+    syncSize() {
+      // const options = { okLabel: "ตกลง" };
+      axios.get(this.url + "/size/sync-global-size")
+      .then(response => {
+        console.log(response.data);
+        // if (response.data) {
+        //   console.log();
+        // } else {
+        //   this.$dialogs.alert("ไม่พบข้อมูล", options);
+        // }
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
     }
   }
 };

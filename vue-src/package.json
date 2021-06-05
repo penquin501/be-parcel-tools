@@ -28,7 +28,8 @@
     "vue-router": "^3.3.4",
     "vue-select": "^3.10.3",
     "vue-session": "^1.0.0",
-    "vue-zoomer": "^0.3.6"
+    "vue-zoomer": "^0.3.6",
+    "xlsx": "^0.17.0"
   },
   "devDependencies": {
     "@fortawesome/fontawesome-free": "^5.13.1",
