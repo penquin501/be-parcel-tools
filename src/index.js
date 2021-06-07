@@ -1900,27 +1900,26 @@ Promise.all([initDb(), initAmqp()]).then(values => {
           if (output.length == listTracking.length) {
             parcelServices.updateCompleteStatusBilling(db, newBillingNo).then(async resultUpdateBilling => {
               if (resultUpdateBilling) {
-                // parcelServices.sendDataToServer(db, newBillingNo).then(async dataTo945 => {
-                //   /* TODO */
-                //   console.log("send to parcel exchange restructure-billing = %s", newBillingNo);
-                //   amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.restructure-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
-                //   console.log("sent to parcel exchange restructure-billing = %s", newBillingNo);
+                parcelServices.sendDataToServer(db, newBillingNo).then(async dataTo945 => {
+                  console.log("send to parcel exchange restructure-billing = %s", newBillingNo);
+                  amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.restructure-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
+                  console.log("sent to parcel exchange restructure-billing = %s", newBillingNo);
 
-                //   console.log("send to share exchange restructure-billing = %s", newBillingNo);
-                //   amqpChannel.publish("share.exchange.restructure-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
-                //   console.log("sent to share exchange restructure-billing = %s", newBillingNo);
+                  console.log("send to share exchange restructure-billing = %s", newBillingNo);
+                  amqpChannel.publish("share.exchange.restructure-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
+                  console.log("sent to share exchange restructure-billing = %s", newBillingNo);
 
-                /* save log */
-                var listLogTracking = [];
-                var previous_value_log = billingInfo.status + "/" + billingInfo.billing_no;
-                var current_value_log = "re-cal billing" + "/" + newBillingNo;
+                  /* save log */
+                  var listLogTracking = [];
+                  var previous_value_log = billingInfo.status + "/" + billingInfo.billing_no;
+                  var current_value_log = "re-cal billing" + "/" + newBillingNo;
 
-                for (let val of listTracking) {
-                  listLogTracking.push(await parcelServices.insertLog(db, billingInfo.billing_no, previous_value_log, current_value_log, "re-cal size", moduleName, user, val.tracking, "คำนวน size ใหม่"));
-                }
+                  for (let val of listTracking) {
+                    listLogTracking.push(await parcelServices.insertLog(db, billingInfo.billing_no, previous_value_log, current_value_log, "re-cal size", moduleName, user, val.tracking, "คำนวน size ใหม่"));
+                  }
 
-                resolve({ status: "success", billingNo: newBillingNo });
-                // });
+                  resolve({ status: "success", billingNo: newBillingNo });
+                });
               } else {
                 console.log("error cannot update complete ReCalDataBilling = %s", newBillingNo);
                 resolve(false);
@@ -1957,18 +1956,17 @@ Promise.all([initDb(), initAmqp()]).then(values => {
           if (output.length == listTracking.length) {
             parcelServices.updateCompleteStatusBilling(db, newBillingNo).then(resultUpdateBilling => {
               if (resultUpdateBilling) {
-                // parcelServices.sendDataToServer(db, newBillingNo).then(async dataTo945 => {
-                //   /* TODO */
-                //   console.log("send to parcel exchange restructure-billing = %s", newBillingNo);
-                //   amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.restructure-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
-                //   console.log("sent to parcel exchange restructure-billing = %s", newBillingNo);
+                parcelServices.sendDataToServer(db, newBillingNo).then(async dataTo945 => {
+                  console.log("send to parcel exchange restructure-billing = %s", newBillingNo);
+                  amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.restructure-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
+                  console.log("sent to parcel exchange restructure-billing = %s", newBillingNo);
 
-                //   console.log("send to share exchange restructure-billing = %s", newBillingNo);
-                //   amqpChannel.publish("share.exchange.restructure-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
-                //   console.log("sent to share exchange restructure-billing = %s", newBillingNo);
+                  console.log("send to share exchange restructure-billing = %s", newBillingNo);
+                  amqpChannel.publish("share.exchange.restructure-billing", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
+                  console.log("sent to share exchange restructure-billing = %s", newBillingNo);
 
-                resolve({ status: "success", billingNo: newBillingNo });
-                // });
+                  resolve({ status: "success", billingNo: newBillingNo });
+                });
               } else {
                 console.log("error cannot update remain billing = %s", newBillingNo);
                 resolve(false);
