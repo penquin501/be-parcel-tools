@@ -34,16 +34,16 @@
           <th style="text-align:center; width: 5%;">วัน/เวลา DHL booking</th>
         </tr>
         <tr v-bind:key="item.id" v-for="item in filteredResources">
-          <td v-if="item.booking_status != 100" style="text-align: center; background-color: powderblue;"><a href="#" v-on:click="getTracking(item.tracking)">{{ item.tracking }}</a></td>
+          <td v-if="item.receiverInfo.booking_status != 100" style="text-align: center; background-color: powderblue;"><a href="#" v-on:click="getTracking(item.tracking)">{{ item.tracking }}</a></td>
           <td v-else style="text-align: center;">{{ item.tracking }}</td>
 
           <td style="text-align: center;">{{ item.alias_size }}/{{ item.size_price }}</td>
 
           <td v-if="item.bi_parcel_type != item.receiverInfo.br_parcel_type" style="text-align: center; color: red;">{{ item.bi_parcel_type }}/{{ item.receiverInfo.br_parcel_type }}</td>
-          <td v-else style="text-align: center;">{{ item.bi_zipcode }}/{{ item.receiverInfo.br_zipcode }}</td>
+          <td v-else style="text-align: center;">{{ item.bi_parcel_type }}/{{ item.receiverInfo.br_parcel_type }}</td>
 
           <td v-if="item.bi_zipcode != item.receiverInfo.br_zipcode" style="text-align: center; color: red;">{{ item.bi_zipcode }}/{{ item.receiverInfo.br_zipcode }}</td>
-          <td style="text-align: center;">{{ item.bi_zipcode }}/{{ item.receiverInfo.br_zipcode }}</td>
+          <td v-else style="text-align: center;">{{ item.bi_zipcode }}/{{ item.receiverInfo.br_zipcode }}</td>
 
           <td style="text-align: center;">{{ item.cod_value }}</td>
           <td style="text-align: center;">{{ item.receiverInfo.receiver_name }}</td>

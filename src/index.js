@@ -273,7 +273,7 @@ Promise.all([initDb(), initAmqp()]).then(values => {
     }
   });
 
-  app.post("/tools/relabel-tracking", function (req, res) {
+  app.post("/tools/relabel-tracking", async function (req, res) {
     let data = req.body;
     let billingNo = data.billingNo;
     let billingStatus = data.billingStatus;
@@ -349,71 +349,95 @@ Promise.all([initDb(), initAmqp()]).then(values => {
             item_valid = false;
           }
 
-          if (billingItem.parcelType.toUpperCase() == "NORMAL" && parseInt(billingItem.codValue) !== 0) {
-            console.log("parcelType = NORMAL, codValue = %d", billingItem.codValue);
-            item_valid = false;
-          }
-          if (billingItem.parcelType.toUpperCase() == "COD" && parseInt(billingItem.codValue) == 0) {
-            console.log("parcelType = COD, codValue = %d", billingItem.codValue);
-            item_valid = false;
-          }
-
-          if (billingItem.parcelType.toUpperCase() == "COD" && parseInt(billingItem.codValue) > 50000) {
-            console.log("parcelType = COD, codValue = %d", billingItem.codValue);
-            item_valid = false;
-          }
-
           if (!item_valid) {
             return res.json({
               status: "ERROR",
-              reason: "no_complete_data_to_relabeling"
+              reason: "data_not_complete_to_relabeling"
             });
           } else {
-            checkAvailableTracking(billingItem.tracking.toUpperCase()).then(resultAvailableTracking => {
-              if (!resultAvailableTracking) {
-                return res.json({
-                  status: "ERROR",
-                  reason: "tracking_not_available"
-                });
-              } else {
-                /* start process relabel */
-                parcelServices.updateStatusReceiver(db, "relabel", billingInfo.tracking).then(resultUpdateStatus => {
-                  if (resultUpdateStatus !== false) {
-                    parcelServices.selectBillingInfo(db, billingInfo.billing_no).then(resultBilling => {
-                      createBillingRelabel(resultBilling, billingInfo, currentValue, causeType, reason, remark).then(resultCreateBilling => {
-                        if (resultCreateBilling !== false) {
-                          var dataToPrepareBooking = {
-                            tracking: billingItem.tracking,
-                            source: "RELABEL"
-                          };
-                          amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.prepare-booking", "", Buffer.from(JSON.stringify(dataToPrepareBooking)), { persistent: true });
+            var checkQlCase = true;
+            let autoInfo = await parcelServices.getAutoLabelInfo(db, billingItem.tracking);
 
-                          var previous_value_log = billingInfo.status + "/" + billingInfo.tracking;
-                          var current_value_log = "relabel" + "/" + billingItem.tracking;
-
-                          parcelServices.insertLog(db, billingInfo.billing_no, previous_value_log, current_value_log, reason, moduleName, user, billingInfo.tracking, remark);
-                          return res.json({
-                            status: "SUCCESS",
-                            billingNo: resultCreateBilling.billingNo
-                          });
-                        } else {
-                          return res.json({
-                            status: "ERROR",
-                            reason: "cannot_relabel_billing"
-                          });
-                        }
-                      });
-                    });
-                  } else {
-                    return res.json({
-                      status: "ERROR",
-                      reason: "cannot_update_status_tracking"
-                    });
-                  }
-                });
-                /*******/
+            if (billingItem.parcelType.toUpperCase() !== "NORMAL" && billingItem.parcelType.toUpperCase() !== "COD") {
+              console.log("type is wrong(ql checker) = %s", tracking);
+              return false;
+            }
+            if (billingItem.parcelType.toUpperCase() == "NORMAL" && parseInt(billingItem.codValue) !== 0) {
+              console.log("parcelType = NORMAL, codValue = %d", billingItem.codValue);
+              checkQlCase = false;
+            }
+            if (billingItem.parcelType.toUpperCase() == "COD" && parseInt(billingItem.codValue) == 0) {
+              console.log("parcelType = COD, codValue = %d", billingItem.codValue);
+              checkQlCase = false;
+            }
+            if (billingItem.parcelType.toUpperCase() == "COD" && parseInt(billingItem.codValue) > 50000) {
+              console.log("parcelType = COD, codValue = %d", billingItem.codValue);
+              checkQlCase = false;
+            }
+            if (billingInfo.sender_phone == receiverInfo.phone) {
+              console.log("sender phone = receiver phone (re-label) = %s", tracking);
+              checkQlCase = false;
+            }
+            if (autoInfo !== false) {
+              let rawDataAutoStr = removeCharacter(autoInfo.raw_data);
+              if (receiverInfo.phone !== "0914271551" && rawDataAutoStr.search(receiverInfo.phone) == -1) {
+                console.log("receiver phone is not in raw data (re-label) = %s", tracking);
+                checkQlCase = false;
               }
-            });
+            }
+
+            if (!checkQlCase) {
+              return res.json({
+                status: "ERROR",
+                reason: "data_have_ql_case"
+              });
+            } else {
+              checkAvailableTracking(billingItem.tracking.toUpperCase()).then(resultAvailableTracking => {
+                if (!resultAvailableTracking) {
+                  return res.json({
+                    status: "ERROR",
+                    reason: "tracking_not_available"
+                  });
+                } else {
+                  /* start process relabel */
+                  parcelServices.updateStatusReceiver(db, "relabel", billingInfo.tracking).then(resultUpdateStatus => {
+                    if (resultUpdateStatus !== false) {
+                      parcelServices.selectBillingInfo(db, billingInfo.billing_no).then(resultBilling => {
+                        createBillingRelabel(resultBilling, billingInfo, currentValue, causeType, reason, remark).then(resultCreateBilling => {
+                          if (resultCreateBilling !== false) {
+                            var dataToPrepareBooking = {
+                              tracking: billingItem.tracking,
+                              source: "RELABEL"
+                            };
+                            amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.prepare-booking", "", Buffer.from(JSON.stringify(dataToPrepareBooking)), { persistent: true });
+
+                            var previous_value_log = billingInfo.status + "/" + billingInfo.tracking;
+                            var current_value_log = "relabel" + "/" + billingItem.tracking;
+
+                            parcelServices.insertLog(db, billingInfo.billing_no, previous_value_log, current_value_log, reason, moduleName, user, billingInfo.tracking, remark);
+                            return res.json({
+                              status: "SUCCESS",
+                              billingNo: resultCreateBilling.billingNo
+                            });
+                          } else {
+                            return res.json({
+                              status: "ERROR",
+                              reason: "cannot_relabel_billing"
+                            });
+                          }
+                        });
+                      });
+                    } else {
+                      return res.json({
+                        status: "ERROR",
+                        reason: "cannot_update_status_tracking"
+                      });
+                    }
+                  });
+                  /*******/
+                }
+              });
+            }
           }
         }
       }
@@ -516,6 +540,45 @@ Promise.all([initDb(), initAmqp()]).then(values => {
       });
   });
 
+  app.get("/tools/list-pending-tracking", function (req, res) {
+    parcelServices.getListPendingTracking(db).then(function (data) {
+      if (data == false) {
+        return res.json({ status: "ERROR_CONNECT_DB" });
+      } else {
+        if (data == null) {
+          return res.json({ status: "ERROR_NO_TRACKING" });
+        } else {
+          branch_info = {};
+
+          data.forEach(value => {
+            if (!(value.branch_id in branch_info)) {
+              branch_info[String(value.branch_id)] = [];
+            }
+            branch_info[String(value.branch_id)].push({
+              branch_name: value.branch_name,
+              tracking: value.tracking
+            });
+          });
+
+          result = [];
+          for (const [key, items] of Object.entries(branch_info)) {
+            var dataBranch = {
+              branch_id: key,
+              branch_name: items[0].branch_name,
+              tracking: items[0].tracking,
+              total: items.length
+            };
+            result.push(dataBranch);
+          }
+          res.json({
+            status: "SUCCESS",
+            listTracking: result
+          });
+        }
+      }
+    });
+  });
+
   app.get("/tools/list/tracking", function (req, res) {
     parcelServices.getListTrackingNotMatch(db).then(function (data) {
       listTrackingNotMatch = [];
@@ -529,7 +592,7 @@ Promise.all([initDb(), initAmqp()]).then(values => {
       });
 
       if (listTrackingNotMatch.length <= 0) {
-        res.json({ status: "ERR_NO_TRACKING" });
+        res.json({ status: "ERROR_NO_TRACKING" });
       } else {
         branch_info = {};
 
@@ -564,10 +627,9 @@ Promise.all([initDb(), initAmqp()]).then(values => {
   app.post("/tools/recal-billing", async function (req, res) {
     var user = req.body.user;
     var moduleName = req.body.moduleName;
-
     var resultsFile = req.body.resultsFile;
+
     if (resultsFile.length <= 0) {
-      // return res.json({ status: "ERROR_NO_DATA" });
       return res.json({
         status: "ERROR_NO_DATA",
         listBilling: [],
@@ -579,7 +641,7 @@ Promise.all([initDb(), initAmqp()]).then(values => {
       let listInputData = [];
       resultsFile.forEach(element => {
         if (!(element["member_id"] == "" && element["pricing_zone"] == "" && element["mailcode"] == "" && element["recal_size"] == "")) {
-          data = {
+          let data = {
             tracking: element["mailcode"] == undefined ? "" : element["mailcode"].toString(),
             zone: element["pricing_zone"] == undefined ? "" : element["pricing_zone"].toString(),
             size: element["recal_size"] == undefined ? "" : element["recal_size"].toString(),
@@ -596,9 +658,7 @@ Promise.all([initDb(), initAmqp()]).then(values => {
         validItem = isGenericValid(item, "size", validItem, [], item.tracking);
         validItem = isGenericValid(item, "memberId", validItem, [], item.tracking);
       }
-
       if (!validItem) {
-        // return res.json({ status: "ERROR_DATA_NOT_VALID" });
         return res.json({
           status: "ERROR_DATA_NOT_VALID",
           listBilling: [],
@@ -638,19 +698,17 @@ Promise.all([initDb(), initAmqp()]).then(values => {
             let listTrackingNotInFile = [];
 
             for (let item of billingInfo.billingItem) {
-              for (let e of items) {
-                if (item.tracking == e.tracking) {
-                  let getNewSizeInfo = await parcelServices.checkPrice(db, e.billingItem.location_zone, e.size.toLowerCase(), parseInt(e.zone));
-
-                  if (getNewSizeInfo == false) {
-                    listTrackingError.push({ tracking: e.tracking });
-                  } else {
-                    e.sizeInfo = getNewSizeInfo[0];
-                  }
-                  listTrackingInFile.push(e);
+              var checkItem = items.find(e => e.tracking == item.tracking);
+              if (checkItem == undefined) {
+                listTrackingNotInFile.push(item);
+              } else {
+                let getNewSizeInfo = await parcelServices.checkPrice(db, checkItem.billingItem.location_zone, checkItem.size.toLowerCase(), parseInt(checkItem.zone));
+                if (getNewSizeInfo == false) {
+                  listTrackingError.push({ tracking: item.tracking });
                 } else {
-                  listTrackingNotInFile.push(item);
+                  checkItem.sizeInfo = getNewSizeInfo[0];
                 }
+                listTrackingInFile.push(checkItem);
               }
             }
 
@@ -692,7 +750,7 @@ Promise.all([initDb(), initAmqp()]).then(values => {
     }
   });
 
-  app.post("/confirm/match/data/info", function (req, res) {
+  app.post("/confirm/match/data/info", async function (req, res) {
     let valid = true;
 
     valid = isGenericValid(req.body, "tracking", valid);
@@ -711,111 +769,117 @@ Promise.all([initDb(), initAmqp()]).then(values => {
     valid = isGenericValid(req.body.current_value, "district_code", valid);
     valid = isGenericValid(req.body.current_value, "br_zipcode", valid);
 
-    valid = isValidMatched(valid, req.body.current_value.parcel_type, req.body.current_value.cod_value);
-
     if (!valid) {
       return res.json({ status: "ERROR_DATA_NOT_VALID" });
     } else {
-      let tracking = req.body.tracking;
-      let billing_no = req.body.billing_no;
-      let previous_value = req.body.previous_value;
-      let current_value = req.body.current_value;
-      let receiver_name = current_value.first_name + " " + current_value.last_name;
-      let phone = current_value.phone;
-      let address = current_value.address;
-      let district_code = current_value.district_code;
-      let parcel_type = current_value.parcel_type;
-      let cod_value = current_value.cod_value;
-      let size_id = current_value.size_id;
-      let size_price = current_value.size_price;
-      let br_zipcode = current_value.br_zipcode;
-      let log_previous_value = previous_value.bi_parcel_type + "/" + previous_value.br_parcel_type + "/" + previous_value.bi_zipcode + "/" + previous_value.br_zipcode;
-      let log_current_value = parcel_type + "/" + br_zipcode;
-      let module_name = "ql_checker";
-      let cs_name = req.body.user;
+      var checkQlCase = true;
+      let autoInfo = await parcelServices.getAutoLabelInfo(db, req.body.tracking);
+      checkQlCase = await isValidMatched(checkQlCase, req.body.tracking, req.body.current_value, req.body.previous_value, autoInfo);
 
-      parcelServices.addressInfo(db, district_code).then(function (data) {
-        let addressInfo = data[0];
-        let district_id = addressInfo.DISTRICT_ID;
-        let district_name = addressInfo.DISTRICT_NAME;
-        let amphur_id = addressInfo.AMPHUR_ID;
-        let amphur_name = addressInfo.AMPHUR_NAME;
-        let province_id = addressInfo.PROVINCE_ID;
-        let province_name = addressInfo.PROVINCE_NAME;
-        let zipcode = addressInfo.zipcode;
+      if (!checkQlCase) {
+        return res.json({ status: "ERROR_DATA_QL_CASE" });
+      } else {
+        let tracking = req.body.tracking;
+        let billing_no = req.body.billing_no;
+        let previous_value = req.body.previous_value;
+        let current_value = req.body.current_value;
+        let receiver_name = current_value.first_name + " " + current_value.last_name;
+        let phone = current_value.phone;
+        let address = current_value.address;
+        let district_code = current_value.district_code;
+        let parcel_type = current_value.parcel_type;
+        let cod_value = current_value.cod_value;
+        let size_id = current_value.size_id;
+        let size_price = current_value.size_price;
+        let br_zipcode = current_value.br_zipcode;
+        let log_previous_value = previous_value.bi_parcel_type + "/" + previous_value.br_parcel_type + "/" + previous_value.bi_zipcode + "/" + previous_value.br_zipcode;
+        let log_current_value = parcel_type + "/" + br_zipcode;
+        let module_name = "ql_checker";
+        let cs_name = req.body.user;
 
-        let billing_no_str = billing_no.split("-");
-        let branch_id = billing_no_str[0];
-        let user_id = billing_no_str[1];
+        parcelServices.addressInfo(db, district_code).then(function (data) {
+          let addressInfo = data[0];
+          let district_id = addressInfo.DISTRICT_ID;
+          let district_name = addressInfo.DISTRICT_NAME;
+          let amphur_id = addressInfo.AMPHUR_ID;
+          let amphur_name = addressInfo.AMPHUR_NAME;
+          let province_id = addressInfo.PROVINCE_ID;
+          let province_name = addressInfo.PROVINCE_NAME;
+          let zipcode = addressInfo.zipcode;
 
-        let error_code;
-        let error_maker;
-        let remark;
-        /* error_maker = shop staff,key operator, system */
-        if (previous_value.bi_parcel_type !== previous_value.br_parcel_type) {
-          /* error_zipcode = zipcode ไม่ตรงกัน */
-          error_code = "error_parcel_type";
-          if (parcel_type !== previous_value.bi_parcel_type) {
-            error_maker = "shop staff";
-          } else if (parcel_type !== previous_value.br_parcel_type) {
-            error_maker = "key operator";
+          let billing_no_str = billing_no.split("-");
+          let branch_id = billing_no_str[0];
+          let user_id = billing_no_str[1];
+
+          let error_code;
+          let error_maker;
+          let remark;
+          /* error_maker = shop staff,key operator, system */
+          if (previous_value.bi_parcel_type !== previous_value.br_parcel_type) {
+            /* error_zipcode = zipcode ไม่ตรงกัน */
+            error_code = "error_parcel_type";
+            if (parcel_type !== previous_value.bi_parcel_type) {
+              error_maker = "shop staff";
+            } else if (parcel_type !== previous_value.br_parcel_type) {
+              error_maker = "key operator";
+            } else {
+              error_maker = "system";
+            }
+          } else if (previous_value.bi_zipcode !== previous_value.br_zipcode) {
+            /* error_parcel_type = type ไม่ตรงกัน */
+            error_code = "error_zipcode";
+
+            if (zipcode !== previous_value.bi_zipcode) {
+              error_maker = "shop staff";
+            } else if (parcel_type !== previous_value.br_zipcode) {
+              error_maker = "key operator";
+            } else {
+              error_maker = "system";
+            }
           } else {
+            error_code = "both";
             error_maker = "system";
           }
-        } else if (previous_value.bi_zipcode !== previous_value.br_zipcode) {
-          /* error_parcel_type = type ไม่ตรงกัน */
-          error_code = "error_zipcode";
-
-          if (zipcode !== previous_value.bi_zipcode) {
-            error_maker = "shop staff";
-          } else if (parcel_type !== previous_value.br_zipcode) {
-            error_maker = "key operator";
-          } else {
-            error_maker = "system";
+          if (error_maker == "shop staff") {
+            remark = "สาขาทำรายการผิด";
           }
-        } else {
-          error_code = "both";
-          error_maker = "system";
-        }
-        if (error_maker == "shop staff") {
-          remark = "สาขาทำรายการผิด";
-        }
-        if (error_maker == "key operator") {
-          remark = "เจ้าหน้าที่คีย์ข้อมูลผิด";
-        }
-        if (error_maker == "system") {
-          remark = "ระบบเกิดความผิดพลาด";
-        }
-        console.log("confirm :", tracking, error_code, error_maker);
-        parcelServices.findOperator(db, tracking).then(function (data) {
-          let operation_key = data.length <= 0 ? "" : data[0].operator_id;
+          if (error_maker == "key operator") {
+            remark = "เจ้าหน้าที่คีย์ข้อมูลผิด";
+          }
+          if (error_maker == "system") {
+            remark = "ระบบเกิดความผิดพลาด";
+          }
+          console.log("confirm :", tracking, error_code, error_maker);
+          parcelServices.findOperator(db, tracking).then(function (data) {
+            let operation_key = data.length <= 0 ? "" : data[0].operator_id;
 
-          parcelServices.selectBillingInfo(db, billing_no).then(function (previous_total) {
-            parcelServices.updateCheckerInfo(db, billing_no, tracking, size_id, size_price, cod_value, receiver_name, phone, address, parcel_type, district_id, district_name, amphur_id, amphur_name, province_id, province_name, zipcode).then(function (current_total) {
-              if (current_total !== false) {
-                parcelServices.updateBilling(db, billing_no, current_total).then(function (data) { });
-                parcelServices.saveLogQlChecker(db, branch_id, user_id, billing_no, error_code, error_maker, cs_name, tracking, operation_key).then(function (data) { });
+            parcelServices.selectBillingInfo(db, billing_no).then(function (previous_total) {
+              parcelServices.updateCheckerInfo(db, billing_no, tracking, size_id, size_price, cod_value, receiver_name, phone, address, parcel_type, district_id, district_name, amphur_id, amphur_name, province_id, province_name, zipcode).then(function (current_total) {
+                if (current_total !== false) {
+                  parcelServices.updateBilling(db, billing_no, current_total).then(function (data) { });
+                  parcelServices.saveLogQlChecker(db, branch_id, user_id, billing_no, error_code, error_maker, cs_name, tracking, operation_key).then(function (data) { });
 
-                log_previous_value += "/total=" + previous_total[0].total;
-                log_current_value += "/total=" + current_total;
-                parcelServices.insertLog(db, billing_no, log_previous_value, log_current_value, error_code, module_name, cs_name, tracking, remark).then(function (data) { });
-                /* ส่งเข้าคิว เพื่อไป booking ข้อมูล */
-                let data = {
-                  tracking: tracking,
-                  source: "QLChecker"
-                };
-                console.log("send to parcel exchange prepare-booking = %s", tracking);
-                amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.prepare-booking", "", Buffer.from(JSON.stringify(data)), { persistent: true });
-                console.log("sent to parcel exchange prepare-booking = %s", tracking);
+                  log_previous_value += "/total=" + previous_total[0].total;
+                  log_current_value += "/total=" + current_total;
+                  parcelServices.insertLog(db, billing_no, log_previous_value, log_current_value, error_code, module_name, cs_name, tracking, remark).then(function (data) { });
+                  /* ส่งเข้าคิว เพื่อไป booking ข้อมูล */
+                  let data = {
+                    tracking: tracking,
+                    source: "QLChecker"
+                  };
+                  console.log("send to parcel exchange prepare-booking = %s", tracking);
+                  amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.prepare-booking", "", Buffer.from(JSON.stringify(data)), { persistent: true });
+                  console.log("sent to parcel exchange prepare-booking = %s", tracking);
 
-                return res.json({ status: "SUCCESS" });
-              } else {
-                return res.json({ status: "ERROR" });
-              }
+                  return res.json({ status: "SUCCESS" });
+                } else {
+                  return res.json({ status: "ERROR" });
+                }
+              });
             });
           });
         });
-      });
+      }
     }
   });
 
@@ -2022,20 +2086,60 @@ Promise.all([initDb(), initAmqp()]).then(values => {
     return defaultValue;
   }
 
-  function isValidMatched(defaultValue, bi_type, cod_value) {
-    if (bi_type !== "NORMAL" && bi_type !== "COD") {
+  function isValidMatched(defaultValue, tracking, current_value, previous_value, autoInfo) {
+    if (current_value.parcel_type !== "NORMAL" && current_value.parcel_type !== "COD") {
+      console.log("type is wrong(ql checker) = %s", tracking);
       return false;
     }
-    if (bi_type == "NORMAL" && parseInt(cod_value) !== 0) {
+    if (current_value.parcel_type == "NORMAL" && parseInt(current_value.cod_value) !== 0) {
+      console.log("cod is wrong(ql checker) = %s", tracking);
       return false;
     }
-    if (bi_type == "COD" && (parseInt(cod_value) == 0 || cod_value == undefined || cod_value == "")) {
+    if (current_value.parcel_type == "COD" && (parseInt(current_value.cod_value) == 0 || current_value.cod_value == undefined || current_value.cod_value == "")) {
+      console.log("cod is wrong(ql checker) = %s", tracking);
       return false;
     }
-    if (bi_type == "COD" && parseInt(cod_value) > 50000) {
+    if (current_value.parcel_type == "COD" && parseInt(current_value.cod_value) > 50000) {
+      console.log("cod is over 50,000(ql checker) = %s", tracking);
       return false;
+    }
+    if (previous_value.sender_phone == current_value.phone) {
+      console.log("sender phone = receiver phone (ql checker) = %s", tracking);
+      return false;
+    }
+    if (autoInfo !== false) {
+      let rawDataAutoStr = removeCharacter(autoInfo.raw_data);
+      if (current_value.phone !== "0914271551" && rawDataAutoStr.search(current_value.phone) == -1) {
+        console.log("receiver phone is not in raw data (ql checker) = %s", tracking);
+        return false;
+      }
     }
     return defaultValue;
+  }
+
+  function removeCharacter(text) {
+    var newText = "";
+    text = text.replace(/^[<br>]*/g, '');
+
+    for (i = 0; i < text.length; i++) {
+      if (text[i] == "-") {
+        newCha = text[i].replace('-', '');
+        newText += newCha;
+      } else if (text[i] == " ") {
+        newCha = text[i].replace(' ', '');
+        newText += newCha;
+      } else if (text[i] == ":") {
+        newCha = text[i].replace(':', '');
+        newText += newCha;
+      } else if (text[i] == "?") {
+        newCha = text[i].replace('?', '');
+        newText += newCha;
+      } else {
+        newText += text[i];
+      }
+    }
+
+    return newText;
   }
 
   async function getBillingManual(branchId, userId, datetimeInBilling) {

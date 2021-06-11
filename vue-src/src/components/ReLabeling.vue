@@ -40,28 +40,29 @@
         </div>
         <div>
           <b>ประเภทการจัดส่ง:</b>
-          <input :disabled="billingInfo" v-model="bi_parcel_type" />
+          <div v-if="bi_parcel_type !== br_parcel_type">
+            <input style="color: red;" :disabled="billingInfo" v-model="bi_parcel_type" />
+          </div>
+          <div v-else>
+            <input :disabled="billingInfo" v-model="bi_parcel_type" />
+          </div>
           <br />
           <div style="display: grid ; grid-template-columns: .5fr 1fr .5fr 1fr">
-            <input
-              style="margin-top: 5%"
-              v-model="radio_parcel_type"
-              type="radio"
-              v-on:change="selectType('COD')"
-              value="COD"
-            />COD
-            <input
-              style="margin-top: 5%"
-              v-model="radio_parcel_type"
-              type="radio"
-              v-on:change="selectType('NORMAL')"
-              value="NORMAL"
-            />NORMAL
+            <input style="margin-top: 5%" v-model="radio_parcel_type" type="radio" v-on:change="selectType('COD')" value="COD" />COD
+            <input style="margin-top: 5%" v-model="radio_parcel_type" type="radio" v-on:change="selectType('NORMAL')" value="NORMAL" />NORMAL
           </div>
         </div>
         <div>
           <b>มูลค่า COD:</b>
-          <input :disabled="codeValueEdit" v-model="cod_value" />
+          <div v-if="bi_parcel_type == 'COD' && cod_value == 0" >
+            <input :readonly="codValueEdit" style="color: red;" ref="codValueEdit" v-model="cod_value" maxlength="5" v-on:keypress="onlyNumber" />
+          </div>
+          <div v-else-if="bi_parcel_type == 'NORMAL' && cod_value !== 0">
+            <input :readonly="codValueEdit" style="color: red;" ref="codValueEdit" v-model="cod_value" maxlength="5" v-on:keypress="onlyNumber" />
+          </div>
+          <div v-else>
+            <input :readonly="codValueEdit" ref="codValueEdit" v-model="cod_value" maxlength="5" v-on:keypress="onlyNumber" />
+          </div>
         </div>
         <div>
           <b>ขนาดพัสดุ:</b>
@@ -73,7 +74,12 @@
         </div>
         <div>
           <b>รหัสไปรษณีย์:</b>
-          <input :disabled="billingInfo" v-model="bi_zipcode" />
+          <div v-if="bi_zipcode !== br_zipcode" >
+            <input style="color: red;" :disabled="billingInfo" v-model="bi_zipcode" />
+          </div>
+          <div v-else>
+            <input :disabled="billingInfo" v-model="bi_zipcode" />
+          </div>
         </div>
         <div>
           <b>สถานะ:</b>
@@ -96,32 +102,47 @@
 
         <div>
           <b>ชื่อผู้รับ:</b>
-          <input :disabled="receiverFNameEdit" ref="receiverFNameEdit" v-model="receiver_first_name" />
+          <div v-if="receiver_first_name == ''" >
+            <input :disabled="receiverFNameEdit" style="background-color: red;" ref="receiverFNameEdit" v-model="receiver_first_name" v-on:keypress="inputCheckName" maxlength="100" />
+          </div>
+          <div v-else>
+            <input :disabled="receiverFNameEdit" ref="receiverFNameEdit" v-model="receiver_first_name" v-on:keypress="inputCheckName" maxlength="100" />
+          </div>
         </div>
         <div>
           <b>นามสกุลผู้รับ:</b>
-          <input :disabled="receiverLNameEdit" ref="receiverLNameEdit" v-model="receiver_last_name" />
+          <div v-if="receiver_last_name == ''" >
+            <input :disabled="receiverLNameEdit" style="background-color: red;" ref="receiverLNameEdit" v-model="receiver_last_name" v-on:keypress="inputCheckName" maxlength="100" />
+          </div>
+          <div v-else>
+            <input :disabled="receiverLNameEdit" ref="receiverLNameEdit" v-model="receiver_last_name" v-on:keypress="inputCheckName" maxlength="100" />
+          </div>
         </div>
 
         <div>
           <b>เบอร์โทรศัพท์ผู้รับ:</b>
-          <input maxlength="10" :disabled="receiverPhoneEdit" ref="receiverPhoneEdit" v-model="phone" />
+          <div v-if="phone == ''" >
+            <input maxlength="10" style="color: red;" v-on:keypress="onlyNumber" :disabled="receiverPhoneEdit" ref="receiverPhoneEdit" v-model="phone" />
+          </div>
+          <div v-else-if="sender_phone == phone">
+            <input maxlength="10" style="color: red;" v-on:keypress="onlyNumber" :disabled="receiverPhoneEdit" ref="receiverPhoneEdit" v-model="phone" />
+          </div>
+          <div v-else>
+            <input maxlength="10" v-on:keypress="onlyNumber" :disabled="receiverPhoneEdit" ref="receiverPhoneEdit" v-model="phone" />
+          </div>
         </div>
         <div>
           <b>ที่อยู่ผู้รับ:</b>
-          <input :disabled="receiverAddressEdit" ref="receiverAddressEdit" v-model="receiver_address" />
+          <div v-if="receiver_address == ''" >
+            <input :disabled="receiverAddressEdit" ref="receiverAddressEdit" v-model="receiver_address" />
+          </div>
+          <div v-else>
+            <input :disabled="receiverAddressEdit" ref="receiverAddressEdit" v-model="receiver_address" />
+          </div>
         </div>
         <div>
           <b>รหัสไปรษณีย์:</b>
-          <input
-            :disabled="receriverZipcodeEdit"
-            v-model="displayAddress"
-            class="input"
-            placeholder="รหัสไปรษณีย์"
-            v-on:focus="btnOpenZipcode"
-            v-on:keyup="getNewZipcode"
-            ref="receriverZipcodeEdit"
-          />
+          <input :disabled="receiverZipcodeEdit" v-model="displayAddress" class="input" placeholder="รหัสไปรษณีย์" v-on:focus="btnOpenZipcode" v-on:keyup="getNewZipcode" ref="receiverZipcodeEdit" />
           <div class="dropdownZipcode" v-if="this.openZipcode == true">
             <ol v-for="(item, index) in listZipcode" :key="item.id" v-on:click="selectItem(item)">
               <li>{{ listZipcode[index].zipcode }} {{ listZipcode[index].DISTRICT_NAME }} {{ listZipcode[index].AMPHUR_NAME }} {{ listZipcode[index].PROVINCE_NAME }}</li>
@@ -131,7 +152,12 @@
 
         <div>
           <b>ประเภทการจัดส่ง:</b>
-          <input :disabled="billingInfo" v-model="br_parcel_type" />
+          <div v-if="bi_parcel_type !== br_parcel_type" >
+            <input style="color: red;" :disabled="billingInfo" v-model="br_parcel_type" />
+          </div> 
+          <div v-else>
+            <input :disabled="billingInfo" v-model="br_parcel_type" />
+          </div>
         </div>
       </div>
     </div>
@@ -154,13 +180,7 @@
         <tr>
           <td style="width: 15%;">ระบุเลขจัดส่งใหม่:</td>
           <td style="width: 25%;" class="newTracking">
-            <input
-              maxlength="13"
-              v-model="newTrackingInput"
-              v-on:keypress="engOnly"
-              autocomplete="false"
-              disabled
-            />
+            <input maxlength="13" v-model="newTrackingInput" v-on:keypress="engOnly" autocomplete="false" disabled />
           </td>
         </tr>
         <tr>
@@ -234,12 +254,12 @@ export default {
       rotation: 0,
       capture_text: "",
 
-      receiverFNameEdit: true,
-      receiverLNameEdit: true,
-      receiverPhoneEdit: true,
-      receiverAddressEdit: true,
-      receriverZipcodeEdit: true,
-      codeValueEdit: true,
+      codValueEdit: false,
+      receiverFNameEdit: false,
+      receiverLNameEdit: false,
+      receiverPhoneEdit: false,
+      receiverAddressEdit: false,
+      receiverZipcodeEdit: false,
 
       boxSize: [],
       listZipcode: [],
@@ -344,7 +364,7 @@ export default {
               this.receiverLNameEdit = false;
               this.receiverPhoneEdit = false;
               this.receiverAddressEdit = false;
-              this.receriverZipcodeEdit = false;
+              this.receiverZipcodeEdit = false;
             } else {
               this.$dialogs.alert("ไม่พบข้อมูล", options);
             }
@@ -356,9 +376,7 @@ export default {
     },
     parcelAddressList(zipcode) {
       axios
-        .get(
-          "https://pos.945.report/billingPos/checkZipcode/?zipcode=" + zipcode
-        )
+        .get("https://pos.945.report/billingPos/checkZipcode/?zipcode=" + zipcode)
         .then(resultsZipCode => {
           this.listZipcode = resultsZipCode.data;
           this.listZipcode.forEach(item => {
@@ -400,6 +418,24 @@ export default {
       ) {
         return true;
       }
+      $event.preventDefault();
+    },
+    onlyNumber($event) {
+      let keyCode = $event.keyCode ? $event.keyCode : $event.which;
+      if (keyCode < 48 || keyCode > 57) {
+        // 46 is dot
+        $event.preventDefault();
+      }
+    },
+    inputCheckName($event) {
+      var englishAlphabetAndWhiteSpace = /[a-zA-Z0-9กขฃคฅฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรฤลฦวศษสหฬอฮฯะัาำิีึืฺุูเแโใไๅๆ็่้๊๋์]/;
+      var key = String.fromCharCode(event.which);
+      var ew = event.which;
+      if (ew == 32) return true;
+      if (48 <= ew && ew <= 57) return true;
+      if (65 <= ew && ew <= 90) return true;
+      if (97 <= ew && ew <= 122) return true;
+      if (englishAlphabetAndWhiteSpace.test(key)) return true;
       $event.preventDefault();
     },
     selectItem(item) {
@@ -469,7 +505,7 @@ export default {
       this.receiverLNameEdit = true;
       this.receiverPhoneEdit = true;
       this.receiverAddressEdit = true;
-      this.receriverZipcodeEdit = true;
+      this.receiverZipcodeEdit = true;
       this.codeValueEdit = true;
     },
     selectType(parcel_type) {
@@ -489,10 +525,11 @@ export default {
     },
     confirmSelectTools() {
       const options = { okLabel: "ตกลง" };
-      const optionsDialog = { title: "มูลค่า COD", okLabel: "ตกลง", cancelLabel: "ยกเลิก" };
 
       var regTracking = /^[T|t][D|d][Z|z]+[0-9]{8}[A-Z]?$/i;
       var phone = this.phone;
+      let rawDataAutoStr = this.removeCharacter(this.capture_text);
+
       this.resultDuplicatedTracking = "";
 
       if (this.tracking == "") {
@@ -538,10 +575,33 @@ export default {
         this.$dialogs.alert("กรุณากรอก มูลค่า COD ให้ถูกต้อง", options);
       } else if (this.bi_parcel_type == "COD" && parseInt(this.cod_value) > 50000) {
         this.$dialogs.alert("มูลค่า COD มากกว่า 50000 บาท ไม่สามารถทำรายการได้", options);
+      } else if (this.sender_phone == this.phone) {
+        this.$dialogs.alert("กรุณาแก้ไข เบอร์โทรศัพท์ผู้รับ เนื่องจากเป็น เบอร์โทรศัพท์ผู้ส่ง", options);
+      } else if (this.capture_text !== "" && this.phone !== "0914271551" && rawDataAutoStr.search(this.phone) == -1) {
+        this.$dialogs.alert("ไม่มีข้อมูล เบอร์โทรศัพท์ผู้รับ ใน ข้อความหน้ากล่อง", options);
       } else {
+        const optionsDialog = { title: "มูลค่า COD", okLabel: "ตกลง", cancelLabel: "ยกเลิก" };
+        const optionsZipcodeDialog = { title: "ข้อมูล zipcode ผู้รับ/ผู้ส่ง", okLabel: "ตกลง", cancelLabel: "ยกเลิก" };
+
+        let sender_address = this.removeCharacter(this.sender_address);
+
         if (this.bi_parcel_type == "COD" && parseInt(this.cod_value) >= 10000) {
-          this.$dialogs.confirm("มูลค่า COD มีมูลค่าที่สูงมาก ยืนยันการกรอกมูลค่า", optionsDialog)
-            .then(resCod => {           
+          this.$dialogs.confirm("มูลค่า COD มีมูลค่าที่สูงมาก ยืนยันมูลค่า", optionsDialog)
+            .then(resCod => {
+              if (resCod.ok) {
+                this.saveData();
+              }
+            });
+        } else if (this.bi_parcel_type == "COD" && parseInt(this.cod_value) < 100) {
+          this.$dialogs.confirm("มูลค่า COD น้อยกว่า 100 บาท ยืนยันมูลค่า", optionsDialog)
+            .then(resCod => {
+              if (resCod.ok) {
+                this.saveData();
+              }
+            });
+        } else if (sender_address.search(this.br_zipcode) !== -1) {
+          this.$dialogs.confirm("zipcode ผู้รับ/ผู้ส่ง ตรงกัน", optionsZipcodeDialog)
+            .then(resCod => {
               if (resCod.ok) {
                 this.saveData();
               }
@@ -551,70 +611,95 @@ export default {
         }
       }
     },
+    removeCharacter(text) {
+      var newText = "";
+      var newCha = "";
+      text = text.replace(/^[<br>]*/g, "");
+
+      for (let i = 0; i < text.length; i++) {
+        if (text[i] == "-") {
+          newCha = text[i].replace("-", "");
+          newText += newCha;
+        } else if (text[i] == " ") {
+          newCha = text[i].replace(" ", "");
+          newText += newCha;
+        } else if (text[i] == ":") {
+          newCha = text[i].replace(":", "");
+          newText += newCha;
+        } else if (text[i] == "?") {
+          newCha = text[i].replace("?", "");
+          newText += newCha;
+        } else {
+          newText += text[i];
+        }
+      }
+      return newText;
+    },
     saveData() {
       const options = { okLabel: "ตกลง" };
 
       axios
-      .get(this.url + "/check-available-tracking?tracking=" + this.newTrackingInput.toUpperCase())
-      .then(response => {
-        this.resultDuplicatedTracking = response.data;
+        .get(this.url + "/check-available-tracking?tracking=" + this.newTrackingInput.toUpperCase())
+        .then(response => {
+          this.resultDuplicatedTracking = response.data;
 
-        if (!this.resultDuplicatedTracking) {
-          this.getNewTracking();
-        } else {
-          var moduleName = "relabeling_tracking";
+          if (!this.resultDuplicatedTracking) {
+            this.getNewTracking();
+          } else {
+            var moduleName = "relabeling_tracking";
 
-          var dataConfirm = {
-            billingNo: this.billing_no,
-            billingInfo: this.billingInfo,
-            billingStatus: this.status,
-            currentValue: {
-              billingItem: {
-                tracking: this.newTrackingInput.toUpperCase(),
-                parcelType: this.bi_parcel_type.toUpperCase(),
-                codValue: this.cod_value,
-                sizeId: this.size_id,
-                sizePrice: this.causeType == 1 ? 0 : this.size_price
+            var dataConfirm = {
+              billingNo: this.billing_no,
+              billingInfo: this.billingInfo,
+              billingStatus: this.status,
+              currentValue: {
+                billingItem: {
+                  tracking: this.newTrackingInput.toUpperCase(),
+                  parcelType: this.bi_parcel_type.toUpperCase(),
+                  codValue: this.cod_value,
+                  sizeId: this.size_id,
+                  sizePrice: this.causeType == 1 ? 0 : this.size_price
+                },
+                receiverInfo: {
+                  receiverName: this.receiver_first_name + " " + this.receiver_last_name,
+                  phone: this.phone,
+                  receiverAddress: this.receiver_address,
+                  keyAddress: this.keyAddress
+                }
               },
-              receiverInfo: {
-                receiverName: this.receiver_first_name + " " + this.receiver_last_name,
-                phone: this.phone,
-                receiverAddress: this.receiver_address,
-                keyAddress: this.keyAddress
-              }
-            },
-            causeType: this.causeType,
-            reason: this.reasonValue,
-            remark: this.remark,
-            user: this.$session.get("session_username"),
-            moduleName: moduleName
-          };
+              causeType: this.causeType,
+              reason: this.reasonValue,
+              remark: this.remark,
+              user: this.$session.get("session_username"),
+              moduleName: moduleName
+            };
 
-          axios
-            .post(this.url + "/tools/relabel-tracking", dataConfirm)
-            .then(response => {
-              if (response.data.status == "SUCCESS") {
-                let billingNo = response.data.billingNo;
-                const optionsDialog2 = { title: "รายการที่คุณเลือกได้ relabel แล้ว", okLabel: "ตกลง" };
-                this.$dialogs.alert("เลขที่บิลใหม่..." + billingNo, optionsDialog2)
-                  .then(res => {
-                    // console.log(res) // {ok: true|false|undefined}
-                    if (res) {
-                      this.$router.push("/");
-                    } else {
-                      this.$router.push("/");
-                    }
-                  });
-              } else {
-                this.$dialogs.alert("ไม่สามารถ relabel tracking ได้ เนื่องจาก..." + response.data.reason, options);
-                this.$router.push("/");
-              }
-            })
-            .catch(function(error) {
-              console.log(error);
-            });
-        }
-      });
+            axios
+              .post(this.url + "/tools/relabel-tracking", dataConfirm)
+              .then(response => {
+                if (response.data.status == "SUCCESS") {
+                  let billingNo = response.data.billingNo;
+                  const optionsDialog2 = { title: "รายการที่คุณเลือกได้ relabel แล้ว", okLabel: "ตกลง" };
+                  this.$dialogs
+                    .alert("เลขที่บิลใหม่..." + billingNo, optionsDialog2)
+                    .then(res => {
+                      // console.log(res) // {ok: true|false|undefined}
+                      if (res) {
+                        this.$router.push("/");
+                      } else {
+                        this.$router.push("/");
+                      }
+                    });
+                } else {
+                  this.$dialogs.alert("ไม่สามารถ relabel tracking ได้ เนื่องจาก..." + response.data.reason, options);
+                  this.$router.push("/");
+                }
+              })
+              .catch(function(error) {
+                console.log(error);
+              });
+          }
+        });
     },
     rotateRight() {
       this.rotation += 90;

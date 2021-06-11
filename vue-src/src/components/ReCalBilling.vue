@@ -94,12 +94,6 @@ export default {
   methods: {
     submitFile() {
       const options = { okLabel: "ตกลง" };
-
-      this.listBilling = [];
-      this.listRemainBilling = [];
-      this.listBillingError = [];
-      this.listTrackingError = [];
-
       var moduleName = "recal_billing";
       var data = {
         user: this.$session.get("session_username"),
@@ -109,7 +103,7 @@ export default {
 
       axios
         .post(this.url + "/tools/recal-billing", data)
-        .then(function(response) {
+        .then(response => {
           if (response.data.status == "SUCCESS") {
             this.listBilling = response.data.listBilling;
             this.listRemainBilling = response.data.listRemainBilling;

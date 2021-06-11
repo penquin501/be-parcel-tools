@@ -9,7 +9,7 @@
           </div>
           <div v-if="this.capture_text == ''">
             <v-zoomer class="v-zoomer">
-              <img :src="imgUrl" style="object-fit: contain; width: 100%; height: 100%;" :style="`transform: rotate(${rotation}deg);`"/>
+              <img :src="imgUrl" style="object-fit: contain; width: 100%; height: 100%;" :style="`transform: rotate(${rotation}deg);`" />
             </v-zoomer>
             <div class="btnOption">
               <button v-on:click="rotateLeft">
@@ -33,7 +33,12 @@
         </div>
         <div>
           <b>ประเภทการจัดส่ง:</b>
-          <input :disabled="billingInfo" v-model="bi_parcel_type" />
+          <div v-if="bi_parcel_type !== br_parcel_type">
+            <input style="color: red;" :disabled="billingInfo" v-model="bi_parcel_type" />
+          </div>
+          <div v-else>
+            <input :disabled="billingInfo" v-model="bi_parcel_type" />
+          </div>
           <br />
           <div style="display: grid; grid-template-columns: 0.5fr 1fr 0.5fr 1fr;">
             <input style="margin-top: 5%;" v-model="radio_parcel_type" type="radio" v-on:change="selectType('COD')" value="COD" />COD
@@ -42,11 +47,24 @@
         </div>
         <div>
           <b>มูลค่า COD:</b>
-          <input :disabled="codValueEdit" ref="codValueEdit" v-model="cod_value" maxlength="5" v-on:keypress="onlyNumber" />
+          <div v-if="bi_parcel_type == 'COD' && cod_value == 0" >
+            <input :readonly="codValueEdit" style="color: red;" ref="codValueEdit" v-model="cod_value" maxlength="5" v-on:keypress="onlyNumber" />
+          </div>
+          <div v-else-if="bi_parcel_type == 'NORMAL' && cod_value !== 0">
+            <input :readonly="codValueEdit" style="color: red;" ref="codValueEdit" v-model="cod_value" maxlength="5" v-on:keypress="onlyNumber" />
+          </div>
+          <div v-else>
+            <input :readonly="codValueEdit" ref="codValueEdit" v-model="cod_value" maxlength="5" v-on:keypress="onlyNumber" />
+          </div>
         </div>
         <div>
           <b>รหัสไปรษณีย์:</b>
-          <input :disabled="billingInfo" v-model="bi_zipcode" />
+          <div v-if="bi_zipcode !== br_zipcode" >
+            <input style="color: red;" :disabled="billingInfo" v-model="bi_zipcode" />
+          </div>
+          <div v-else>
+            <input :disabled="billingInfo" v-model="bi_zipcode" />
+          </div>
         </div>
         <div>
           <b>ขนาดพัสดุ:</b>
@@ -72,30 +90,46 @@
         </div>
         <div>
           <b>ชื่อผู้รับ:</b>
-          <input :disabled="receiverFNameEdit" ref="receiverFNameEdit" v-model="receiver_first_name" v-on:keypress="inputCheckName" maxlength="100" />
+          <div v-if="receiver_first_name == ''" >
+            <input :disabled="receiverFNameEdit" style="background-color: red;" ref="receiverFNameEdit" v-model="receiver_first_name" v-on:keypress="inputCheckName" maxlength="100" />
+          </div>
+          <div v-else>
+            <input :disabled="receiverFNameEdit" ref="receiverFNameEdit" v-model="receiver_first_name" v-on:keypress="inputCheckName" maxlength="100" />
+          </div>
         </div>
         <div>
           <b>นามสกุลผู้รับ:</b>
-          <input :disabled="receiverLNameEdit" ref="receiverLNameEdit" v-model="receiver_last_name" v-on:keypress="inputCheckName" maxlength="100" />
+          <div v-if="receiver_last_name == ''" >
+            <input :disabled="receiverLNameEdit" style="background-color: red;" ref="receiverLNameEdit" v-model="receiver_last_name" v-on:keypress="inputCheckName" maxlength="100" />
+          </div>
+          <div v-else>
+            <input :disabled="receiverLNameEdit" ref="receiverLNameEdit" v-model="receiver_last_name" v-on:keypress="inputCheckName" maxlength="100" />
+          </div>
         </div>
         <div>
           <b>เบอร์โทรศัทพ์ผู้รับ:</b>
-          <input maxlength="10" v-on:keypress="onlyNumber" :disabled="receiverPhoneEdit" ref="receiverPhoneEdit" v-model="phone" />
+          <div v-if="phone == ''" >
+            <input maxlength="10" style="color: red;" v-on:keypress="onlyNumber" :disabled="receiverPhoneEdit" ref="receiverPhoneEdit" v-model="phone" />
+          </div>
+          <div v-else-if="sender_phone == phone">
+            <input maxlength="10" style="color: red;" v-on:keypress="onlyNumber" :disabled="receiverPhoneEdit" ref="receiverPhoneEdit" v-model="phone" />
+          </div>
+          <div v-else>
+            <input maxlength="10" v-on:keypress="onlyNumber" :disabled="receiverPhoneEdit" ref="receiverPhoneEdit" v-model="phone" />
+          </div>
         </div>
         <div>
           <b>ที่อยู่ผู้รับ:</b>
-          <input :disabled="receiverAddressEdit" ref="receiverAddressEdit" v-model="receiver_address" />
+          <div v-if="receiver_address == ''" >
+            <input :disabled="receiverAddressEdit" ref="receiverAddressEdit" v-model="receiver_address" />
+          </div>
+          <div v-else>
+            <input :disabled="receiverAddressEdit" ref="receiverAddressEdit" v-model="receiver_address" />
+          </div>
         </div>
         <div>
           <b>รหัสไปรษณีย์:</b>
-          <input
-            v-model="displayAddress"
-            class="input"
-            placeholder="รหัสไปรษย์"
-            v-on:focus="btnOpenZipcode"
-            v-on:keyup="getNewZipcode"
-            ref="receriverZipcodeEdit"
-          />
+          <input v-model="displayAddress" class="input" placeholder="รหัสไปรษย์" v-on:focus="btnOpenZipcode" v-on:keyup="getNewZipcode" ref="receiverZipcodeEdit" />
           <div class="dropdownZipcode" v-if="this.openZipcode == true">
             <ol v-for="(item, index) in listZipcode" :key="item.id" v-on:click="selectItem(item)" >
               <li>{{ listZipcode[index].zipcode }} {{ listZipcode[index].DISTRICT_NAME }} {{ listZipcode[index].AMPHUR_NAME }} {{ listZipcode[index].PROVINCE_NAME }}</li>
@@ -105,7 +139,12 @@
 
         <div>
           <b>ประเภทการจัดส่ง:</b>
-          <input :disabled="billingInfo" v-model="br_parcel_type" />
+          <div v-if="bi_parcel_type !== br_parcel_type" >
+            <input style="color: red;" :disabled="billingInfo" v-model="br_parcel_type" />
+          </div> 
+          <div v-else>
+            <input :disabled="billingInfo" v-model="br_parcel_type" />
+          </div>
         </div>
       </div>
     </div>
@@ -119,7 +158,7 @@
 const axios = require("axios");
 
 export default {
-  data: function () {
+  data: function() {
     return {
       imgUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC",
       rotation: 0,
@@ -159,7 +198,7 @@ export default {
       receiverLNameEdit: false,
       receiverPhoneEdit: false,
       receiverAddressEdit: false,
-      receriverZipcodeEdit: false,
+      receiverZipcodeEdit: false,
 
       boxSize: [],
       listZipcode: [],
@@ -190,7 +229,7 @@ export default {
       } else {
         axios
           .get(this.url + "/select/tracking/check?branch_id=" + branch_id)
-          .then((response) => {
+          .then(response => {
             if (response.data.status == "SUCCESS" && response.data.tracking !== false) {
               resTracking = response.data.tracking[0].tracking;
               this.getData(resTracking);
@@ -202,7 +241,7 @@ export default {
       this.trackingIn = trackingIn;
       axios
         .get(this.url + "/check/info/tracking?tracking=" + this.trackingIn.toUpperCase())
-        .then((response) => {
+        .then(response => {
           if (response.data.status == "SUCCESS") {
             this.billingInfo = response.data.billingInfo;
             this.billing_no = this.billingInfo[0].billing_no;
@@ -236,23 +275,23 @@ export default {
             this.imgCapture = response.data.imgCapture;
 
             if (this.imgCapture == false) {
-                this.imgUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC";
-                this.capture_text = "";
+              this.imgUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTDGlsf5n4LgX_Bj23tTVsUeBQodMUP1CHhqk-My3EZIkIYvMDC";
+              this.capture_text = "";
             } else {
-                if (this.imgCapture[0].image_url.match(regex_img) == null) {
-                  this.capture_text = this.imgCapture[0].image_url;
-                  this.imgUrl = "";
-                } else {
-                  this.imgUrl = this.imgCapture[0].image_url;
-                  this.capture_text = "";
-                }
+              if (this.imgCapture[0].image_url.match(regex_img) == null) {
+                this.capture_text = this.imgCapture[0].image_url;
+                this.imgUrl = "";
+              } else {
+                this.imgUrl = this.imgCapture[0].image_url;
+                this.capture_text = "";
+              }
             }
             this.previous_value = response.data.billingInfo[0];
           } else {
             alert("ไม่พบข้อมูล");
           }
         })
-        .catch(function (error) {
+        .catch(error => {
           console.log(error);
         });
     },
@@ -277,10 +316,10 @@ export default {
     parcelAddressList(zipcode) {
       axios
         .get("https://pos.945.report/billingPos/checkZipcode/?zipcode=" + zipcode)
-        .then((resultsZipCode) => {
+        .then(resultsZipCode => {
           this.listZipcode = resultsZipCode.data;
         })
-        .catch((error) => {
+        .catch(error => {
           console.log(error);
         });
     },
@@ -288,10 +327,10 @@ export default {
       if (this.displayAddress.length > 2 && this.displayAddress.length < 6) {
         axios
           .get("https://pos.945.report/billingPos/checkZipcode/?zipcode=" + this.displayAddress)
-          .then((resultsZipCode) => {
+          .then(resultsZipCode => {
             this.listZipcode = resultsZipCode.data;
           })
-          .catch((error) => {
+          .catch(error => {
             console.log(error);
           });
       }
@@ -305,27 +344,28 @@ export default {
       var dataSize = {
         zipcode: this.br_zipcode,
         size_name: this.alias_size,
-        // zone: (this.branch_id !== 50 && this.branch_id !== 70)?2:1
-        zone: 2,
+        // zone: (this.branch_id !== 50 && this.branch_id !== 70) ? 2 : 1
+        zone: 2
       };
       axios
         .post(this.url + "/parcelPrice", dataSize)
-        .then((response) => {
+        .then(response => {
           let parcelSizeSelect = response.data;
           if (response.data != undefined) {
             this.size_price = parcelSizeSelect[0].parcel_price;
             this.size_id = parcelSizeSelect[0].size_id;
           }
         })
-        .catch(function (error) {
+        .catch(error => {
           console.log(error);
         });
     },
     confirmData() {
       const options = { okLabel: "ตกลง" };
-      const optionsDialog = { title: "มูลค่า COD", okLabel: "ตกลง", cancelLabel: "ยกเลิก" };
 
       var phone = this.phone;
+      let rawDataAutoStr = this.removeCharacter(this.capture_text);
+      
       if (this.receiver_first_name == "") {
         this.$dialogs.alert("กรุณากรอก ชื่อผู้รับ ให้ถูกต้อง", options);
       } else if (this.receiver_last_name == "") {
@@ -333,7 +373,7 @@ export default {
       } else if (phone[0] + phone[1] != "06" && phone[0] + phone[1] != "08" && phone[0] + phone[1] != "09") {
         this.$dialogs.alert("กรุณากรอก เบอร์โทรศัทพ์ผู้รับ เท่านั้น", options);
       } else if (phone.length < 10) {
-        this.$dialogs.alert("กรุณากรอก เบอร์โทรศัพท์ ให้ถูกต้อง", options);
+        this.$dialogs.alert("กรุณากรอก เบอร์โทรศัพท์ผู้รับ ให้ถูกต้อง", options);
       } else if (this.br_zipcode == "") {
         this.$dialogs.alert("กรุณากรอก รหัสไปรษณีย์ผู้รับให้ถูกต้อง", options);
       } else if (this.br_zipcode != this.bi_zipcode) {
@@ -348,10 +388,33 @@ export default {
         this.$dialogs.alert("กรุณากรอก ค่าเก็บเงินปลายทาง ให้ถูกต้อง", options);
       } else if (this.bi_parcel_type == "COD" && parseInt(this.cod_value) > 50000) {
         this.$dialogs.alert("มูลค่า COD มากกว่า 50000 บาท ไม่สามารถทำรายการได้", options);
+      } else if (this.sender_phone == this.phone) {
+        this.$dialogs.alert("กรุณาแก้ไข เบอร์โทรศัพท์ผู้รับ เนื่องจากเป็น เบอร์โทรศัพท์ผู้ส่ง", options);
+      } else if (this.capture_text !== "" && this.phone !== "0914271551" && rawDataAutoStr.search(this.phone) == -1) {
+        this.$dialogs.alert("ไม่มีข้อมูล เบอร์โทรศัพท์ผู้รับ ใน ข้อความหน้ากล่อง", options);
       } else {
+        const optionsDialog = { title: "มูลค่า COD", okLabel: "ตกลง", cancelLabel: "ยกเลิก" };
+        const optionsZipcodeDialog = { title: "ข้อมูล zipcode ผู้รับ/ผู้ส่ง", okLabel: "ตกลง", cancelLabel: "ยกเลิก" };
+
+        let sender_address = this.removeCharacter(this.sender_address);
+
         if (this.bi_parcel_type == "COD" && parseInt(this.cod_value) >= 10000) {
-          this.$dialogs.confirm("มูลค่า COD มีมูลค่าที่สูงมาก ยืนยันการกรอกมูลค่า", optionsDialog)
-            .then((resCod) => {
+          this.$dialogs.confirm("มูลค่า COD มีมูลค่าที่สูงมาก ยืนยันมูลค่า", optionsDialog)
+            .then(resCod => {
+              if (resCod.ok) {
+                this.saveData();
+              }
+            });
+        } else if (this.bi_parcel_type == "COD" && parseInt(this.cod_value) < 100) {
+          this.$dialogs.confirm("มูลค่า COD น้อยกว่า 100 บาท ยืนยันมูลค่า", optionsDialog)
+            .then(resCod => {
+              if (resCod.ok) {
+                this.saveData();
+              }
+            });
+        } else if (sender_address.search(this.br_zipcode) !== -1) {
+          this.$dialogs.confirm("zipcode ผู้รับ/ผู้ส่ง ตรงกัน", optionsZipcodeDialog)
+            .then(resCod => {
               if (resCod.ok) {
                 this.saveData();
               }
@@ -360,6 +423,30 @@ export default {
           this.saveData();
         }
       }
+    },
+    removeCharacter(text) {
+      var newText = "";
+      var newCha = "";
+      text = text.replace(/^[<br>]*/g, "");
+
+      for (let i = 0; i < text.length; i++) {
+        if (text[i] == "-") {
+          newCha = text[i].replace("-", "");
+          newText += newCha;
+        } else if (text[i] == " ") {
+          newCha = text[i].replace(" ", "");
+          newText += newCha;
+        } else if (text[i] == ":") {
+          newCha = text[i].replace(":", "");
+          newText += newCha;
+        } else if (text[i] == "?") {
+          newCha = text[i].replace("?", "");
+          newText += newCha;
+        } else {
+          newText += text[i];
+        }
+      }
+      return newText;
     },
     saveData() {
       const options = { okLabel: "ตกลง" };
@@ -377,24 +464,24 @@ export default {
           phone: this.phone,
           address: this.receiver_address,
           district_code: this.district_code,
-          br_zipcode: this.br_zipcode,
+          br_zipcode: this.br_zipcode
         },
-        user: this.$session.get("session_username"),
+        user: this.$session.get("session_username")
       };
-    axios
-      .post(this.url + "/confirm/match/data/info", dataConfirm)
-      .then((response) => {
-        if (response.data.status == "SUCCESS") {
-          this.$dialogs.alert("แก้ไขข้อมูลผู้รับเรียบร้อยแล้ว", options);
-          this.$router.push("/listtracking");
-        } else {
-          this.$dialogs.alert("ข้อมูลไม่ถูกต้อง", options);
-          this.$router.push("/listtracking");
-        }
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
+      axios
+        .post(this.url + "/confirm/match/data/info", dataConfirm)
+        .then(response => {
+          if (response.data.status == "SUCCESS") {
+            this.$dialogs.alert("แก้ไขข้อมูลผู้รับเรียบร้อยแล้ว", options);
+            this.$router.push("/listtracking");
+          } else {
+            this.$dialogs.alert("ข้อมูลไม่ถูกต้อง เนื่องจาก " + response.data.status, options);
+            this.$router.push("/listtracking");
+          }
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
     },
     rotateRight() {
       this.rotation += 90;
@@ -485,6 +572,10 @@ export default {
     margin: 0 0 10px 0;
     padding: 5px 10px;
     outline: none;
+  }
+  input:read-only {
+    background: none;
+    // color: #9e9e9e;
   }
   input:disabled {
     color: #9e9e9e;

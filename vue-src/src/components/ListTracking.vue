@@ -38,21 +38,23 @@ export default {
   data: function() {
     return {
       inMenu: 1,
-      listTracking: []
+      listTracking: [],
+      url: ""
     };
   },
   mounted() {
-    this.inMenu = 2.5;
-    this.getlistTracking();
     if (!this.$session.get("session_username")) {
       this.$router.push({ name: "Main" });
+    } else {
+      this.inMenu = 2.5;
+      this.getlistTracking();
     }
   },
   methods: {
     getlistTracking() {
       const options = { okLabel: "ตกลง" };
       axios
-        .get("/tools/list/tracking")
+        .get(this.url + "/tools/list-pending-tracking")
         .then(response => {
           if (response.data.status == "SUCCESS") {
             this.listTracking = response.data.listTracking;
