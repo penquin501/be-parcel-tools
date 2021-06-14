@@ -1266,6 +1266,17 @@ Promise.all([initDb(), initAmqp()]).then(values => {
     });
   });
 
+  app.get("/booking-ninja-report", (req, res) => {
+    // let tracking = req.query.tracking;
+    parcelServices.bookingNinjaReport(db).then(function (data) {
+      if (data == false) {
+        res.json([]);
+      } else {
+        res.json(data);
+      }
+    });
+  });
+
   app.get("/log-parcel-tool", (req, res) => {
     let ref = req.query.ref;
     parcelServices.logListParcelTool(db, ref).then(function (data) {
@@ -1362,6 +1373,146 @@ Promise.all([initDb(), initAmqp()]).then(values => {
           status: "SUCCESS",
           data: data
         });
+      }
+    });
+  });
+
+  app.get("/delete-data-item", function (req, res) {
+    let id = req.query.id;
+    let tracking = req.query.tracking;
+
+    parcelServices.selectDataToDeleteBillingItem(db, id, tracking).then(function (resDelItem) {
+      if (resDelItem == false) {
+        return res.json({
+          status: "error_connect_db"
+        });
+      } else {
+        if(resDelItem == null){
+          return res.json({
+            status: "error_del_item",
+            data: {
+              id: id,
+              tracking: tracking
+            }
+          });
+        } else {
+          parcelServices.selectDataItem(db, tracking).then(function (data) {
+            if (!data) {
+              return res.json({
+                status: "error_not_found"
+              });
+            } else {
+              return res.json({
+                status: "SUCCESS",
+                data: data
+              });
+            }
+          });
+        }
+      }
+    });
+  });
+
+  app.get("/delete-data-item-temp", function (req, res) {
+    let tracking = req.query.tracking;
+
+    parcelServices.selectDataToDeleteBillingItemTemp(db, tracking).then(function (resDelItemTemp) {
+      if (resDelItemTemp == false) {
+        return res.json({
+          status: "error_connect_db"
+        });
+      } else {
+        if(resDelItemTemp == null){
+          return res.json({
+            status: "error_del_item_temp",
+            data: {
+              tracking: tracking
+            }
+          });
+        } else {
+          parcelServices.selectDataItem(db, tracking).then(function (data) {
+            if (!data) {
+              return res.json({
+                status: "error_not_found"
+              });
+            } else {
+              return res.json({
+                status: "SUCCESS",
+                data: data
+              });
+            }
+          });
+        }
+      }
+    });
+  });
+
+  app.get("/delete-data-receiver", function (req, res) {
+    let id = req.query.id;
+    let tracking = req.query.tracking;
+
+    parcelServices.selectDataToDeleteReceiver(db, id, tracking).then(function (resDelItem) {
+      if (resDelItem == false) {
+        return res.json({
+          status: "error_connect_db"
+        });
+      } else {
+        if(resDelItem == null){
+          return res.json({
+            status: "error_del_receiver",
+            data: {
+              id: id,
+              tracking: tracking
+            }
+          });
+        } else {
+          parcelServices.selectDataReceiver(db, tracking).then(function (data) {
+            if (!data) {
+              res.json({
+                status: "error_not_found"
+              });
+            } else {
+              res.json({
+                status: "SUCCESS",
+                data: data
+              });
+            }
+          });
+        }
+      }
+    });
+  });
+
+  app.get("/delete-data-receiver-temp", function (req, res) {
+    let tracking = req.query.tracking;
+
+    parcelServices.selectDataToDeleteReceiverTemp(db, tracking).then(function (resDelItemTemp) {
+      if (resDelItemTemp == false) {
+        return res.json({
+          status: "error_connect_db"
+        });
+      } else {
+        if(resDelItemTemp == null){
+          return res.json({
+            status: "error_del_receiver_temp",
+            data: {
+              tracking: tracking
+            }
+          });
+        } else {
+          parcelServices.selectDataReceiver(db, tracking).then(function (data) {
+            if (!data) {
+              res.json({
+                status: "error_not_found"
+              });
+            } else {
+              res.json({
+                status: "SUCCESS",
+                data: data
+              });
+            }
+          });
+        }
       }
     });
   });

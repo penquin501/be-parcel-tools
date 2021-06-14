@@ -677,6 +677,24 @@ module.exports = {
       });
     });
   },
+  bookingNinjaReport: db => {
+    var sql = `SELECT * FROM response_ninja_log`;
+    // var data = [100, 99];
+
+    return new Promise(function (resolve, reject) {
+      db.query(sql, (err, results) => {
+        if (err === null) {
+          if (results.length <= 0) {
+            resolve(false);
+          } else {
+            resolve(results);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
   saveDistrictFlash: (db, address, newAddress) => {
     let district_id = address.district_id;
     let district_code = address.DISTRICT_CODE;
@@ -1092,6 +1110,126 @@ module.exports = {
               resolve(false);
             }
           });
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
+  selectDataToDeleteBillingItem: (db, id, tracking) => {
+    var sqlItem = `SELECT * FROM billing_item WHERE id = ? AND tracking = ?`;
+    var dataItem = [id, tracking];
+
+    var sqlDelItem = `DELETE FROM billing_item WHERE id = ? AND tracking = ?`;
+
+    return new Promise(function (resolve, reject) {
+      db.query(sqlItem, dataItem, (err_item, results_item) => {
+        if (err_item == null) {
+          if (results_item.length > 0) {
+            db.query(sqlDelItem, dataItem, (err_del_item, results_del_item) => {
+              if (err_del_item == null) {
+                if (results_del_item.affectedRows > 0) {
+                  resolve(true);
+                } else {
+                  resolve(null);
+                }
+              } else {
+                resolve(false);
+              }
+            });
+          } else {
+            resolve(null);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
+  selectDataToDeleteBillingItemTemp: (db, tracking) => {
+    var sqlItemTemp = `SELECT * FROM billing_item_temp WHERE tracking = ?`;
+    var dataItemTemp = [tracking];
+
+    var sqlDelItemTemp = `DELETE FROM billing_item_temp WHERE tracking = ?`;
+
+    return new Promise(function (resolve, reject) {
+      db.query(sqlItemTemp, dataItemTemp, (err_item_temp, results_item_temp) => {
+        if (err_item_temp == null) {
+          if (results_item_temp.length > 0) {
+            db.query(sqlDelItemTemp, dataItemTemp, (err_del_item_temp, results_del_item_temp) => {
+              if (err_del_item_temp == null) {
+                if (results_del_item_temp.affectedRows > 0) {
+                  resolve(true);
+                } else {
+                  resolve(null);
+                }
+              } else {
+                resolve(false);
+              }
+            });
+          } else {
+            resolve(null);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
+  selectDataToDeleteReceiver: (db, id, tracking) => {
+    var sqlReceiver = `SELECT * FROM billing_receiver_info WHERE id = ? AND tracking = ?`;
+    var dataReceiver = [id, tracking];
+
+    var sqlDelReceiver = `DELETE FROM billing_receiver_info WHERE id = ? AND tracking = ?`;
+
+    return new Promise(function (resolve, reject) {
+      db.query(sqlReceiver, dataReceiver, (err_receiver, results_receiver) => {
+        if (err_receiver == null) {
+          if (results_receiver.length > 0) {
+            db.query(sqlDelReceiver, dataReceiver, (err_del_receiver, results_del_receiver) => {
+              if (err_del_receiver == null) {
+                if (results_del_receiver.affectedRows > 0) {
+                  resolve(true);
+                } else {
+                  resolve(null);
+                }
+              } else {
+                resolve(false);
+              }
+            });
+          } else {
+            resolve(null);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
+  selectDataToDeleteReceiverTemp: (db, tracking) => {
+    var sqlReceiverTemp = `SELECT * FROM billing_receiver_info_temp WHERE tracking = ?`;
+    var dataReceiverTemp = [tracking];
+
+    var sqlDelReceiverTemp = `DELETE FROM billing_receiver_info_temp WHERE tracking = ?`;
+
+    return new Promise(function (resolve, reject) {
+      db.query(sqlReceiverTemp, dataReceiverTemp, (err_receiver_temp, results_receiver_temp) => {
+        if (err_receiver_temp == null) {
+          if (results_receiver_temp.length > 0) {
+            db.query(sqlDelReceiverTemp, dataReceiverTemp, (err_del_receiver_temp, results_del_receiver_temp) => {
+              if (err_del_receiver_temp == null) {
+                if (results_del_receiver_temp.affectedRows > 0) {
+                  resolve(true);
+                } else {
+                  resolve(null);
+                }
+              } else {
+                resolve(false);
+              }
+            });
+          } else {
+            resolve(null);
+          }
         } else {
           resolve(false);
         }
