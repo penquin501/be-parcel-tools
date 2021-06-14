@@ -37,6 +37,11 @@
           <div class="col-ms-3 col-sm-3 col-xs-3" style="text-align: left; margin-top: 5px;">จำนวนที่ยังไม่ได้ book flash: {{ c_flashNotBook }}</div>
           <div class="col-ms-3 col-sm-3 col-xs-3" style="text-align: left; margin-top: 5px;">จำนวนที่ book flash แล้ว: {{ c_flashBooked }}</div>
           <div class="col-ms-3 col-sm-3 col-xs-3" style="text-align: left; margin-top: 5px;">จำนวนทั้งหมด: {{ total }}</div>
+        </div>
+        <div class="row">
+          <div class="col-ms-3 col-sm-3 col-xs-3" style="text-align: left; margin-top: 5px;">จำนวนที่ยังไม่ได้ book ninja: {{ c_ninjaNotBook }}</div>
+          <div class="col-ms-3 col-sm-3 col-xs-3" style="text-align: left; margin-top: 5px;">จำนวนที่ book ninja แล้ว: {{ c_ninjaBooked }}</div>
+          <div class="col-ms-3 col-sm-3 col-xs-3" style="text-align: left; margin-top: 5px;">จำนวนทั้งหมด: {{ total }}</div>
           <div class="col-ms-2 col-sm-2 col-xs-2" style="text-align: right;"><label style="margin-top: 5px;">Refresh</label></div>
           <div class="col-ms-1 col-sm-1 col-xs-1" style="margin-bottom: 5px;"><button class="button-re" v-on:click="getBilingNo()"><i class="fa fa-refresh" aria-hidden="true"></i></button></div>
         </div>
@@ -49,6 +54,7 @@
             <th style="text-align:center;">ชื่อผู้ส่ง</th>
             <th style="text-align:center;">จำนวน flash</th>
             <th style="text-align:center;">จำนวน dhl</th>
+            <th style="text-align:center;">จำนวน ninja</th>
             <th style="text-align:center;">สถานะ</th>
           </tr>
           <tr v-for="(item, index) in filteredResourcesBilling" v-bind:key="item.id">
@@ -60,6 +66,7 @@
             <td style="text-align: center;">{{ item.sender_name }}</td>
             <td style="text-align: center;">{{ (item.flash_cNotBook == null) ? 0 : item.flash_cNotBook }}/{{ item.total }}</td>
             <td style="text-align: center;">{{ (item.dhl_cNotBook == null) ? 0 : item.dhl_cNotBook }}/{{ item.total }}</td>
+            <td style="text-align: center;">{{ (item.ninja_cNotBook == null) ? 0 : item.ninja_cNotBook }}/{{ item.total }}</td>
             <td style="text-align: center;">{{ item.status }}</td>
           </tr>
         </table>
@@ -88,6 +95,8 @@ export default {
       c_dhlBooked: 0,
       c_flashNotBook: 0,
       c_flashBooked: 0,
+      c_ninjaBooked: 0,
+      c_ninjaNotBook: 0,
       total: 0,
       sorting: -1,
       url: ""
@@ -132,6 +141,8 @@ export default {
           this.c_dhlBooked = response.data.c_dhlBooked;
           this.c_flashBooked = response.data.c_flashBooked;
           this.c_flashNotBook = response.data.c_flashNotBook;
+          this.c_ninjaBooked = response.data.c_ninjaBooked;
+          this.c_ninjaNotBook = response.data.c_ninjaNotBook;
           this.total = response.data.total;
         }
       })

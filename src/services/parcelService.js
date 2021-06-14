@@ -538,7 +538,7 @@ module.exports = {
     var current_date = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
     var nextDay = moment(current_date).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
-    var sql = `SELECT b.branch_id,bInfo.branch_name,b.billing_no,br.sender_name,b.status,b.billing_date,br.booking_status, br.booking_flash_status
+    var sql = `SELECT b.branch_id, bInfo.branch_name, b.billing_no, br.sender_name, b.status, b.billing_date, br.booking_status, br.booking_flash_status, br.booking_ninja_status
     FROM billing b 
     JOIN billing_item bi ON b.billing_no=bi.billing_no 
     JOIN billing_receiver_info br ON bi.tracking=br.tracking 
@@ -586,7 +586,7 @@ module.exports = {
     var current_date = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
     var nextDay = moment(current_date).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
-    var sqlListTracking = `SELECT bi.tracking, br.booking_status, br.booking_flash_status FROM billing b
+    var sqlListTracking = `SELECT bi.tracking, br.booking_status, br.booking_flash_status, br.booking_ninja_status FROM billing b
     LEFT JOIN billing_item bi ON b.billing_no=bi.billing_no
     LEFT JOIN billing_receiver_info br ON bi.tracking=br.tracking
     WHERE (b.billing_date>=? AND b.billing_date<?) AND (br.status != 'cancel' OR br.status is null)`;

@@ -32,6 +32,7 @@
           <th style="text-align:center; width: 5%;">สถานะ</th>
           <th style="text-align:center; width: 5%;">วัน/เวลา Flash booking</th>
           <th style="text-align:center; width: 5%;">วัน/เวลา DHL booking</th>
+          <th style="text-align:center; width: 5%;">วัน/เวลา Ninja booking</th>
         </tr>
         <tr v-bind:key="item.id" v-for="item in filteredResources">
           <td v-if="item.receiverInfo.booking_status != 100" style="text-align: center; background-color: powderblue;"><a href="#" v-on:click="getTracking(item.tracking)">{{ item.tracking }}</a></td>
@@ -52,6 +53,7 @@
           <td style="text-align: center;">{{ item.receiverInfo.status }}</td>
           <td style="text-align: center;">{{ item.receiverInfo.booking_flash_date | moment("YYYY-MM-DD HH:mm:ss") }}</td>
           <td style="text-align: center;">{{ item.receiverInfo.booking_date | moment("YYYY-MM-DD HH:mm:ss") }}</td>
+          <td style="text-align: center;">{{ item.receiverInfo.booking_ninja_date | moment("YYYY-MM-DD HH:mm:ss") }}</td>
         </tr>
       </table>
     </div>
