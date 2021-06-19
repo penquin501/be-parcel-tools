@@ -304,24 +304,25 @@ module.exports = {
     let sql = `UPDATE billing_receiver_info SET receiver_name=?, phone=?, receiver_address=?, status=? WHERE tracking=? AND status is null`;
     let data = [newAddress.receiver_name, newAddress.receiver_phone, newAddress.receiver_address, "ready", tracking];
 
-    let sqlLog = `UPDATE response_flash_log SET status=? WHERE tracking=?`;
-    let dataLog = [99, tracking];
+    // let sqlLog = `UPDATE response_flash_log SET status=? WHERE tracking=?`;
+    // let dataLog = [99, tracking];
 
     return new Promise(function (resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
         if (error == null) {
           if (results.affectedRows > 0) {
-            db.query(sqlLog, dataLog, (errorLog, resultsLog, fields) => {
-              if (errorLog == null) {
-                if (resultsLog.affectedRows > 0) {
-                  resolve(true);
-                } else {
-                  resolve(false);
-                }
-              } else {
-                resolve(false);
-              }
-            });
+            resolve(true);
+            // db.query(sqlLog, dataLog, (errorLog, resultsLog, fields) => {
+            //   if (errorLog == null) {
+            //     if (resultsLog.affectedRows > 0) {
+            //       resolve(true);
+            //     } else {
+            //       resolve(false);
+            //     }
+            //   } else {
+            //     resolve(false);
+            //   }
+            // });
           } else {
             resolve(false);
           }
@@ -684,10 +685,17 @@ module.exports = {
     return new Promise(function (resolve, reject) {
       db.query(sql, (err, results) => {
         if (err === null) {
-          if (results.length <= 0) {
-            resolve(false);
+          if (results.length > 0) {
+            let output = [];
+            for (let item of results) {
+              if (item.status != 200) {
+                item.raw_data = JSON.parse(item.raw_data);
+                output.push(item);
+              }
+            }
+            resolve(output);
           } else {
-            resolve(results);
+            resolve(false);
           }
         } else {
           resolve(false);

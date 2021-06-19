@@ -149,14 +149,26 @@ const routes = [
   },
   {
     path: "/report-flash-booking",
-    name: "ReportFlashbooking",
-    component: () => import("../components/ReportFlashbooking.vue"),
+    name: "ReportFlashBooking",
+    component: () => import("../components/ReportFlashBooking.vue"),
+    hidden: true
+  },
+  {
+    path: "/report-ninja-booking",
+    name: "ReportNinjaBooking",
+    component: () => import("../components/ReportNinjaBooking.vue"),
     hidden: true
   },
   {
     path: "/report-flash",
     name: "ReportFlash",
     component: () => import("../components/ReportFlash.vue"),
+    hidden: true
+  },
+  {
+    path: "/report-ninja",
+    name: "ReportNinja",
+    component: () => import("../components/ReportNinja.vue"),
     hidden: true
   },
   {

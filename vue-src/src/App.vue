@@ -42,6 +42,7 @@
                   <router-link to="/relabeling"><a v-on:click="toView" class="dropdown-item">Re-Labeling</a></router-link>
                   <router-link to="/listtracking"><a v-on:click="toView" class="dropdown-item">QL Checker</a></router-link>
                   <router-link to="/report-flash-booking"><a v-on:click="toView" class="dropdown-item">Flash Booking Checker</a></router-link>
+                  <router-link to="/report-ninja-booking"><a v-on:click="toView" class="dropdown-item">Ninja Booking Checker</a></router-link>
                   <router-link to="/movemember"><a v-on:click="toView" class="dropdown-item">ย้าย Member ไป Shop อื่น</a></router-link>
                   <router-link to="/change-phoneregis"><a v-on:click="toView" class="dropdown-item">เปลี่ยนเบอร์โทรศัพท์ Member</a></router-link>
                   <router-link to="/recal-billing"><a v-on:click="toView" class="dropdown-item">Re-Cal Billing</a></router-link>
