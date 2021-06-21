@@ -65,6 +65,7 @@ export default {
     if (!this.$session.get("session_username")) {
       this.$router.push({ name: "Main" });
     }
+    
     this.getData();
   },
   methods: {

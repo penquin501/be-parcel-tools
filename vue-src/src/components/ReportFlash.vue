@@ -121,6 +121,7 @@ export default {
     },
     getListProvince() {
       const options = { okLabel: "ตกลง" };
+      
       axios
         .get(this.url + "/general/list-province")
         .then(response => {
