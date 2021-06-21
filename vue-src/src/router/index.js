@@ -150,7 +150,7 @@ const routes = [
   {
     path: "/report-flash-booking",
     name: "ReportFlashBooking",
-    component: () => import("../components/ReportFlashBooking.vue"),
+    component: () => import("../components/ReportFlashbooking.vue"),
     hidden: true
   },
   {
