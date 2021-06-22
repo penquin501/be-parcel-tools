@@ -48,6 +48,7 @@ Promise.all([initDb(), initAmqp()]).then(values => {
   const db = values[0];
   const amqpChannel = values[1];
 
+  require('./routers/healthz')(app, appCtx);
   require("./routers/branch")(app, appCtx);
   require("./routers/sizeInfo")(app, appCtx);
   require("./routers/general")(app, appCtx);
