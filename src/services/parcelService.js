@@ -1649,6 +1649,26 @@ module.exports = {
       });
     });
   },
+  getSizeInfo: (db, data) => {
+    var patternSize = /TMP/g;
+    return new Promise(async function (resolve, reject) {
+      let sizing = await checkSizeById(db, data);
+      
+      if (sizing == false) {
+        resolve(false);
+      } else {
+        if ((sizing[0].alias_size.toUpperCase()).match(patternSize) == null && data.size_price == 0) {
+          resolve(false);
+        } else {
+          if(data.size_price == 0){
+            resolve(true);
+          } else {
+            resolve(false);
+          }
+        }
+      }
+    });
+  },
   selectDataToExchangeUpdateBooking: (db, tracking) => {
     let sqlReceiver = `SELECT br.tracking,br.sender_name,br.sender_phone,br.sender_address,br.receiver_name,br.phone,br.receiver_address,d.DISTRICT_CODE,
     a.AMPHUR_CODE,p.PROVINCE_CODE,br.zipcode,br.remark,br.courirer_id,br.booking_date,g.GEO_ID,g.GEO_NAME
