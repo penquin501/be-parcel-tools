@@ -6,7 +6,7 @@ const request = require("request");
 const os = require('os');
 
 const MY_AMQP_PREFIX = process.env.MY_AMQP_PREFIX || "parcel";
-var QUEUE_HEALTH = MY_AMQP_PREFIX + ".queue.health." + os.hostname();
+var QUEUE_HEALTH = MY_AMQP_PREFIX + ".queue.health.tools." + os.hostname();
 
 module.exports = function (app, appCtx) {
     const db = appCtx.db;
@@ -43,7 +43,7 @@ module.exports = function (app, appCtx) {
     setInterval(async () => {
         console.log("healthz setInterval");
         await channel.sendToQueue(QUEUE_HEALTH, Buffer.from(JSON.stringify({ ts: new Date().getTime() })));
-    }, 2000);
+    }, 5000);
     /****************************************************************************************************************/
     function getHealthz() {
         const FIVE_MINUTE = 5 * 1000; /* ms */
