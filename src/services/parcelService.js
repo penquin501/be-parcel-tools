@@ -1653,18 +1653,14 @@ module.exports = {
     var patternSize = /TMP/g;
     return new Promise(async function (resolve, reject) {
       let sizing = await checkSizeById(db, data);
-      
       if (sizing == false) {
         resolve(false);
       } else {
-        if ((sizing[0].alias_size.toUpperCase()).match(patternSize) == null && data.size_price == 0) {
-          resolve(false);
+        if ((sizing[0].alias_size.toUpperCase()).match(patternSize) == null) {
+          let info = (data.size_price == 0) ? false : true;
+          resolve(info);
         } else {
-          if(data.size_price == 0){
-            resolve(true);
-          } else {
-            resolve(false);
-          }
+          resolve(true);
         }
       }
     });
