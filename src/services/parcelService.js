@@ -1815,6 +1815,23 @@ module.exports = {
       });
     });
   },
+  selectDhlToken: (db) => {
+    var sql = `SELECT * FROM log_dhl_token ORDER BY id DESC LIMIT 0,3`;
+
+    return new Promise(function(resolve, reject) {
+      db.query(sql, (err, results) => {
+        if(err == null) {
+          if(results.length > 0) {
+            resolve(results);
+          } else {
+            resolve(null);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
 };
 
 /*******************************************************************************************************************************/

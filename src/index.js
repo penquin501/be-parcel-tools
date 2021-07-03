@@ -1656,6 +1656,12 @@ Promise.all([initDb(), initAmqp()]).then(values => {
     }
   });
 
+  app.get("/list-dhl-token", (req, res) => {
+    parcelServices.selectDhlToken(db).then((listToken) => {
+      return res.json(listToken);
+    });
+  });
+
   app.get("/get-new-tracking", (req, res) => {
     var qs = queryString.stringify({
       prefix: "TDZ"
