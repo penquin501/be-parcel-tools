@@ -536,7 +536,7 @@ module.exports = {
     });
   },
   dailyReport: (db, date_check) => {
-    var current_date = moment(date_check + " 00:00:00").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+    var current_date = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
     var nextDay = moment(current_date).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
     var sql = `SELECT b.branch_id, bInfo.branch_name, b.billing_no, br.sender_name, b.status, b.billing_date, br.booking_status, br.booking_flash_status, br.booking_ninja_status
@@ -584,7 +584,7 @@ module.exports = {
     });
   },
   summaryBooking: (db, date_check) => {
-    var current_date = moment(date_check + " 00:00:00").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
+    var current_date = moment(date_check).tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
     var nextDay = moment(current_date).add(1, "day").tz("Asia/Bangkok").format("YYYY-MM-DD HH:mm:ss");
 
     var sqlListTracking = `SELECT bi.tracking, br.booking_status, br.booking_flash_status, br.booking_ninja_status FROM billing b
