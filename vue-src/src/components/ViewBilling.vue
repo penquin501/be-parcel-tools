@@ -133,6 +133,10 @@ export default {
           this.$dialogs.alert("ไม่พบข้อมูล", options);
           this.c_dhlNotBook = 0;
           this.c_dhlBooked = 0;
+          this.c_flashNotBook = 0;
+          this.c_flashBooked = 0;
+          this.c_ninjaNotBook = 0;
+          this.c_ninjaBooked = 0;
           this.cNotBook = 0;
           this.cBooked = 0;
           this.total = 0;

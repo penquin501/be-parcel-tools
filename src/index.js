@@ -1165,7 +1165,7 @@ Promise.all([initDb(), initAmqp()]).then(values => {
           } else {
             c_flashNotBook++;
           }
-          if (val.booking_flash_status == 100) {
+          if (val.booking_ninja_status == 100) {
             c_ninjaBooked++;
           } else {
             c_ninjaNotBook++;
