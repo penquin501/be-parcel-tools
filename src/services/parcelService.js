@@ -1947,7 +1947,7 @@ function checkSizeInfo(db, data) {
 
 function getSizeInfo(db, data) {
   var sqlSizeInfo = `SELECT * FROM size_info WHERE size_id=?`;
-  var sqlGlobalSize = `SELECT * FROM global_parcel_size WHERE alias_name=? AND area=? AND type=?`;
+  var sqlGlobalSize = `SELECT * FROM global_parcel_size WHERE alias_name=? AND area=? AND type=? AND zone=?`;
 
   return new Promise(function (resolve, reject) {
     db.query(sqlSizeInfo, [data.size_id], (errSizeInfo, resultSizeInfo) => {
@@ -1955,17 +1955,16 @@ function getSizeInfo(db, data) {
         if (resultSizeInfo.length > 0) {
           let sizeInfo = resultSizeInfo[0];
           let zone = sizeInfo.zone;
-          let dataGlobalSize = [sizeInfo.alias_size.toUpperCase(), sizeInfo.location_zone.toUpperCase(), data.parcel_type];
+          let dataGlobalSize = [sizeInfo.alias_size.toUpperCase(), sizeInfo.location_zone.toUpperCase(), data.parcel_type, zone];
           db.query(sqlGlobalSize, dataGlobalSize, (errGlobalSize, resultGlobalSize) => {
             if (errGlobalSize == null) {
               if (resultGlobalSize.length > 0) {
-                resultGlobalSize.forEach(e => {
-                  if (zone == e.zone) {
+                var item = {};
+                for(let e of resultGlobalSize) {
+                  if(zone == e.zone){
                     item = e;
-                  } else {
-                    item = resultGlobalSize[0];
                   }
-                });
+                }
                 data.alias_size = sizeInfo.alias_size.toUpperCase();
                 data.product_id = item.product_id;
                 data.product_name = item.product_name;
