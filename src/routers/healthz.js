@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const moment = require("moment");
-// const m = require("moment-timezone");
 const request = require("request");
 const os = require('os');
 
@@ -24,24 +23,23 @@ module.exports = function (app, appCtx) {
     });
     /****************************************************************************************************************/
     channel.assertQueue(QUEUE_HEALTH, { exclusive: true });
-    console.log("Started");
-    console.log(QUEUE_HEALTH);
+    console.log("Started %s", QUEUE_HEALTH);
     channel.consume(QUEUE_HEALTH, async function (msg) {
         task = JSON.parse(msg.content.toString());
-        console.log("task", task);
+        // console.log("task", task);
         try {
-            console.log("result = %s, health = %d", task.ts, healthzCheck);
+            console.log("%s task = %s, health = %d", QUEUE_HEALTH, task.ts, healthzCheck);
             healthzCheck = task.ts;
 
             channel.ack(msg);
         } catch (error) {
-            throw new Error('Internal server error', error);
+            throw new Error('%s Internal server error', QUEUE_HEALTH, error);
             // throw new HttpException('Internal server error', 500);
         }
     });
 
     setInterval(async () => {
-        console.log("healthz setInterval");
+        console.log("healthz setInterval %s", QUEUE_HEALTH);
         await channel.sendToQueue(QUEUE_HEALTH, Buffer.from(JSON.stringify({ ts: new Date().getTime() })));
     }, 5000);
     /****************************************************************************************************************/
@@ -49,12 +47,8 @@ module.exports = function (app, appCtx) {
         const FIVE_MINUTE = 5 * 1000; /* ms */
         const now = new Date().getTime();
         const last = healthzCheck;
-
-        console.log("getHealthz now = %s", now);
-        console.log("getHealthz last = %s", last);
         const result = now - last;
-        console.log("getHealthz result = %s", result);
-
+        console.log("%s getHealthz (%s-%s) result = %s ", QUEUE_HEALTH, now, last, result);
         if (now - last > FIVE_MINUTE * 1.5 && healthzCheck != 0) {
             throw new Error('Internal server error', 500);
         }
