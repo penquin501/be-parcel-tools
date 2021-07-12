@@ -38,10 +38,10 @@
         <tr v-for="(item, index) in filteredResources" v-bind:key="item.id">
           <td style="text-align: center;"><router-link :to="{ name: 'ReportNinja', params: { tracking: filteredResources[index].tracking }}">{{ item.tracking }}</router-link></td>
           <!-- <td style="text-align: center;">{{ item.tracking }}</td> -->
-          <td style="text-align: center;">{{ item.raw_data.error.application }}</td>
-          <td style="text-align: center;">{{ item.raw_data.error.code }}</td>
-          <td style="text-align: center;">{{ item.raw_data.error.message }}</td>
-          <td style="text-align: center;">{{ item.raw_data.error.title }}</td>
+          <td style="text-align: center;">{{ item.raw_data.error.application !== undefined ? item.raw_data.error.application : "" }}</td>
+          <td style="text-align: center;">{{ item.raw_data.error.code !== undefined ? item.raw_data.error.code : "" }}</td>
+          <td style="text-align: center;">{{ item.raw_data.error.message !== undefined ? item.raw_data.error.message : "" }}</td>
+          <td style="text-align: center;">{{ item.raw_data.error.title !== undefined ? item.raw_data.error.title : ""}}</td>
           <td style="text-align: center;">{{ item.status }}</td>
           <td style="text-align: center; font-size:10px; color: red;">{{ item.record_at | moment("from", "now") }}</td>
         </tr>
