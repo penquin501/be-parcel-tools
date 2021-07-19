@@ -1,6 +1,7 @@
 // require("dotenv").config();
 require("newrelic");
 const express = require("express");
+const cors = require('cors');
 const request = require("request");
 const path = require("path");
 var xl = require("excel4node");
@@ -23,6 +24,7 @@ moment.locale("th");
 // app.use(express.json());
 app.use(express.json({ limit: '5mb' }));
 app.use(express.static("public"));
+app.use(cors());
 
 const parcelServices = require("./services/parcelService.js");
 const MY_AMQP_PREFIX = process.env.MY_AMQP_PREFIX || "parcel";
@@ -33,12 +35,12 @@ if (process.env.NODE_ENV === "production") {
   console.log("In development mode");
 }
 
-app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Content-Type");
-  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
-  next();
-});
+// app.use(function (req, res, next) {
+//   res.header("Access-Control-Allow-Origin", "*");
+//   res.header("Access-Control-Allow-Headers", "Content-Type");
+//   res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+//   next();
+// });
 Promise.all([initDb(), initAmqp()]).then(values => {
   const appCtx = {
     db: values[0],

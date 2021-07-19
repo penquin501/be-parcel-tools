@@ -452,7 +452,7 @@ module.exports = {
     });
   },
   insertLog: (db, billing_no, previous_value, current_value, reason, module_name, user, ref, remark) => {
-    let sql = `INSERT INTO log_parcel_tool(billing_no, time_to_system, previous_value, current_value,reason, module_name, user, ref,remark) VALUES (?,?,?,?,?,?,?,?,?)`;
+    let sql = `INSERT INTO log_parcel_tool(billing_no, time_to_system, previous_value, current_value,reason, module_name, user, ref,remark) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     let data = [billing_no, new Date(), previous_value, current_value, reason, module_name, user, ref, remark];
     return new Promise(function (resolve, reject) {
       db.query(sql, data, (error, results, fields) => {
