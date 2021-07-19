@@ -1107,17 +1107,25 @@ module.exports = {
     return new Promise(function (resolve, reject) {
       db.query(sqlReceiver, dataReceiver, (err_receiver, results_receiver) => {
         if (err_receiver == null) {
-          db.query(sqlReceiverTemp, dataReceiverTemp, (err_receiver_temp, results_receiver_temp) => {
-            if (err_receiver_temp == null) {
-              var data = {
-                receiverInfoTemp: results_receiver_temp,
-                receiverInfo: results_receiver
-              };
-              resolve(data);
-            } else {
-              resolve(false);
-            }
-          });
+          if(dataReceiver.length > 0){
+            db.query(sqlReceiverTemp, dataReceiverTemp, (err_receiver_temp, results_receiver_temp) => {
+              if (err_receiver_temp == null) {
+                if(results_receiver_temp.length > 0) {
+                  var data = {
+                    receiverInfoTemp: results_receiver_temp,
+                    receiverInfo: results_receiver
+                  };
+                  resolve(data);
+                } else {
+                  resolve(null);
+                }
+              } else {
+                resolve(false);
+              }
+            });
+          } else {
+            resolve(null);
+          }
         } else {
           resolve(false);
         }

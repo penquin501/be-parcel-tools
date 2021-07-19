@@ -1593,29 +1593,33 @@ Promise.all([initDb(), initAmqp()]).then(values => {
         if (dataReceiver == false) {
           return res.json({ status: "ERROR_CONNECT_DB" });
         } else {
-          let receiverInfo = dataReceiver.receiverInfo[0];
-          if (receiverInfo.booking_status !== 100) {
-            parcelServices.updateStatusReceiver(db, null, tracking).then(function (resultUpdateStatus) {
-              if (resultUpdateStatus !== false) {
-                var data = {
-                  tracking: tracking.toUpperCase(),
-                  source: "re_booking"
-                };
-
-                amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.prepare-booking", "", Buffer.from(JSON.stringify(data)), { persistent: true });
-                return res.json(data);
-              } else {
-                return res.json({ status: "ERROR" });
-              }
-            });
+          if(dataReceiver == null) {
+            return res.json({ status: "ERROR_NO_DATA" });
           } else {
-            parcelServices.selectDataToExchangeUpdateBooking(db, tracking).then(function (dataTo945) {
-              amqpChannel.publish("share.exchange.task-update", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
-              return res.json({
-                tracking: tracking.toUpperCase(),
-                source: "re_send_to_945"
+            let receiverInfo = dataReceiver.receiverInfo[0];
+            if (receiverInfo.booking_status !== 100) {
+              parcelServices.updateStatusReceiver(db, null, tracking).then(function (resultUpdateStatus) {
+                if (resultUpdateStatus !== false) {
+                  var data = {
+                    tracking: tracking.toUpperCase(),
+                    source: "re_booking"
+                  };
+  
+                  amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.prepare-booking", "", Buffer.from(JSON.stringify(data)), { persistent: true });
+                  return res.json(data);
+                } else {
+                  return res.json({ status: "ERROR" });
+                }
               });
-            });
+            } else {
+              parcelServices.selectDataToExchangeUpdateBooking(db, tracking).then(function (dataTo945) {
+                amqpChannel.publish("share.exchange.task-update", "", Buffer.from(JSON.stringify(dataTo945)), { persistent: true });
+                return res.json({
+                  tracking: tracking.toUpperCase(),
+                  source: "re_send_to_945"
+                });
+              });
+            }
           }
         }
       });
