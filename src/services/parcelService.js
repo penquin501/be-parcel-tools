@@ -1107,25 +1107,17 @@ module.exports = {
     return new Promise(function (resolve, reject) {
       db.query(sqlReceiver, dataReceiver, (err_receiver, results_receiver) => {
         if (err_receiver == null) {
-          if(dataReceiver.length > 0){
-            db.query(sqlReceiverTemp, dataReceiverTemp, (err_receiver_temp, results_receiver_temp) => {
-              if (err_receiver_temp == null) {
-                if(results_receiver_temp.length > 0) {
-                  var data = {
-                    receiverInfoTemp: results_receiver_temp,
-                    receiverInfo: results_receiver
-                  };
-                  resolve(data);
-                } else {
-                  resolve(null);
-                }
-              } else {
-                resolve(false);
-              }
-            });
-          } else {
-            resolve(null);
-          }
+          db.query(sqlReceiverTemp, dataReceiverTemp, (err_receiver_temp, results_receiver_temp) => {
+            if (err_receiver_temp == null) {
+                var data = {
+                  receiverInfoTemp: results_receiver_temp,
+                  receiverInfo: results_receiver
+                };
+                resolve(data);
+            } else {
+              resolve(false);
+            }
+          });
         } else {
           resolve(false);
         }
@@ -1243,6 +1235,27 @@ module.exports = {
                 resolve(false);
               }
             });
+          } else {
+            resolve(null);
+          }
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  },
+  selectDataReceiverToBook: (db, tracking) => {
+    var sqlReceiver = `SELECT * FROM billing_receiver_info WHERE tracking=?`;
+    var dataReceiver = [tracking];
+
+    return new Promise(function (resolve, reject) {
+      db.query(sqlReceiver, dataReceiver, (err_receiver, results_receiver) => {
+        if (err_receiver == null) {
+          if(results_receiver.length > 0){
+            var data = {
+              receiverInfo: results_receiver
+            };
+            resolve(data);
           } else {
             resolve(null);
           }

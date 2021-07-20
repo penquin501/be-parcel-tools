@@ -1567,7 +1567,7 @@ Promise.all([initDb(), initAmqp()]).then(values => {
       return res.send(401, "Unauthorized");
     } else {
       let tracking = req.body.tracking;
-      parcelServices.selectDataReceiver(db, tracking).then(function (dataReceiver) {
+      parcelServices.selectDataReceiverToBook(db, tracking).then(function (dataReceiver) {
         if (dataReceiver == false) {
           return res.json({ status: "ERROR_CONNECT_DB" });
         } else {
@@ -1582,7 +1582,6 @@ Promise.all([initDb(), initAmqp()]).then(values => {
                     tracking: tracking.toUpperCase(),
                     source: "re_booking"
                   };
-  
                   amqpChannel.publish(MY_AMQP_PREFIX + ".exchange.prepare-booking", "", Buffer.from(JSON.stringify(data)), { persistent: true });
                   return res.json(data);
                 } else {
