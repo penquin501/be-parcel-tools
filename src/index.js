@@ -1400,11 +1400,11 @@ Promise.all([initDb(), initAmqp()]).then(values => {
     let tracking = req.query.tracking;
     parcelServices.selectDataItem(db, tracking).then(function (data) {
       if (!data) {
-        res.json({
+        return res.json({
           status: "error_not_found"
         });
       } else {
-        res.json({
+        return res.json({
           status: "SUCCESS",
           data: data
         });
@@ -1416,11 +1416,11 @@ Promise.all([initDb(), initAmqp()]).then(values => {
     let tracking = req.query.tracking;
     parcelServices.selectDataReceiver(db, tracking).then(function (data) {
       if (!data) {
-        res.json({
+        return res.json({
           status: "error_not_found"
         });
       } else {
-        res.json({
+        return res.json({
           status: "SUCCESS",
           data: data
         });
@@ -1440,23 +1440,18 @@ Promise.all([initDb(), initAmqp()]).then(values => {
       } else {
         if(resDelItem == null){
           return res.json({
-            status: "error_del_item",
+            status: "error_cannot_del_item",
             data: {
               id: id,
               tracking: tracking
             }
           });
         } else {
-          parcelServices.selectDataItem(db, tracking).then(function (data) {
-            if (!data) {
-              return res.json({
-                status: "error_not_found"
-              });
-            } else {
-              return res.json({
-                status: "SUCCESS",
-                data: data
-              });
+          return res.json({
+            status: "SUCCESS",
+            data: {
+              id: id,
+              tracking: tracking
             }
           });
         }
@@ -1475,22 +1470,16 @@ Promise.all([initDb(), initAmqp()]).then(values => {
       } else {
         if(resDelItemTemp == null){
           return res.json({
-            status: "error_del_item_temp",
+            status: "error_cannot_del_item_temp",
             data: {
               tracking: tracking
             }
           });
         } else {
-          parcelServices.selectDataItem(db, tracking).then(function (data) {
-            if (!data) {
-              return res.json({
-                status: "error_not_found"
-              });
-            } else {
-              return res.json({
-                status: "SUCCESS",
-                data: data
-              });
+          return res.json({
+            status: "SUCCESS",
+            data: {
+              tracking: tracking
             }
           });
         }
@@ -1510,23 +1499,18 @@ Promise.all([initDb(), initAmqp()]).then(values => {
       } else {
         if(resDelItem == null){
           return res.json({
-            status: "error_del_receiver",
+            status: "error_cannot_del_receiver",
             data: {
               id: id,
               tracking: tracking
             }
           });
         } else {
-          parcelServices.selectDataReceiver(db, tracking).then(function (data) {
-            if (!data) {
-              res.json({
-                status: "error_not_found"
-              });
-            } else {
-              res.json({
-                status: "SUCCESS",
-                data: data
-              });
+          return res.json({
+            status: "SUCCESS",
+            data: {
+              id: id,
+              tracking: tracking
             }
           });
         }
@@ -1551,16 +1535,10 @@ Promise.all([initDb(), initAmqp()]).then(values => {
             }
           });
         } else {
-          parcelServices.selectDataReceiver(db, tracking).then(function (data) {
-            if (!data) {
-              res.json({
-                status: "error_not_found"
-              });
-            } else {
-              res.json({
-                status: "SUCCESS",
-                data: data
-              });
+          return res.json({
+            status: "SUCCESS",
+            data: {
+              tracking: tracking
             }
           });
         }
